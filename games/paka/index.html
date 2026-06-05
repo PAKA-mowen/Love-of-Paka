@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>墨问羊驼知多少 · 趣味报告版</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #f1f5f9;
+            font-family: system-ui, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            padding: 2rem 1rem;
+            color: #0f172a;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        /* header 区域 */
+        .quiz-header {
+            background: linear-gradient(135deg, #2c3e66 0%, #1e2a47 100%);
+            padding: 1.5rem 2rem;
+            color: white;
+        }
+
+        .quiz-header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quiz-header p {
+            opacity: 0.85;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            padding: 0.8rem 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .progress-info {
+            font-weight: 500;
+            background: #eef2ff;
+            padding: 0.3rem 0.9rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            color: #1e40af;
+        }
+
+        .score-area {
+            background: #e6f7e6;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #2b6e3c;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: white;
+            border: none;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.85rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            border: 1px solid #cbd5e1;
+        }
+
+        button.primary {
+            background: #2c3e66;
+            border-color: #2c3e66;
+            color: white;
+            box-shadow: none;
+        }
+
+        button.primary:hover {
+            background: #1e2a47;
+            transform: translateY(-1px);
+        }
+
+        button.danger {
+            border-color: #fecaca;
+            background: #fff5f5;
+            color: #b91c1c;
+        }
+
+        button.danger:hover {
+            background: #fee2e2;
+        }
+
+        button:hover {
+            background: #f1f5f9;
+            transform: translateY(-1px);
+        }
+
+        /* 分页导航 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 1rem 2rem;
+            background: #f9fafb;
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            background: white;
+            padding: 0.4rem 1rem;
+            min-width: 70px;
+        }
+
+        .page-indicator {
+            font-weight: 500;
+            background: #e2e8f0;
+            padding: 0.3rem 1.2rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+        }
+
+        /* 问卷主体 */
+        .questions-area {
+            padding: 2rem 2rem 1.5rem 2rem;
+            background: #ffffff;
+        }
+
+        .question-card {
+            background: #ffffff;
+            border-radius: 1.2rem;
+            padding: 1.2rem 1.2rem 1rem 1.2rem;
+            margin-bottom: 1.8rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05), 0 0 0 1px #f1f1f3;
+            transition: all 0.15s;
+        }
+
+        .question-text {
+            font-weight: 600;
+            font-size: 1.05rem;
+            margin-bottom: 1rem;
+            color: #0f172a;
+            padding-right: 0.5rem;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .q-num {
+            background: #eef2ff;
+            padding: 0.2rem 0.6rem;
+            border-radius: 24px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #1e40af;
+        }
+
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem 1.5rem;
+            margin-left: 0.5rem;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            background: #f8fafc;
+            padding: 0.3rem 0.9rem 0.3rem 0.6rem;
+            border-radius: 40px;
+            transition: background 0.1s;
+            border: 1px solid #e2e8f0;
+        }
+
+        .option:hover {
+            background: #eef2ff;
+            border-color: #b9c7da;
+        }
+
+        input[type="radio"] {
+            accent-color: #2c3e66;
+            width: 1rem;
+            height: 1rem;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        label {
+            cursor: pointer;
+        }
+
+        .footer-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            padding: 0.5rem 2rem 2rem 2rem;
+        }
+
+        /* 模态框样式 */
+        .report-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0.2s, opacity 0.2s;
+        }
+
+        .report-modal.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .report-card {
+            background: linear-gradient(145deg, #fff9ef, #fff5e6);
+            max-width: 500px;
+            width: 85%;
+            border-radius: 2.5rem;
+            padding: 2rem 1.8rem;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            position: relative;
+            border: 1px solid #ffe6b3;
+            animation: floatPop 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        @keyframes floatPop {
+            0% {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .report-score {
+            font-size: 3.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #c0841d, #f59e0b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 0.5rem 0;
+        }
+
+        .report-level {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #b45309;
+            margin-top: 0.2rem;
+        }
+
+        .report-desc {
+            background: #ffffffcc;
+            padding: 1rem;
+            border-radius: 2rem;
+            margin: 1rem 0;
+            color: #3b2a1f;
+            font-size: 1rem;
+            line-height: 1.4;
+            border: 1px solid #ffdd99;
+        }
+
+        .close-report {
+            background: #f97316;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            color: white;
+            font-weight: bold;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            margin-top: 0.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .close-report:hover {
+            background: #ea580c;
+            transform: scale(0.96);
+        }
+
+        .report-emoji {
+            font-size: 3rem;
+        }
+
+        @media (max-width: 680px) {
+            .container {
+                border-radius: 1rem;
+            }
+            .quiz-header, .questions-area, .pagination {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            .options {
+                gap: 0.7rem;
+            }
+            .option {
+                font-size: 0.8rem;
+                padding: 0.2rem 0.7rem;
+            }
+            .report-card {
+                padding: 1.5rem;
+            }
+        }
+
+        .toast-msg {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f172ad9;
+            backdrop-filter: blur(8px);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            z-index: 1000;
+            pointer-events: none;
+            transition: 0.2s;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="app">
+    <div class="quiz-header">
+        <h1>🦙 墨问羊驼知多少</h1>
+        <p>关于「我」的50个灵魂拷问 · 每题2分 · 满分100分 · 提交即得玄学报告</p>
+    </div>
+    <div class="stats-row">
+        <div class="progress-info" id="answeredCountDisplay">📋 已答 0 / 50 题</div>
+        <div class="score-area" id="tempScoreDisplay">⭐ 当前未提交</div>
+        <div class="btn-group">
+            <button id="submitQuizBtn" class="primary">✅ 提交 & 获得报告</button>
+            <button id="resetQuizBtn" class="danger">🔄 重置全部</button>
+        </div>
+    </div>
+
+    <!-- 分页栏 -->
+    <div class="pagination">
+        <button id="prevPageBtn" class="page-btn">◀ 上一页</button>
+        <span id="pageIndicator" class="page-indicator">第 1 / 5 页</span>
+        <button id="nextPageBtn" class="page-btn">下一页 ▶</button>
+    </div>
+
+    <!-- 题目列表容器 -->
+    <div id="questionsContainer" class="questions-area"></div>
+
+    <div class="footer-buttons">
+        <small style="color:#64748b;">✔ 答案自动保存，刷新重进保留 · 题目/选项随机排列</small>
+    </div>
+</div>
+
+<!-- 报告弹窗模态框 -->
+<div id="reportModal" class="report-modal">
+    <div class="report-card">
+        <div class="report-emoji" id="reportEmoji">🦙</div>
+        <div class="report-score" id="reportScore">0分</div>
+        <div class="report-level" id="reportLevel">羊驼萌新</div>
+        <div class="report-desc" id="reportDesc">你的灵魂跟羊驼还有一段距离～</div>
+        <button class="close-report" id="closeReportBtn">收下报告 🎉</button>
+    </div>
+</div>
+
+<div id="toastMsg" class="toast-msg"></div>
+
+<script>
+    // --------------------------------------------------------------
+    // 1. 原始问卷数据 (基于excel内容，序号1~50)
+    // --------------------------------------------------------------
+    const RAW_QUESTIONS = [
+        { id: 1, question: "最喜欢的水果", correct: "菠萝", wrongs: ["香蕉","西瓜","樱桃","蓝莓"] },
+        { id: 2, question: "最喜欢的歌手", correct: "法老", wrongs: ["邓紫棋","蔡徐坤","薛之谦","孙燕姿"] },
+        { id: 3, question: "最喜欢的零食", correct: "菠萝包", wrongs: ["乐事薯片","黑巧克力","猴王丹","卫龙辣条"] },
+        { id: 4, question: "最喜欢的书", correct: "柯利犬拉德", wrongs: ["哈利波特","挪威的森林","请不要带着笑忏悔","高等数学"] },
+        { id: 5, question: "最喜欢的电影", correct: "爱乐之城", wrongs: ["姥姥的外孙","泰坦尼克号","你的名字","黑铁的鱼影"] },
+        { id: 6, question: "最喜欢的运动", correct: "乒乓球", wrongs: ["篮球","足球","羽毛球","台球"] },
+        { id: 7, question: "最喜欢的菜", correct: "拔丝苹果", wrongs: ["松鼠鱼","酸菜鱼","梅菜扣肉","牛肉汤"] },
+        { id: 8, question: "最喜欢的乐器", correct: "小提琴", wrongs: ["古琴","管风琴","柳笛","手笛"] },
+        { id: 9, question: "最喜欢的游戏", correct: "Minecraft", wrongs: ["王者荣耀","第五人格","刺激战场","穿越火线"] },
+        { id: 10, question: "最喜欢的季节", correct: "寒冬", wrongs: ["初春","盛夏","深秋","四季"] },
+        { id: 11, question: "最讨厌的蔬菜", correct: "芹菜", wrongs: ["蘑菇","苦瓜","香菜","冬瓜"] },
+        { id: 12, question: "小学最讨厌的学科", correct: "语文", wrongs: ["数学","英语","科学","体育"] },
+        { id: 13, question: "不想去", correct: "意大利", wrongs: ["挪威","南极","日本","英国"] },
+        { id: 14, question: "最喜欢的数字", correct: "17", wrongs: ["8","6","13","19"] },
+        { id: 15, question: "最喜欢的星空", correct: "冬季大三角", wrongs: ["夏季大钻石","秋季四边形","北斗七星","牛郎织女"] },
+        { id: 16, question: "现在最喜欢的动物", correct: "猫", wrongs: ["狗","鹦鹉","异宠","不喜欢动物"] },
+        { id: 17, question: "我的生日", correct: "1130", wrongs: ["1008","1003","0805","0306"] },
+        { id: 18, question: "墨问羊驼本义", correct: "莫问羊驼", wrongs: ["墨問羊驼","墨问羊骆","墨文羊驼","莫吻羊驼"] },
+        { id: 19, question: "我的家乡", correct: "洛阳", wrongs: ["南阳","信阳","安阳","沈阳"] },
+        { id: 20, question: "我的MBTI", correct: "INFJ", wrongs: ["INFP","ENFP","ENFJ","INTJ"] },
+        { id: 21, question: "哪一个不是我的外号", correct: "大壮", wrongs: ["猴子","羊驼","艺术家","土豆"] },
+        { id: 22, question: "最喜欢的糖果", correct: "黑糖话梅", wrongs: ["阿尔卑斯","玉米糖","喜之郎果肉果冻","可乐糖"] },
+        { id: 23, question: "我最看重朋友什么品质", correct: "真诚", wrongs: ["善良","道德","稳重","共情"] },
+        { id: 24, question: "遇到压力时我会", correct: "死倔到底", wrongs: ["直接躺平","不急不躁","没有压力","死了"] },
+        { id: 25, question: "那种场景我最不能忍受", correct: "被欺骗", wrongs: ["被限制自由","被捧杀","被侮辱","死了"] },
+        { id: 26, question: "我是", correct: "独身主义者", wrongs: ["人类中心主义者","无神论者","快乐主义者","无主义主义者"] },
+        { id: 27, question: "我心情崩溃的时候会", correct: "散步", wrongs: ["找朋友倾诉","写文章","报复性刷抖音","吃零食"] },
+        { id: 28, question: "看哪一部我没哭", correct: "寻梦环游记", wrongs: ["姥姥的外孙","爱乐之城","泰坦尼克号","情书"] },
+        { id: 29, question: "看哪一部我哭了", correct: "棋魂", wrongs: ["三生三世十里桃花","白色橄榄树","勇敢的心","喜羊羊与灰太狼"] },
+        { id: 30, question: "我的大学是", correct: "沈阳大学", wrongs: ["清华大学","北京大学","牛津大学","多伦多大学"] },
+        { id: 31, question: "我没有养过", correct: "壁虎", wrongs: ["石龙子","蛇","蝎子","巴西龟"] },
+        { id: 32, question: "我第一次坐飞机去", correct: "沈阳", wrongs: ["北京","西安","郑州","商丘"] },
+        { id: 33, question: "第一次拼好魔方用了", correct: "20min", wrongs: ["5min","10min","1min","60min"] },
+        { id: 34, question: "哪个我不晕", correct: "地铁", wrongs: ["轿车","飞机","轮船","海盗船"] },
+        { id: 35, question: "记账周期", correct: "每月", wrongs: ["每周","每天","每季","不记账"] },
+        { id: 36, question: "没玩过", correct: "黑管", wrongs: ["小提琴","色空鼓","卡祖笛","尤克里里"] },
+        { id: 37, question: "我谈过几次恋爱", correct: "1.6033", wrongs: ["0","2","7","不计其数"] },
+        { id: 38, question: "亲密关系中我最需要", correct: "安全感", wrongs: ["自由","陪伴","钱","我不需要亲密关系"] },
+        { id: 39, question: "我生气的样子", correct: "纯傻福", wrongs: ["无语","面无表情","无差别攻击","镜子"] },
+        { id: 40, question: "最伤心的日子", correct: "0807", wrongs: ["0706","0605","0403","0201"] },
+        { id: 41, question: "我的性取向", correct: "异性恋", wrongs: ["同性恋","泛性恋","无性恋","水仙"] },
+        { id: 42, question: "我最害怕", correct: "看不透", wrongs: ["黑心","高远","孤独","神秘"] },
+        { id: 43, question: "如果不考虑现实我最想成为", correct: "心理咨询师", wrongs: ["作家","艺术家","音乐节","程序员"] },
+        { id: 44, question: "我没有收集过", correct: "水笔弹簧", wrongs: ["特仑苏卡片","番茄沙司","啤酒瓶盖","石头"] },
+        { id: 45, question: "在树坑里玩的游戏叫", correct: "跳绳游戏", wrongs: ["树坑游戏","蚂蚁搬家","牛顿游戏","附魔金苹果"] },
+        { id: 46, question: "踩什么？", correct: "踩蟑螂！", wrongs: ["踩蚂蚁！","踩树叶！","踩积雪","踩光阴"] },
+        { id: 47, question: "孙悟空和师傅第一次相遇在", correct: "猎人游戏", wrongs: ["西游记","农","图书馆","狼堡"] },
+        { id: 48, question: "石榴树代表", correct: "亲情", wrongs: ["爱情","友情","石榴树","童年"] },
+        { id: 49, question: "我的老婆是", correct: "小鸟游六花", wrongs: ["甲","乙","丙","丁"] },
+        { id: 50, question: "吃辣", correct: "之后喝奶制品", wrongs: ["的时候喝冰水","的时候喝热水","之前吃水果","我不吃辣椒"] }
+    ];
+
+    // ---------- 全局变量 ----------
+    let shuffledQuestions = [];        
+    let currentPage = 0;              
+    const PAGE_SIZE = 10;
+    let totalPages = 5;               
+    let userAnswers = {};             
+
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function generateShuffledOptions(questionObj) {
+        let allOpts = [questionObj.correct, ...questionObj.wrongs];
+        return shuffleArray([...allOpts]);
+    }
+
+    function initShuffledQuestions(resetAnswers = true) {
+        let cloned = RAW_QUESTIONS.map(q => ({
+            id: q.id,
+            question: q.question,
+            correct: q.correct,
+            wrongs: [...q.wrongs]
+        }));
+        let shuffledQ = shuffleArray([...cloned]);
+        shuffledQ = shuffledQ.map(q => ({
+            ...q,
+            shuffledOptions: generateShuffledOptions(q)
+        }));
+        return shuffledQ;
+    }
+
+    function persistAnswers() {
+        localStorage.setItem('alpaca_quiz_answers', JSON.stringify(userAnswers));
+    }
+
+    function resetAndReloadState(resetUserAnswers = false) {
+        if (resetUserAnswers) {
+            userAnswers = {};
+            localStorage.removeItem('alpaca_quiz_answers');
+        } else {
+            const stored = localStorage.getItem('alpaca_quiz_answers');
+            if (stored) {
+                try {
+                    userAnswers = JSON.parse(stored);
+                } catch(e) { userAnswers = {}; }
+            } else {
+                userAnswers = {};
+            }
+        }
+        shuffledQuestions = initShuffledQuestions(false);
+        currentPage = 0;
+        renderCurrentPage();
+        updateStatsAndUI();
+    }
+
+    function updateAnswer(questionId, selectedText) {
+        if (!selectedText || selectedText.trim() === "") return;
+        userAnswers[questionId] = selectedText;
+        persistAnswers();
+        updateStatsAndUI();    
+    }
+
+    function getCurrentPageQuestions() {
+        const start = currentPage * PAGE_SIZE;
+        const end = start + PAGE_SIZE;
+        return shuffledQuestions.slice(start, end);
+    }
+
+    function renderCurrentPage() {
+        const container = document.getElementById('questionsContainer');
+        if (!container) return;
+        const pageQuestions = getCurrentPageQuestions();
+        if (!pageQuestions.length && shuffledQuestions.length) {
+            if (currentPage >= totalPages) currentPage = totalPages - 1;
+            return renderCurrentPage();
+        }
+
+        let html = '';
+        pageQuestions.forEach((q, idx) => {
+            const globalIndex = currentPage * PAGE_SIZE + idx + 1;
+            const questionId = q.id;
+            const selectedVal = userAnswers[questionId] || '';
+            const options = q.shuffledOptions;
+            let optionsHtml = '';
+            options.forEach(opt => {
+                const checkedAttr = (selectedVal === opt) ? 'checked' : '';
+                const safeOpt = escapeHtml(opt);
+                const radioId = `q_${questionId}_${safeOpt.replace(/\s/g, '')}_${Math.random()}`;
+                optionsHtml += `
+                    <div class="option">
+                        <input type="radio" name="q_${questionId}" value="${safeOpt}" id="${radioId}" ${checkedAttr}>
+                        <label for="${radioId}">${safeOpt}</label>
+                    </div>
+                `;
+            });
+
+            html += `
+                <div class="question-card" data-qid="${questionId}">
+                    <div class="question-text">
+                        <span class="q-num">${globalIndex}</span>
+                        <span>${escapeHtml(q.question)}</span>
+                    </div>
+                    <div class="options">
+                        ${optionsHtml}
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+        container.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    const nameAttr = e.target.getAttribute('name');
+                    const questionId = parseInt(nameAttr.split('_')[1]);
+                    const selectedText = e.target.value;
+                    updateAnswer(questionId, selectedText);
+                    updateStatsAndUI();
+                }
+            });
+        });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function updateStatsAndUI() {
+        const total = shuffledQuestions.length;
+        let answeredCount = 0;
+        for (let q of shuffledQuestions) {
+            if (userAnswers[q.id] && userAnswers[q.id] !== '') answeredCount++;
+        }
+        const answeredSpan = document.getElementById('answeredCountDisplay');
+        if (answeredSpan) answeredSpan.innerText = `📋 已答 ${answeredCount} / ${total} 题`;
+        const scoreSpan = document.getElementById('tempScoreDisplay');
+        if (scoreSpan) scoreSpan.innerHTML = `⭐ 已选 ${answeredCount} 题 · 待揭晓`;
+        const pageIndicator = document.getElementById('pageIndicator');
+        if (pageIndicator) pageIndicator.innerText = `第 ${currentPage+1} / ${totalPages} 页`;
+        const prevBtn = document.getElementById('prevPageBtn');
+        const nextBtn = document.getElementById('nextPageBtn');
+        if (prevBtn) prevBtn.disabled = (currentPage === 0);
+        if (nextBtn) nextBtn.disabled = (currentPage === totalPages-1);
+    }
+
+    function goToPage(page) {
+        if (page < 0) page = 0;
+        if (page >= totalPages) page = totalPages - 1;
+        if (page === currentPage) return;
+        currentPage = page;
+        renderCurrentPage();
+        updateStatsAndUI();
+        window.scrollTo({ top: 180, behavior: 'smooth' });
+    }
+
+    // 等级报告生成器 (抽象欢乐向)
+    function getScoreReport(score) {
+        // 特殊处理0分和100分
+        if (score === 0) {
+            return {
+                level: "💀 虚空羊驼 · 反向圣者",
+                emoji: "🌀💀",
+                desc: "0分？！你完美躲过了所有正确答案，这种操作堪称玄学黑洞。建议购买彩票前先找羊驼开光。"
+            };
+        }
+        if (score === 100) {
+            return {
+                level: "🏆 羊驼之魂 · 完全一致体",
+                emoji: "🦙✨🏆",
+                desc: "满分！你就是行走的「墨问羊驼」百科全书，本尊见了都要递奶茶。请收下这份云端认证！"
+            };
+        }
+        // 每10分一个区间 1-10,11-20 ... 91-99
+        const tier = Math.ceil(score / 10);  // 1-10分->1, 11-20->2, ..., 91-99->10
+        const tiersMap = {
+            1: { level: "🌱 萌芽羊驼 · 刚睡醒", emoji: "🌱🦙", desc: "对羊驼的了解还在襁褓中，再补补课，下次争取脱离地面~" },
+            2: { level: "📖 学徒羊驼 · 略懂墨汁", emoji: "📖🐫", desc: "略懂皮毛，方向对了但没完全对，继续翻翻羊驼秘籍吧！" },
+            3: { level: "🔍 观察者羊驼 · 暗中窥探", emoji: "👀🦙", desc: "你开始触及羊驼宇宙的冰山一角，保持好奇，答案在风中飘。" },
+            4: { level: "🤔 哲思羊驼 · 半梦半醒", emoji: "🤔💭", desc: "理性与直觉交织，你逐渐领悟墨问的真意，就差一阵风。" },
+            5: { level: "📝 墨问学徒 · 执笔羊驼", emoji: "✍️🦙", desc: "笔尖沙沙作响，你答对了一半，羊驼星人向你投来赞许的目光。" },
+            6: { level: "🦙 标准羊驼 · 社区熟脸", emoji: "🦙⭐", desc: "合格羊驼成员，聚会时能一起吐槽菠萝包和法老，融入感+1" },
+            7: { level: "🎓 资深羊驼 · 绒毛带光", emoji: "🎓✨", desc: "资深身份已经藏不住了，关于羊驼的冷热知识你都拿捏。" },
+            8: { level: "⚡ 灵光羊驼 · 脑电波同步", emoji: "⚡🧠", desc: "高维链接达成！你的选择与羊驼本心高度重合，就差一点共鸣。" },
+            9: { level: "🧠 半仙羊驼 · 云端漫步", emoji: "☁️🦙", desc: "差几步满分，你几乎听见了羊驼在耳边的低语，继续修行！" },
+            10: { level: "✨ 准神羊驼 · 半步真我", emoji: "🌟🔮", desc: "91-99分！离完全体只差一层窗户纸，再踩一次蟑螂或许就顿悟了。" }
+        };
+        const info = tiersMap[tier] || tiersMap[5];
+        return {
+            level: info.level,
+            emoji: info.emoji,
+            desc: info.desc
+        };
+    }
+
+    // 提交计分并显示报告 (不显示具体答案，只展示总分+等级)
+    function computeAndShowReport() {
+        let totalScore = 0;
+        for (let q of shuffledQuestions) {
+            const selected = userAnswers[q.id];
+            if (selected && selected === q.correct) {
+                totalScore += 2;
+            }
+        }
+        // 显示toast提示分数
+        showToast(`✨ 得分：${totalScore} 分，打开羊驼报告卷轴 ✨`, 2000);
+        
+        // 生成报告内容
+        const report = getScoreReport(totalScore);
+        const modal = document.getElementById('reportModal');
+        const emojiSpan = document.getElementById('reportEmoji');
+        const scoreSpan = document.getElementById('reportScore');
+        const levelSpan = document.getElementById('reportLevel');
+        const descSpan = document.getElementById('reportDesc');
+        
+        if (emojiSpan) emojiSpan.innerHTML = report.emoji;
+        if (scoreSpan) scoreSpan.innerHTML = `${totalScore} 分`;
+        if (levelSpan) levelSpan.innerHTML = report.level;
+        if (descSpan) descSpan.innerHTML = report.desc;
+        
+        if (modal) modal.classList.add('active');
+        
+        // 同时在顶部展示得分（但保留报告优先）
+        const tempDiv = document.getElementById('tempScoreDisplay');
+        if (tempDiv) tempDiv.innerHTML = `🎯 最终得分: ${totalScore}  · 报告已出`;
+    }
+
+    function showToast(msg, duration = 2500) {
+        const toast = document.getElementById('toastMsg');
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        setTimeout(() => {
+            toast.style.opacity = '0';
+        }, duration);
+    }
+
+    function resetFullQuiz() {
+        if (confirm('⚠️ 重置将清空所有已选答案，并且题目顺序/选项顺序会重新随机。确定重置吗？')) {
+            localStorage.removeItem('alpaca_quiz_answers');
+            userAnswers = {};
+            shuffledQuestions = initShuffledQuestions(false);
+            currentPage = 0;
+            renderCurrentPage();
+            updateStatsAndUI();
+            showToast('已重置，题目&选项已刷新，答案已清空', 1800);
+            // 同时重置顶部显示分数栏
+            const scoreSpan = document.getElementById('tempScoreDisplay');
+            if (scoreSpan) scoreSpan.innerHTML = `⭐ 已选 0 题 · 待揭晓`;
+        }
+    }
+
+    function closeReportModal() {
+        const modal = document.getElementById('reportModal');
+        if (modal) modal.classList.remove('active');
+    }
+
+    function init() {
+        const storedAnswers = localStorage.getItem('alpaca_quiz_answers');
+        if (storedAnswers) {
+            try {
+                userAnswers = JSON.parse(storedAnswers);
+            } catch(e) { userAnswers = {}; }
+        } else {
+            userAnswers = {};
+        }
+        shuffledQuestions = initShuffledQuestions(false);
+        totalPages = Math.ceil(shuffledQuestions.length / PAGE_SIZE);
+        currentPage = 0;
+        renderCurrentPage();
+        updateStatsAndUI();
+
+        document.getElementById('prevPageBtn')?.addEventListener('click', () => goToPage(currentPage-1));
+        document.getElementById('nextPageBtn')?.addEventListener('click', () => goToPage(currentPage+1));
+        document.getElementById('submitQuizBtn')?.addEventListener('click', computeAndShowReport);
+        document.getElementById('resetQuizBtn')?.addEventListener('click', resetFullQuiz);
+        document.getElementById('closeReportBtn')?.addEventListener('click', closeReportModal);
+        // 点击模态背景也可以关闭
+        const modalBg = document.getElementById('reportModal');
+        modalBg?.addEventListener('click', (e) => {
+            if (e.target === modalBg) closeReportModal();
+        });
+    }
+
+    init();
+</script>
+</body>
+</html>
