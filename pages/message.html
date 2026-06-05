@@ -79,6 +79,58 @@
             color: #8b7b6b;
             font-style: italic;
         }
+
+        /* 管理员入口 - 右上角悬浮 */
+        .admin-corner {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            background: rgba(255,255,255,0.8);
+            border: 1px solid #d4cdb8;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+            .icon-btn:hover {
+                background: white;
+            }
+
+        .admin-login-box {
+            background: white;
+            border: 1px solid #d4cdb8;
+            border-radius: 12px;
+            padding: 0.8rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+            .admin-login-box input {
+                width: 120px;
+                margin-bottom: 0;
+            }
+
+            .admin-login-box button {
+                margin-bottom: 0;
+            }
     </style>
 </head>
 <body>
@@ -108,11 +160,14 @@
                 </div>
             </div>
 
-            <!-- 管理员模式（站长查看私密留言） -->
-            <div class="admin-toggle">
-                <input type="text" id="adminKeyInput" placeholder="管理员密钥" style="width:150px;" />
-                <button onclick="toggleAdmin()">🔐 管理员模式</button>
-                <span id="adminStatus" style="margin-left:0.5rem; font-size:0.9rem; color:#3a4a4a;"></span>
+            <!-- 管理员入口（右上角悬浮） -->
+            <div class="admin-corner">
+                <button id="adminToggleBtn" class="icon-btn" title="管理员">🔒</button>
+                <div id="adminLoginBox" class="admin-login-box" style="display:none;">
+                    <input type="text" id="adminKeyInput" placeholder="管理员密码" />
+                    <button onclick="loginAsAdmin()">验证</button>
+                    <span id="adminStatus" style="margin-left:0.5rem; font-size:0.9rem;"></span>
+                </div>
             </div>
         </div>
 
