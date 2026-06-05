@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>电子电路基础 · 知识体系</title>
+    <style>
+        :root {
+            --bg: #F5F0E1;
+            --surface: #faf7ef;
+            --primary: #3a4a4a;
+            --primary-light: #5a6a6a;
+            --accent: #6b8f7e;
+            --accent-warm: #c4946b;
+            --text: #3a3a3a;
+            --text-light: #6a6a6a;
+            --border: #d5cfc0;
+            --hover: #e8e2d2;
+            --shadow: 0 4px 16px rgba(58, 74, 74, 0.10);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans', system-ui, sans-serif;
+            --mono: 'SF Mono', 'Fira Code', 'Consolas', 'Courier New', monospace;
+        }
+        * {
+            margin: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        .app-container {
+            max-width: 1300px;
+            width: 100%;
+            background: var(--surface);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border);
+        }
+
+        /* 顶部导航 */
+        .top-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 12px 20px;
+            background: var(--primary);
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-radius: 24px 24px 0 0;
+        }
+        .top-nav .logo {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #F5F0E1;
+            margin-right: 18px;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+        .top-nav button {
+            background: transparent;
+            border: 1px solid transparent;
+            color: #d5cfc0;
+            padding: 9px 16px;
+            border-radius: 24px;
+            cursor: pointer;
+            font-size: 0.92rem;
+            font-weight: 500;
+            transition: var(--transition);
+            white-space: nowrap;
+            font-family: var(--font);
+            letter-spacing: 0.4px;
+        }
+        .top-nav button:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #F5F0E1;
+            border-color: rgba(245, 240, 225, 0.25);
+        }
+        .top-nav button.active-tab {
+            background: #F5F0E1;
+            color: #3a4a4a;
+            font-weight: 700;
+            border-color: #F5F0E1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 主内容区 */
+        .main-content {
+            padding: 20px 24px 28px;
+            flex: 1;
+            overflow-y: auto;
+            max-height: 78vh;
+            transition: var(--transition);
+        }
+        .tab-panel {
+            display: none;
+            animation: fadeSlide 0.45s ease;
+        }
+        .tab-panel.active {
+            display: block;
+        }
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 思维导图 */
+        .mindmap-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .mindmap-root {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-align: center;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #e8e2d2 0%, #f5f0e1 60%);
+            border-radius: 40px;
+            margin: 0 auto 6px;
+            letter-spacing: 1.5px;
+            border: 2px solid #c4bfad;
+            box-shadow: 0 2px 8px rgba(58, 74, 74, 0.06);
+            cursor: default;
+            user-select: none;
+        }
+        .tree-level {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            margin: 4px 0;
+            padding: 0 8px;
+        }
+        .tree-node {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            min-width: 130px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--primary);
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+            user-select: none;
+        }
+        .tree-node:hover {
+            background: var(--hover);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(58, 74, 74, 0.12);
+            z-index: 5;
+        }
+        .tree-node.has-children::after {
+            content: '▸';
+            margin-left: 8px;
+            font-size: 0.7rem;
+            color: var(--accent);
+            transition: transform 0.3s;
+            display: inline-block;
+        }
+        .tree-node.expanded::after {
+            transform: rotate(90deg);
+        }
+        .tree-node .tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: #F5F0E1;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 400;
+            white-space: normal;
+            width: 240px;
+            text-align: left;
+            z-index: 20;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+            pointer-events: none;
+            letter-spacing: 0.3px;
+            line-height: 1.5;
+        }
+        .tree-node .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: var(--primary);
+        }
+        .tree-node:hover .tooltip {
+            display: block;
+        }
+        .children-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 6px;
+            width: 100%;
+        }
+        .children-hidden {
+            display: none;
+        }
+        .jump-link {
+            color: var(--accent-warm);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: underline;
+            margin-left: 4px;
+            transition: var(--transition);
+        }
+        .jump-link:hover {
+            color: #a07040;
+        }
+        .link-hint {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            font-style: italic;
+            margin-top: 2px;
+        }
+
+        /* 公式页 */
+        .formula-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(370px, 1fr));
+            gap: 18px;
+        }
+        .formula-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px 18px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            transition: var(--transition);
+            border-left: 4px solid var(--accent);
+        }
+        .formula-card:hover {
+            box-shadow: 0 8px 24px rgba(58, 74, 74, 0.10);
+            transform: translateY(-1px);
+        }
+        .formula-card h4 {
+            color: var(--primary);
+            margin: 0 0 8px;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
+        .formula-card .math-block {
+            font-family: var(--mono);
+            background: #faf8f2;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            color: #2a3a3a;
+            letter-spacing: 0.3px;
+            line-height: 1.7;
+            border: 1px solid #e8e2d2;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .formula-section-title {
+            grid-column: 1 / -1;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--primary);
+            margin-top: 8px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent);
+            letter-spacing: 1px;
+        }
+
+        /* 可视化页 */
+        .viz-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .viz-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 14px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            text-align: center;
+        }
+        .viz-card h4 {
+            color: var(--primary);
+            margin: 0 0 8px;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+        }
+        .viz-card canvas {
+            border-radius: 10px;
+            background: #1a1e24;
+            display: block;
+        }
+        .viz-card .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 8px;
+            align-items: center;
+        }
+        .viz-card input[type="range"] {
+            accent-color: var(--accent);
+            width: 90px;
+        }
+        .viz-card label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+        .viz-card .val {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.8rem;
+            min-width: 44px;
+            text-align: center;
+        }
+
+        /* 通用 */
+        @media (max-width: 768px) {
+            .top-nav {
+                gap: 2px;
+                padding: 8px 10px;
+            }
+            .top-nav button {
+                padding: 7px 11px;
+                font-size: 0.78rem;
+            }
+            .formula-grid {
+                grid-template-columns: 1fr;
+            }
+            .tree-node {
+                min-width: 90px;
+                font-size: 0.78rem;
+                padding: 7px 10px;
+            }
+            .main-content {
+                padding: 12px;
+                max-height: 70vh;
+            }
+            .viz-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- 顶部导航 -->
+        <nav class="top-nav" id="topNav">
+            <span class="logo">⚡ 电路基础</span>
+            <button class="active-tab" data-tab="mindmap">🏠 知识导图</button>
+            <button data-tab="formulas">📐 公式大全</button>
+            <button data-tab="viz-phasor">🔄 相量图</button>
+            <button data-tab="viz-3phase">⚡ 三相电</button>
+            <button data-tab="viz-rc">🔋 RC暂态</button>
+            <button data-tab="viz-resonance">📈 谐振曲线</button>
+        </nav>
+
+        <!-- 主内容 -->
+        <div class="main-content" id="mainContent">
+
+            <!-- ========== 页面1：思维导图 ========== -->
+            <div class="tab-panel active" id="panel-mindmap">
+                <div class="mindmap-wrapper" id="mindmapRoot"></div>
+            </div>
+
+            <!-- ========== 页面2：公式大全 ========== -->
+            <div class="tab-panel" id="panel-formulas">
+                <div class="formula-grid" id="formulaGrid"></div>
+            </div>
+
+            <!-- ========== 页面3：相量可视化 ========== -->
+            <div class="tab-panel" id="panel-viz-phasor">
+                <div class="viz-grid">
+                    <div class="viz-card" id="vizPhasorCard">
+                        <h4>📐 相量旋转图 · 瞬时值 = Im[复数表示]</h4>
+                        <canvas id="phasorCanvas" width="420" height="400"></canvas>
+                        <div class="controls">
+                            <label>有效值I</label><input type="range" id="phasorAmp" min="0.5" max="3" value="2" step="0.1"><span class="val" id="phasorAmpVal">2.0A</span>
+                            <label>频率f</label><input type="range" id="phasorFreq" min="0.2" max="1.5" value="0.5" step="0.1"><span class="val" id="phasorFreqVal">0.5Hz</span>
+                            <label>初相φ</label><input type="range" id="phasorPhi" min="-180" max="180" value="30" step="1"><span class="val" id="phasorPhiVal">30°</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== 页面4：三相电可视化 ========== -->
+            <div class="tab-panel" id="panel-viz-3phase">
+                <div class="viz-grid">
+                    <div class="viz-card" id="viz3PhaseCard">
+                        <h4>⚡ 对称三相电波形与相量</h4>
+                        <canvas id="threePhaseCanvas" width="460" height="380"></canvas>
+                        <div class="controls">
+                            <label>相电压Up</label><input type="range" id="tpAmp" min="0.5" max="3" value="2" step="0.1"><span class="val" id="tpAmpVal">2.0V</span>
+                            <label>频率f</label><input type="range" id="tpFreq" min="0.2" max="1.5" value="0.5" step="0.1"><span class="val" id="tpFreqVal">0.5Hz</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== 页面5：RC暂态可视化 ========== -->
+            <div class="tab-panel" id="panel-viz-rc">
+                <div class="viz-grid">
+                    <div class="viz-card" id="vizRCCard">
+                        <h4>🔋 RC充电曲线 · v(t) = Vs(1−e^(−t/τ))</h4>
+                        <canvas id="rcCanvas" width="460" height="360"></canvas>
+                        <div class="controls">
+                            <label>Vs</label><input type="range" id="rcVs" min="1" max="5" value="3" step="0.5"><span class="val" id="rcVsVal">3V</span>
+                            <label>R</label><input type="range" id="rcR" min="1" max="20" value="5" step="0.5"><span class="val" id="rcRVal">5kΩ</span>
+                            <label>C</label><input type="range" id="rcC" min="10" max="200" value="50" step="10"><span class="val" id="rcCVal">50µF</span>
+                            <button id="rcReset" style="padding:6px 14px;border-radius:20px;border:1px solid var(--accent);background:var(--surface);cursor:pointer;font-family:var(--font);color:var(--primary);">↺ 重新充电</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== 页面6：谐振曲线可视化 ========== -->
+            <div class="tab-panel" id="panel-viz-resonance">
+                <div class="viz-grid">
+                    <div class="viz-card" id="vizResonanceCard">
+                        <h4>📈 串联RLC谐振 · 电流随频率变化</h4>
+                        <canvas id="resonanceCanvas" width="460" height="370"></canvas>
+                        <div class="controls">
+                            <label>R</label><input type="range" id="resR" min="1" max="30" value="5" step="1"><span class="val" id="resRVal">5Ω</span>
+                            <label>L</label><input type="range" id="resL" min="1" max="20" value="5" step="0.5"><span class="val" id="resLVal">5mH</span>
+                            <label>C</label><input type="range" id="resC" min="1" max="40" value="8" step="0.5"><span class="val" id="resCVal">8µF</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ============ 标签页切换 ============
+            const tabButtons = document.querySelectorAll('.top-nav button[data-tab]');
+            const panels = document.querySelectorAll('.tab-panel');
+            const mainContent = document.getElementById('mainContent');
+
+            function switchTab(tabName) {
+                tabButtons.forEach(b => b.classList.remove('active-tab'));
+                panels.forEach(p => p.classList.remove('active'));
+                const targetPanel = document.getElementById('panel-' + tabName);
+                const targetBtn = document.querySelector(`[data-tab="${tabName}"]`);
+                if (targetPanel) targetPanel.classList.add('active');
+                if (targetBtn) targetBtn.classList.add('active-tab');
+                mainContent.scrollTop = 0;
+                // 如果切换到可视化页面，初始化对应的动画
+                if (tabName === 'viz-phasor') startPhasorAnim();
+                if (tabName === 'viz-3phase') start3PhaseAnim();
+                if (tabName === 'viz-rc') drawRCCurve();
+                if (tabName === 'viz-resonance') drawResonanceCurve();
+            }
+
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            });
+
+            // 暴露切换函数到全局
+            window.switchTab = switchTab;
+
+            // ============ 思维导图数据 ============
+            const mindmapData = {
+                name: '电子电路基础 · 知识体系',
+                children: [{
+                    name: '直流电路基础',
+                    tooltip: '基尔霍夫定律、等效变换、节点/网孔法、叠加定理、戴维南/诺顿定理、最大功率传输定理',
+                    jumpTab: null,
+                    children: [
+                        { name: '欧姆定律', tooltip: 'V = I·R，定义电阻两端电压与电流的线性关系', jumpTab: null },
+                        { name: 'KCL & KVL', tooltip: '基尔霍夫电流定律∑I=0；电压定律∑V=0，是电路拓扑分析基石',
+                            jumpTab: null },
+                        { name: '等效变换', tooltip: '串联/并联化简、Y-Δ变换、电源等效变换', jumpTab: null },
+                        { name: '节点法/网孔法', tooltip: '系统化求解复杂电路的标准方法', jumpTab: null },
+                        { name: '叠加定理', tooltip: '线性电路中各独立源单独作用时响应的代数和', jumpTab: null },
+                        { name: '戴维南/诺顿', tooltip: '将复杂二端网络等效为电压源串电阻(戴维南)或电流源并电阻(诺顿)',
+                            jumpTab: null },
+                        { name: '最大功率传输', tooltip: '负载电阻等于等效内阻时获得最大功率 Pmax=Vth²/(4Rth)',
+                        jumpTab: null },
+                    ]
+                }, {
+                    name: '正弦交流稳态',
+                    tooltip: '相量法核心章节：用复数表示正弦量，将微积分转化为代数运算',
+                    jumpTab: 'viz-phasor',
+                    children: [
+                        { name: '正弦量三要素', tooltip: '幅值(有效值)、角频率ω、初相φ', jumpTab: null },
+                        { name: '相量表示法', tooltip: 'İ = I∠φ，复数常数携带幅度与相位信息，≠瞬时值',
+                            jumpTab: 'viz-phasor' },
+                        { name: '复阻抗Z', tooltip: 'Z=R+jX，统一R/L/C伏安关系为Û=Z·İ', jumpTab: null },
+                        { name: 'RLC伏安关系', tooltip: '电阻Û=Rİ(同相)；电感Û=jωLİ(电压超前90°)；电容Û=İ/(jωC)(电压滞后90°)',
+                            jumpTab: null },
+                        { name: '功率体系', tooltip: '有功P=UIcosφ、无功Q=UIsinφ、视在S=UI、复功率Š=Ûİ*=P+jQ',
+                            jumpTab: null },
+                        { name: '功率三角形', tooltip: 'S²=P²+Q²，与阻抗三角形、电压三角形相似', jumpTab: null },
+                        { name: '谐振', tooltip: 'ω₀=1/√(LC)，串联谐振阻抗最小电流最大，并联谐振阻抗最大',
+                            jumpTab: 'viz-resonance' },
+                        { name: '三相电路', tooltip: '对称三相电源相位互差120°，Y接U_L=√3U_p，Δ接I_L=√3I_p',
+                            jumpTab: 'viz-3phase' },
+                    ]
+                }, {
+                    name: '动态电路·暂态',
+                    tooltip: '电容电感储能元件的充放电过程，一阶/二阶电路的时域响应',
+                    jumpTab: 'viz-rc',
+                    children: [
+                        { name: '一阶RC电路', tooltip: '时间常数τ=RC，充电v(t)=Vs(1-e^(-t/τ))，放电v(t)=V₀e^(-t/τ)',
+                            jumpTab: 'viz-rc' },
+                        { name: '一阶RL电路', tooltip: '时间常数τ=L/R，电流响应类似RC但变量为电流', jumpTab: null },
+                        { name: '三要素法', tooltip: 'f(t)=f(∞)+[f(0⁺)-f(∞)]e^(-t/τ)，统一求解一阶电路',
+                        jumpTab: null },
+                        { name: '二阶RLC', tooltip: '特征方程s²+2αs+ω₀²=0，过阻尼/临界/欠阻尼三种响应',
+                        jumpTab: null },
+                        { name: '拉普拉斯变换', tooltip: '将微分方程转化为代数方程，s域分析是频域分析的推广',
+                        jumpTab: null },
+                    ]
+                }, {
+                    name: '半导体器件',
+                    tooltip: '二极管、BJT、MOSFET的原理、特性曲线与模型',
+                    jumpTab: null,
+                    children: [
+                        { name: 'PN结与二极管', tooltip: '单向导电性，伏安特性i=I_s(e^(v/nV_T)-1)', jumpTab: null },
+                        { name: 'BJT三极管', tooltip: '电流控制型器件，i_C=β·i_B，三种工作区：截止/放大/饱和',
+                        jumpTab: null },
+                        { name: 'MOSFET', tooltip: '电压控制型器件，增强型/耗尽型，饱和区i_D=(k/2)(v_GS-V_th)²',
+                            jumpTab: null },
+                    ]
+                }, {
+                    name: '放大电路',
+                    tooltip: '单管放大器组态、差分放大、频率响应与反馈',
+                    jumpTab: null,
+                    children: [
+                        { name: '共射/共源放大', tooltip: '电压增益大，输入阻抗中等，反相放大', jumpTab: null },
+                        { name: '共集/共漏放大', tooltip: '电压跟随器，高输入阻抗低输出阻抗，同相放大≈1', jumpTab: null },
+                        { name: '共基/共栅放大', tooltip: '低输入阻抗，高频特性好，常用于高频放大', jumpTab: null },
+                        { name: '差分放大对', tooltip: '抑制共模信号放大差模信号，是运放输入级基础', jumpTab: null },
+                        { name: '频率响应', tooltip: '增益随频率变化，-3dB带宽，密勒效应影响高频特性', jumpTab: null },
+                    ]
+                }, {
+                    name: '运算放大器',
+                    tooltip: '理想运放特性：虚短(v⁺≈v⁻)、虚断(i⁺=i⁻=0)，线性与非线性应用',
+                    jumpTab: null,
+                    children: [
+                        { name: '反相放大', tooltip: 'Av=−Rf/Ri，输入阻抗=Ri', jumpTab: null },
+                        { name: '同相放大', tooltip: 'Av=1+Rf/Ri，输入阻抗极大', jumpTab: null },
+                        { name: '电压跟随器', tooltip: 'Av=1，100%负反馈，缓冲隔离', jumpTab: null },
+                        { name: '加法器/减法器', tooltip: '多输入加权求和，减法器为差动放大结构', jumpTab: null },
+                        { name: '积分器/微分器', tooltip: 'v_out=−(1/RC)∫v_in dt；微分器v_out=−RC·dv_in/dt',
+                            jumpTab: null },
+                        { name: '有源滤波器', tooltip: '低通/高通/带通/带阻，运放+RC网络实现', jumpTab: null },
+                    ]
+                }, {
+                    name: '数字电路基础',
+                    tooltip: '逻辑门、布尔代数、组合逻辑与时序逻辑基础',
+                    jumpTab: null,
+                    children: [
+                        { name: '基本逻辑门', tooltip: 'AND/OR/NOT/NAND/NOR/XOR，真值表描述功能',
+                        jumpTab: null },
+                        { name: '布尔代数', tooltip: '交换律、结合律、分配律、德摩根定理', jumpTab: null },
+                        { name: '组合逻辑', tooltip: '输出仅取决于当前输入：编码器/译码器/多路复用器',
+                        jumpTab: null },
+                        { name: '时序逻辑', tooltip: '输出依赖历史状态：锁存器/触发器/寄存器/计数器',
+                        jumpTab: null },
+                    ]
+                }, {
+                    name: '电源电路',
+                    tooltip: '将交流电转换为稳定直流电的技术',
+                    jumpTab: null,
+                    children: [
+                        { name: '整流电路', tooltip: '半波/全波/桥式整流，将交流转为脉动直流', jumpTab: null },
+                        { name: '滤波电路', tooltip: '电容滤波平滑脉动，减小纹波电压', jumpTab: null },
+                        { name: '稳压电路', tooltip: '齐纳二极管稳压、线性稳压器、开关稳压器', jumpTab: null },
+                    ]
+                }]
+            };
+
+            function buildMindmapTree(container, data, level = 0) {
+                const levelDiv = document.createElement('div');
+                levelDiv.className = 'tree-level';
+                levelDiv.style.marginLeft = level > 0 ? '0px' : '0px';
+
+                if (level === 0) {
+                    const rootEl = document.createElement('div');
+                    rootEl.className = 'mindmap-root';
+                    rootEl.textContent = data.name;
+                    container.appendChild(rootEl);
+                    const childContainer = document.createElement('div');
+                    childContainer.className = 'tree-level';
+                    childContainer.style.flexWrap = 'wrap';
+                    childContainer.style.justifyContent = 'center';
+                    data.children.forEach(ch => buildNodeWithChildren(childContainer, ch, level + 1));
+                    container.appendChild(childContainer);
+                } else {
+                    data.children.forEach(ch => buildNodeWithChildren(levelDiv, ch, level + 1));
+                    container.appendChild(levelDiv);
+                }
+            }
+
+            function buildNodeWithChildren(container, data, level) {
+                const wrapper = document.createElement('div');
+                wrapper.style.display = 'flex';
+                wrapper.style.flexDirection = 'column';
+                wrapper.style.alignItems = 'center';
+                wrapper.style.gap = '4px';
+
+                const node = document.createElement('div');
+                node.className = 'tree-node';
+                if (data.children && data.children.length > 0) {
+                    node.classList.add('has-children');
+                }
+                node.textContent = data.name;
+
+                // 悬停提示
+                if (data.tooltip) {
+                    const tip = document.createElement('span');
+                    tip.className = 'tooltip';
+                    tip.textContent = data.tooltip;
+                    node.appendChild(tip);
+                }
+
+                // 如果有跳转目标，添加跳转提示
+                if (data.jumpTab) {
+                    const linkHint = document.createElement('span');
+                    linkHint.className = 'link-hint';
+                    linkHint.textContent = '🔗 点击可视化';
+                    linkHint.style.display = 'block';
+                    linkHint.style.fontSize = '0.65rem';
+                    linkHint.style.color = '#c4946b';
+                    node.appendChild(linkHint);
+                    node.style.cursor = 'pointer';
+                    node.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (data.jumpTab) switchTab(data.jumpTab);
+                    });
+                }
+
+                // 子节点容器
+                const childrenContainer = document.createElement('div');
+                childrenContainer.className = 'children-container children-hidden';
+                if (data.children && data.children.length > 0) {
+                    data.children.forEach(ch => {
+                        const childWrapper = document.createElement('div');
+                        childWrapper.style.display = 'flex';
+                        childWrapper.style.flexDirection = 'column';
+                        childWrapper.style.alignItems = 'center';
+                        const childNode = document.createElement('div');
+                        childNode.className = 'tree-node';
+                        childNode.textContent = ch.name;
+                        if (ch.tooltip) {
+                            const ctip = document.createElement('span');
+                            ctip.className = 'tooltip';
+                            ctip.textContent = ch.tooltip;
+                            childNode.appendChild(ctip);
+                        }
+                        if (ch.jumpTab) {
+                            const clh = document.createElement('span');
+                            clh.className = 'link-hint';
+                            clh.textContent = '🔗 可视化';
+                            clh.style.display = 'block';
+                            clh.style.fontSize = '0.6rem';
+                            clh.style.color = '#c4946b';
+                            childNode.appendChild(clh);
+                            childNode.style.cursor = 'pointer';
+                            childNode.addEventListener('click', (ev) => {
+                                ev.stopPropagation();
+                                if (ch.jumpTab) switchTab(ch.jumpTab);
+                            });
+                        }
+                        childWrapper.appendChild(childNode);
+                        childrenContainer.appendChild(childWrapper);
+                    });
+                }
+
+                // 点击展开/折叠
+                node.addEventListener('click', function(e) {
+                    if (data.jumpTab && !data.children) {
+                        switchTab(data.jumpTab);
+                        return;
+                    }
+                    if (data.children && data.children.length > 0) {
+                        e.stopPropagation();
+                        childrenContainer.classList.toggle('children-hidden');
+                        node.classList.toggle('expanded');
+                    }
+                });
+
+                wrapper.appendChild(node);
+                wrapper.appendChild(childrenContainer);
+                container.appendChild(wrapper);
+            }
+
+            const mindmapRoot = document.getElementById('mindmapRoot');
+            buildMindmapTree(mindmapRoot, mindmapData);
+
+            // ============ 公式大全 ============
+            const formulaGroups = [{
+                title: '一、直流电路基础',
+                formulas: [
+                    { name: '欧姆定律', eq: 'V = I · R\nI = V / R\nR = V / I' },
+                    { name: '基尔霍夫电流定律 KCL', eq: 'Σ I_in = Σ I_out\n或 Σ I = 0 (流入为正)' },
+                    { name: '基尔霍夫电压定律 KVL', eq: 'Σ V = 0 (沿闭合回路)' },
+                    { name: '电阻串联', eq: 'R_eq = R₁ + R₂ + ... + R_n' },
+                    { name: '电阻并联', eq: '1/R_eq = 1/R₁ + 1/R₂ + ...\n两电阻: R_eq = (R₁·R₂)/(R₁+R₂)' },
+                    { name: '分压公式', eq: 'V_i = V_total · (R_i / ΣR)' },
+                    { name: '分流公式', eq: 'I_i = I_total · (G_i / ΣG)\nG = 1/R (电导)' },
+                    { name: 'Y-Δ变换', eq: 'Y→Δ: R_ab=(R_aR_b+R_bR_c+R_cR_a)/R_c\nΔ→Y: R_a=(R_ab·R_ca)/(R_ab+R_bc+R_ca)' },
+                    { name: '戴维南等效', eq: 'V_th = 开路电压\nR_th = 独立源置零后的等效电阻' },
+                    { name: '诺顿等效', eq: 'I_N = 短路电流\nR_N = R_th\nV_th = I_N · R_th' },
+                    { name: '最大功率传输', eq: 'R_L = R_th 时\nP_max = V_th² / (4·R_th)' },
+                ]
+            }, {
+                title: '二、正弦交流稳态 · 相量法',
+                formulas: [
+                    { name: '正弦量瞬时值', eq: 'i(t) = √2·I·sin(ωt + φ)\nω = 2πf, f = 1/T' },
+                    { name: '相量定义', eq: 'İ = I ∠ φ = I·e^(jφ)\n瞬时值 ↔ 相量 (非等号!)' },
+                    { name: '复阻抗Z', eq: 'Z = R + jX = |Z|∠φ\n|Z| = √(R²+X²), φ = arctan(X/R)' },
+                    { name: '电阻伏安(相量)', eq: 'Û = R·İ\n同相, φ=0°' },
+                    { name: '电感伏安(相量)', eq: 'Û = jωL·İ\n电压超前电流90°\n感抗 X_L = ωL' },
+                    { name: '电容伏安(相量)', eq: 'Û = İ/(jωC) = -jİ/(ωC)\n电压滞后电流90°\n容抗 X_C = 1/(ωC)' },
+                    { name: '欧姆定律(相量)', eq: 'Û = Z·İ\nİ = Y·Û (Y=1/Z为导纳)' },
+                    { name: '阻抗串联', eq: 'Z_eq = Z₁ + Z₂ + ...' },
+                    { name: '阻抗并联', eq: '1/Z_eq = 1/Z₁ + 1/Z₂ + ...\n两阻抗: Z_eq = Z₁Z₂/(Z₁+Z₂)' },
+                ]
+            }, {
+                title: '三、交流功率',
+                formulas: [
+                    { name: '有功功率P', eq: 'P = UI·cosφ = I²·R\n单位: W (瓦特)' },
+                    { name: '无功功率Q', eq: 'Q = UI·sinφ = I²·X\n单位: var (乏)' },
+                    { name: '视在功率S', eq: 'S = UI = I²·|Z|\n单位: VA (伏安)' },
+                    { name: '功率三角形', eq: 'S² = P² + Q²\ncosφ = P/S (功率因数)' },
+                    { name: '复功率', eq: 'Š = Û·İ* = P + jQ\nİ*为电流相量共轭' },
+                    { name: '功率因数', eq: 'λ = cosφ = P/S\n感性: 滞后; 容性: 超前' },
+                ]
+            }, {
+                title: '四、谐振',
+                formulas: [
+                    { name: '谐振角频率', eq: 'ω₀ = 1/√(LC)\nf₀ = 1/(2π√(LC))' },
+                    { name: '特性阻抗', eq: 'ρ = √(L/C) = ω₀L = 1/(ω₀C)' },
+                    { name: '品质因数Q', eq: 'Q = ω₀L/R = 1/(ω₀CR) = ρ/R\n(串联)' },
+                    { name: '串联谐振阻抗', eq: 'Z₀ = R (最小,纯阻性)\n电流最大 I₀ = U/R' },
+                    { name: '串联谐振电压', eq: 'U_L = U_C = Q·U\n(可能远大于总电压!)' },
+                    { name: '带宽BW', eq: 'BW = f₀/Q = f₂ − f₁\nf₁,f₂为半功率点频率' },
+                    { name: '并联谐振阻抗', eq: 'Z₀ ≈ L/(rC) = Q²r\n(高阻抗,纯阻性)' },
+                ]
+            }, {
+                title: '五、三相电路',
+                formulas: [
+                    { name: '对称三相电源', eq: 'Û_A = U_p∠0°\nÛ_B = U_p∠−120°\nÛ_C = U_p∠120°\nÛ_A+Û_B+Û_C=0' },
+                    { name: 'Y接:线电压', eq: 'U_L = √3·U_p\n线电压超前相电压30°' },
+                    { name: 'Y接:线电流', eq: 'I_L = I_p (线电流=相电流)' },
+                    { name: 'Δ接:线电压', eq: 'U_L = U_p (线电压=相电压)' },
+                    { name: 'Δ接:线电流', eq: 'I_L = √3·I_p\n线电流滞后相电流30°' },
+                    { name: '三相有功功率', eq: 'P = 3·U_p·I_p·cosφ\n  = √3·U_L·I_L·cosφ' },
+                    { name: '三相无功功率', eq: 'Q = √3·U_L·I_L·sinφ' },
+                    { name: '三相视在功率', eq: 'S = √3·U_L·I_L' },
+                ]
+            }, {
+                title: '六、暂态电路',
+                formulas: [
+                    { name: 'RC时间常数', eq: 'τ = R·C (单位:秒)' },
+                    { name: 'RC充电', eq: 'v_C(t) = Vs·(1 − e^(−t/τ))\ni(t) = (Vs/R)·e^(−t/τ)' },
+                    { name: 'RC放电', eq: 'v_C(t) = V₀·e^(−t/τ)' },
+                    { name: 'RL时间常数', eq: 'τ = L/R' },
+                    { name: 'RL充电', eq: 'i_L(t) = (Vs/R)·(1 − e^(−t/τ))' },
+                    { name: '三要素法', eq: 'f(t)=f(∞)+[f(0⁺)−f(∞)]·e^(−t/τ)\n适用于一阶电路' },
+                    { name: '二阶RLC特征方程', eq: 's² + (R/L)s + 1/(LC) = 0\nα=R/(2L), ω₀=1/√(LC)' },
+                ]
+            }, {
+                title: '七、半导体与放大电路',
+                formulas: [
+                    { name: '二极管电流方程', eq: 'i_D ≈ I_s·(e^(v_D/nV_T) − 1)\nV_T≈26mV@室温, n≈1~2' },
+                    { name: 'BJT关系', eq: 'i_C = β·i_B\ni_E = i_B + i_C = (β+1)i_B' },
+                    { name: 'MOSFET饱和区', eq: 'i_D = (k_n/2)·(v_GS − V_th)²\n(增强型NMOS)' },
+                    { name: '共射放大增益', eq: 'A_v = −g_m·(r_o ∥ R_C ∥ R_L)\ng_m = I_C/V_T' },
+                    { name: '反相运放增益', eq: 'A_v = −R_f / R_i' },
+                    { name: '同相运放增益', eq: 'A_v = 1 + R_f / R_i' },
+                    { name: '运放积分器', eq: 'v_out = −(1/RC)·∫v_in dt' },
+                ]
+            }];
+
+            const formulaGrid = document.getElementById('formulaGrid');
+            formulaGroups.forEach(group => {
+                const titleEl = document.createElement('div');
+                titleEl.className = 'formula-section-title';
+                titleEl.textContent = group.title;
+                formulaGrid.appendChild(titleEl);
+                group.formulas.forEach(f => {
+                    const card = document.createElement('div');
+                    card.className = 'formula-card';
+                    card.innerHTML =
+                        `<h4>${f.name}</h4><div class="math-block">${f.eq.replace(/\n/g,'<br>')}</div>`;
+                    formulaGrid.appendChild(card);
+                });
+            });
+
+            // ============ 可视化：相量图 ============
+            let phasorAnimId = null;
+            let phasorStart = null;
+            let phasorOmega = 2 * Math.PI * 0.5;
+
+            function getPhasorParams() {
+                return {
+                    I: parseFloat(document.getElementById('phasorAmp').value),
+                    f: parseFloat(document.getElementById('phasorFreq').value),
+                    phiDeg: parseInt(document.getElementById('phasorPhi').value),
+                };
+            }
+
+            function updatePhasorDisplays(p) {
+                document.getElementById('phasorAmpVal').textContent = p.I.toFixed(1) + 'A';
+                document.getElementById('phasorFreqVal').textContent = p.f.toFixed(1) + 'Hz';
+                document.getElementById('phasorPhiVal').textContent = p.phiDeg + '°';
+                phasorOmega = 2 * Math.PI * p.f;
+            }
+
+            function drawPhasor(angleRad) {
+                const canvas = document.getElementById('phasorCanvas');
+                if (!canvas || canvas.style.display === 'none') return;
+                const ctx = canvas.getContext('2d');
+                const w = canvas.width,
+                    h = canvas.height;
+                const cx = w / 2,
+                    cy = h / 2;
+                const p = getPhasorParams();
+                const scale = 48;
+                const phiRad = p.phiDeg * Math.PI / 180;
+                ctx.clearRect(0, 0, w, h);
+                // 背景
+                ctx.fillStyle = '#1a1e24';
+                ctx.fillRect(0, 0, w, h);
+                // 网格
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 0.5;
+                for (let i = -4; i <= 4; i++) {
+                    let x = cx + i * scale;
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, h);
+                    ctx.stroke();
+                    let y = cy - i * scale;
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(w, y);
+                    ctx.stroke();
+                }
+                // 轴
+                ctx.strokeStyle = '#777';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(cx, 0);
+                ctx.lineTo(cx, h);
+                ctx.moveTo(0, cy);
+                ctx.lineTo(w, cy);
+                ctx.stroke();
+                ctx.fillStyle = '#ccc';
+                ctx.font = '13px "Segoe UI"';
+                ctx.fillText('Re', w - 25, cy - 8);
+                ctx.fillText('Im', cx + 10, 18);
+                // 相量
+                const phLen = p.I * scale;
+                const phX = cx + phLen * Math.cos(phiRad);
+                const phY = cy - phLen * Math.sin(phiRad);
+                ctx.setLineDash([6, 4]);
+                ctx.strokeStyle = '#6bc5ff';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(phX, phY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#6bc5ff';
+                ctx.beginPath();
+                ctx.arc(phX, phY, 5, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillStyle = '#aad4ff';
+                ctx.font = 'italic 13px "Fira Code"';
+                ctx.fillText('İ=I∠φ', phX + 8, phY - 8);
+                // 旋转向量
+                const rotAngle = angleRad + phiRad;
+                const rotLen = Math.sqrt(2) * p.I * scale;
+                const rx = cx + rotLen * Math.cos(rotAngle);
+                const ry = cy - rotLen * Math.sin(rotAngle);
+                ctx.strokeStyle = '#f97a7a';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(rx, ry);
+                ctx.stroke();
+                ctx.fillStyle = '#f97a7a';
+                ctx.beginPath();
+                ctx.arc(rx, ry, 6, 0, 2 * Math.PI);
+                ctx.fill();
+                // 投影线
+                const projY = cy - rotLen * Math.sin(rotAngle);
+                ctx.setLineDash([4, 3]);
+                ctx.strokeStyle = '#ffd966';
+                ctx.lineWidth = 1.8;
+                ctx.beginPath();
+                ctx.moveTo(rx, ry);
+                ctx.lineTo(cx, projY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#ffd966';
+                ctx.beginPath();
+                ctx.arc(cx, projY, 5, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillStyle = '#ffd966';
+                ctx.fillText('i(t)=Im', cx - 55, projY - 6);
+                // 原点
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(cx, cy, 3, 0, 2 * Math.PI);
+                ctx.fill();
+                // 数值
+                ctx.fillStyle = '#ddd';
+                ctx.font = '12px "Fira Code"';
+                ctx.fillText(`Im=${(rotLen*Math.sin(rotAngle)/scale/Math.sqrt(2)).toFixed(2)}`, 10, h - 10);
+            }
+
+            function animatePhasor(timestamp) {
+                if (!phasorStart) phasorStart = timestamp;
+                const elapsed = (timestamp - phasorStart) / 1000;
+                drawPhasor(elapsed * phasorOmega);
+                phasorAnimId = requestAnimationFrame(animatePhasor);
+            }
+
+            function startPhasorAnim() {
+                if (phasorAnimId) cancelAnimationFrame(phasorAnimId);
+                phasorStart = null;
+                const p = getPhasorParams();
+                updatePhasorDisplays(p);
+                phasorAnimId = requestAnimationFrame(animatePhasor);
+            }
+            document.getElementById('phasorAmp').addEventListener('input', () => { updatePhasorDisplays(
+                    getPhasorParams());
+                phasorStart = null; });
+            document.getElementById('phasorFreq').addEventListener('input', () => { updatePhasorDisplays(
+                    getPhasorParams());
+                phasorStart = null; });
+            document.getElementById('phasorPhi').addEventListener('input', () => { updatePhasorDisplays(
+                getPhasorParams());
+                phasorStart = null; });
+
+            // ============ 可视化：三相电 ============
+            let tpAnimId = null;
+            let tpStart = null;
+            let tpOmega = 2 * Math.PI * 0.5;
+
+            function getTPParams() {
+                return {
+                    Up: parseFloat(document.getElementById('tpAmp').value),
+                    f: parseFloat(document.getElementById('tpFreq').value),
+                };
+            }
+
+            function updateTPDisplays(p) {
+                document.getElementById('tpAmpVal').textContent = p.Up.toFixed(1) + 'V';
+                document.getElementById('tpFreqVal').textContent = p.f.toFixed(1) + 'Hz';
+                tpOmega = 2 * Math.PI * p.f;
+            }
+
+            function draw3Phase(angleRad) {
+                const canvas = document.getElementById('threePhaseCanvas');
+                if (!canvas || canvas.style.display === 'none') return;
+                const ctx = canvas.getContext('2d');
+                const w = canvas.width,
+                    h = canvas.height;
+                const p = getTPParams();
+                ctx.clearRect(0, 0, w, h);
+                ctx.fillStyle = '#1a1e24';
+                ctx.fillRect(0, 0, w, h);
+                const marginL = 50,
+                    marginR = 20,
+                    marginT = 30,
+                    marginB = 40;
+                const pw = w - marginL - marginR,
+                    ph = h - marginT - marginB;
+                const zeroY = marginT + ph / 2;
+                const maxVal = Math.sqrt(2) * 3.5;
+                const sclY = (ph / 2) / maxVal;
+                // 网格
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 0.5;
+                for (let v = -3; v <= 3; v++) {
+                    let y = zeroY - v * sclY;
+                    ctx.beginPath();
+                    ctx.moveTo(marginL, y);
+                    ctx.lineTo(w - marginR, y);
+                    ctx.stroke();
+                    ctx.fillStyle = '#999';
+                    ctx.font = '10px "Segoe UI"';
+                    ctx.fillText(v.toFixed(0), marginL - 25, y + 3);
+                }
+                const cycles = 2;
+                const angStart = 0,
+                    angEnd = cycles * 2 * Math.PI;
+                const mapX = (ang) => marginL + (ang - angStart) / (angEnd - angStart) * pw;
+                const colors = ['#ff7a7a', '#7aff7a', '#7a7aff'];
+                const phases = [0, -120, 120];
+                for (let i = 0; i < 3; i++) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = colors[i];
+                    ctx.lineWidth = 2.2;
+                    let first = true;
+                    for (let px = marginL; px <= w - marginR; px += 1) {
+                        const ang = angStart + (px - marginL) / pw * (angEnd - angStart);
+                        const val = Math.sqrt(2) * p.Up * Math.sin(ang + phases[i] * Math.PI / 180);
+                        const y = zeroY - val * sclY;
+                        if (first) { ctx.moveTo(px, y);
+                            first = false; } else ctx.lineTo(px, y);
+                    }
+                    ctx.stroke();
+                    ctx.fillStyle = colors[i];
+                    ctx.font = 'bold 12px "Segoe UI"';
+                    ctx.fillText(['A', 'B', 'C'][i], w - marginR - 30, zeroY - i * 16 - 10);
+                }
+                ctx.strokeStyle = '#777';
+                ctx.lineWidth = 1.2;
+                ctx.beginPath();
+                ctx.moveTo(marginL, zeroY);
+                ctx.lineTo(w - marginR, zeroY);
+                ctx.stroke();
+                let dispAng = angleRad % (2 * Math.PI);
+                let mx = mapX(dispAng);
+                if (mx >= marginL && mx <= w - marginR) {
+                    ctx.setLineDash([4, 3]);
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(mx, marginT);
+                    ctx.lineTo(mx, h - marginB);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+                ctx.fillStyle = '#ddd';
+                ctx.font = '12px "Segoe UI"';
+                ctx.fillText(`U_L=√3·Up=${(Math.sqrt(3)*p.Up).toFixed(2)}V`, marginL + 8, marginT + 16);
+            }
+
+            function animate3Phase(timestamp) {
+                if (!tpStart) tpStart = timestamp;
+                const elapsed = (timestamp - tpStart) / 1000;
+                draw3Phase(elapsed * tpOmega);
+                tpAnimId = requestAnimationFrame(animate3Phase);
+            }
+
+            function start3PhaseAnim() {
+                if (tpAnimId) cancelAnimationFrame(tpAnimId);
+                tpStart = null;
+                const p = getTPParams();
+                updateTPDisplays(p);
+                tpAnimId = requestAnimationFrame(animate3Phase);
+            }
+            document.getElementById('tpAmp').addEventListener('input', () => { updateTPDisplays(getTPParams());
+                tpStart = null; });
+            document.getElementById('tpFreq').addEventListener('input', () => { updateTPDisplays(getTPParams());
+                tpStart = null; });
+
+            // ============ 可视化：RC暂态 ============
+            let rcChargeStart = null;
+            let rcAnimId = null;
+            const RC_TOTAL_TIME = 5; // 5倍时间常数
+
+            function getRCParams() {
+                return {
+                    Vs: parseFloat(document.getElementById('rcVs').value),
+                    R: parseFloat(document.getElementById('rcR').value) * 1000,
+                    C: parseFloat(document.getElementById('rcC').value) * 1e-6,
+                };
+            }
+
+            function updateRCDisplays(p) {
+                document.getElementById('rcVsVal').textContent = p.Vs.toFixed(1) + 'V';
+                document.getElementById('rcRVal').textContent = (p.R / 1000).toFixed(1) + 'kΩ';
+                document.getElementById('rcCVal').textContent = (p.C * 1e6).toFixed(0) + 'µF';
+            }
+
+            function drawRCCurve(elapsedSec = null) {
+                const canvas = document.getElementById('rcCanvas');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                const w = canvas.width,
+                    h = canvas.height;
+                const p = getRCParams();
+                const tau = p.R * p.C;
+                const totalTime = RC_TOTAL_TIME * tau;
+                const marginL = 55,
+                    marginR = 25,
+                    marginT = 30,
+                    marginB = 45;
+                const pw = w - marginL - marginR,
+                    ph = h - marginT - marginB;
+                const zeroY = marginT + ph;
+                ctx.clearRect(0, 0, w, h);
+                ctx.fillStyle = '#1a1e24';
+                ctx.fillRect(0, 0, w, h);
+                // 网格
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 0.5;
+                for (let i = 0; i <= 5; i++) {
+                    let y = marginT + ph * i / 5;
+                    ctx.beginPath();
+                    ctx.moveTo(marginL, y);
+                    ctx.lineTo(w - marginR, y);
+                    ctx.stroke();
+                    ctx.fillStyle = '#999';
+                    ctx.font = '10px "Segoe UI"';
+                    ctx.fillText((p.Vs * (5 - i) / 5).toFixed(1) + 'V', marginL - 42, y + 3);
+                }
+                for (let i = 0; i <= 5; i++) {
+                    let x = marginL + pw * i / 5;
+                    ctx.beginPath();
+                    ctx.moveTo(x, marginT);
+                    ctx.lineTo(x, h - marginB);
+                    ctx.stroke();
+                    ctx.fillStyle = '#999';
+                    ctx.fillText((totalTime * i / 5 * 1000).toFixed(0) + 'ms', x - 15, h - marginB + 16);
+                }
+                // 充电曲线
+                ctx.beginPath();
+                ctx.strokeStyle = '#f9b860';
+                ctx.lineWidth = 3;
+                let first = true;
+                for (let px = marginL; px <= w - marginR; px += 1) {
+                    const t = (px - marginL) / pw * totalTime;
+                    const vc = p.Vs * (1 - Math.exp(-t / tau));
+                    const y = zeroY - (vc / p.Vs) * ph;
+                    if (first) { ctx.moveTo(px, y);
+                        first = false; } else ctx.lineTo(px, y);
+                }
+                ctx.stroke();
+                // 渐近线
+                ctx.setLineDash([5, 5]);
+                ctx.strokeStyle = '#999';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(marginL, zeroY - ph);
+                ctx.lineTo(w - marginR, zeroY - ph);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#ccc';
+                ctx.font = '11px "Segoe UI"';
+                ctx.fillText('Vs', marginL - 18, zeroY - ph + 4);
+                // 当前点
+                if (elapsedSec !== null) {
+                    const ct = Math.min(elapsedSec, totalTime);
+                    const cv = p.Vs * (1 - Math.exp(-ct / tau));
+                    const cxPx = marginL + (ct / totalTime) * pw;
+                    const cyPx = zeroY - (cv / p.Vs) * ph;
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(cxPx, cyPx, 6, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.fillStyle = '#ffd966';
+                    ctx.fillText(`v=${cv.toFixed(2)}V`, cxPx + 10, cyPx - 8);
+                    // τ标记
+                    const tauX = marginL + (tau / totalTime) * pw;
+                    ctx.setLineDash([3, 3]);
+                    ctx.strokeStyle = '#6bc5ff';
+                    ctx.beginPath();
+                    ctx.moveTo(tauX, marginT);
+                    ctx.lineTo(tauX, h - marginB);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = '#6bc5ff';
+                    ctx.fillText('τ', tauX + 4, marginT + 14);
+                }
+                ctx.fillStyle = '#ddd';
+                ctx.font = '12px "Segoe UI"';
+                ctx.fillText(`τ=RC=${(tau*1000).toFixed(1)}ms  充电至63.2%`, marginL + 8, marginT + 14);
+            }
+
+            function animateRC(timestamp) {
+                if (!rcChargeStart) rcChargeStart = timestamp;
+                const elapsed = (timestamp - rcChargeStart) / 1000;
+                const p = getRCParams();
+                const tau = p.R * p.C;
+                const totalTime = RC_TOTAL_TIME * tau;
+                if (elapsed > totalTime + 0.3) {
+                    drawRCCurve(totalTime);
+                    rcAnimId = null;
+                    rcChargeStart = null;
+                    return;
+                }
+                drawRCCurve(elapsed);
+                rcAnimId = requestAnimationFrame(animateRC);
+            }
+
+            function startRCAnim() {
+                if (rcAnimId) cancelAnimationFrame(rcAnimId);
+                rcChargeStart = null;
+                updateRCDisplays(getRCParams());
+                rcAnimId = requestAnimationFrame(animateRC);
+            }
+            document.getElementById('rcVs').addEventListener('input', () => { updateRCDisplays(getRCParams());
+                drawRCCurve(null); });
+            document.getElementById('rcR').addEventListener('input', () => { updateRCDisplays(getRCParams());
+                drawRCCurve(null); });
+            document.getElementById('rcC').addEventListener('input', () => { updateRCDisplays(getRCParams());
+                drawRCCurve(null); });
+            document.getElementById('rcReset').addEventListener('click', startRCAnim);
+
+            // ============ 可视化：谐振曲线 ============
+            function getResParams() {
+                return {
+                    R: parseFloat(document.getElementById('resR').value),
+                    L: parseFloat(document.getElementById('resL').value) * 1e-3,
+                    C: parseFloat(document.getElementById('resC').value) * 1e-6,
+                };
+            }
+
+            function updateResDisplays(p) {
+                document.getElementById('resRVal').textContent = p.R.toFixed(0) + 'Ω';
+                document.getElementById('resLVal').textContent = (p.L * 1e3).toFixed(1) + 'mH';
+                document.getElementById('resCVal').textContent = (p.C * 1e6).toFixed(0) + 'µF';
+            }
+
+            function drawResonanceCurve() {
+                const canvas = document.getElementById('resonanceCanvas');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                const w = canvas.width,
+                    h = canvas.height;
+                const p = getResParams();
+                const omega0 = 1 / Math.sqrt(p.L * p.C);
+                const f0 = omega0 / (2 * Math.PI);
+                const Q = omega0 * p.L / p.R;
+                const BW = f0 / Q;
+                ctx.clearRect(0, 0, w, h);
+                ctx.fillStyle = '#1a1e24';
+                ctx.fillRect(0, 0, w, h);
+                const marginL = 55,
+                    marginR = 25,
+                    marginT = 35,
+                    marginB = 45;
+                const pw = w - marginL - marginR,
+                    ph = h - marginT - marginB;
+                const zeroY = marginT + ph;
+                const fMin = Math.max(0.01, f0 * 0.1);
+                const fMax = f0 * 3;
+                const mapX = (f) => marginL + (Math.log(f / fMin) / Math.log(fMax / fMin)) * pw;
+                const IMax = 1 / p.R; // 归一化Vs=1V时的最大电流
+                const sclY = ph / (IMax * 1.1);
+                // 网格
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 0.5;
+                for (let i = 0; i <= 5; i++) {
+                    let y = marginT + ph * i / 5;
+                    ctx.beginPath();
+                    ctx.moveTo(marginL, y);
+                    ctx.lineTo(w - marginR, y);
+                    ctx.stroke();
+                }
+                // 频率轴标记
+                const fMarks = [f0 * 0.2, f0 * 0.5, f0, f0 * 1.5, f0 * 2.5];
+                fMarks.forEach(f => {
+                    if (f >= fMin && f <= fMax) {
+                        const x = mapX(f);
+                        ctx.fillStyle = '#999';
+                        ctx.font = '10px "Segoe UI"';
+                        const label = f >= 1000 ? (f / 1000).toFixed(1) + 'kHz' : f.toFixed(0) +
+                            'Hz';
+                        ctx.fillText(label, x - 15, h - marginB + 16);
+                    }
+                });
+                // 绘制谐振曲线
+                ctx.beginPath();
+                ctx.strokeStyle = '#f9b860';
+                ctx.lineWidth = 3;
+                let first = true;
+                const steps = 400;
+                for (let i = 0; i <= steps; i++) {
+                    const f = fMin * Math.pow(fMax / fMin, i / steps);
+                    const omega = 2 * Math.PI * f;
+                    const Zmag = Math.sqrt(p.R * p.R + Math.pow(omega * p.L - 1 / (omega * p.C), 2));
+                    const I = 1 / Zmag;
+                    const x = mapX(f);
+                    const y = zeroY - I * sclY;
+                    if (x >= marginL && x <= w - marginR && y >= marginT && y <= h - marginB) {
+                        if (first) { ctx.moveTo(x, y);
+                            first = false; } else ctx.lineTo(x, y);
+                    }
+                }
+                ctx.stroke();
+                // f0标记
+                const f0x = mapX(f0);
+                ctx.setLineDash([3, 3]);
+                ctx.strokeStyle = '#6bc5ff';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(f0x, marginT);
+                ctx.lineTo(f0x, h - marginB);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#6bc5ff';
+                ctx.font = 'bold 12px "Segoe UI"';
+                ctx.fillText('f₀', f0x + 4, marginT + 14);
+                // 带宽
+                const f1 = f0 - BW / 2;
+                const f2 = f0 + BW / 2;
+                const halfPowerY = zeroY - (IMax / Math.sqrt(2)) * sclY;
+                ctx.setLineDash([4, 3]);
+                ctx.strokeStyle = '#ff7a7a';
+                ctx.lineWidth = 1.2;
+                if (f1 >= fMin) {
+                    const x1 = mapX(f1);
+                    ctx.beginPath();
+                    ctx.moveTo(x1, halfPowerY);
+                    ctx.lineTo(x1, h - marginB);
+                    ctx.stroke();
+                }
+                if (f2 <= fMax) {
+                    const x2 = mapX(f2);
+                    ctx.beginPath();
+                    ctx.moveTo(x2, halfPowerY);
+                    ctx.lineTo(x2, h - marginB);
+                    ctx.stroke();
+                }
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#ddd';
+                ctx.font = '12px "Segoe UI"';
+                ctx.fillText(`f₀=${f0.toFixed(0)}Hz  Q=${Q.toFixed(2)}  BW=${BW.toFixed(0)}Hz`, marginL + 8, marginT +
+                    14);
+                ctx.fillText(`峰值I₀=${(IMax).toFixed(3)}A (Vs=1V)`, marginL + 8, marginT + 32);
+            }
+            document.getElementById('resR').addEventListener('input', () => { updateResDisplays(getResParams());
+                drawResonanceCurve(); });
+            document.getElementById('resL').addEventListener('input', () => { updateResDisplays(getResParams());
+                drawResonanceCurve(); });
+            document.getElementById('resC').addEventListener('input', () => { updateResDisplays(getResParams());
+                drawResonanceCurve(); });
+
+            // ============ 初始化 ============
+            updatePhasorDisplays(getPhasorParams());
+            updateTPDisplays(getTPParams());
+            updateRCDisplays(getRCParams());
+            updateResDisplays(getResParams());
+            drawRCCurve(null);
+            drawResonanceCurve();
+            // 默认启动相量动画（如果相量面板可见）
+            if (document.getElementById('panel-viz-phasor').classList.contains('active')) {
+                startPhasorAnim();
+            }
+
+            // 监听标签切换以启动/停止动画
+            const observer = new MutationObserver(() => {
+                // 不做复杂处理，切换时由switchTab负责
+            });
+
+            console.log('✅ 电子电路基础 · 知识体系已就绪');
+            console.log('  🏠 首页思维导图 | 📐 公式大全 | 🔄 相量图 | ⚡ 三相电 | 🔋 RC暂态 | 📈 谐振曲线');
+            console.log('  💡 思维导图中标注"🔗可视化"的节点可直接点击跳转');
+            console.log('  🎨 抗焦虑配色：#3a4a4a + #F5F0E1');
+        })();
+    </script>
+</body>
+</html>

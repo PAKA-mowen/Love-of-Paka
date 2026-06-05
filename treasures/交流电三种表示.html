@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>交流电路：瞬时值 · 复数表示 · 相量 | 可视化</title>
+  <style>
+    * {
+      margin: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', 'Roboto', 'Noto Sans', system-ui, sans-serif;
+      background: #1e1e2f;
+      color: #e0e0e0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1250px;
+      width: 100%;
+      background: #2a2a3c;
+      border-radius: 32px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      padding: 28px 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      backdrop-filter: blur(10px);
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 500;
+      letter-spacing: 1px;
+      color: #ffd78b;
+      text-align: center;
+      margin-bottom: 5px;
+      border-bottom: 1px solid #4a4a6a;
+      padding-bottom: 12px;
+    }
+    .canvas-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 25px;
+      justify-content: center;
+    }
+    .canvas-box {
+      background: #1f1f2e;
+      border-radius: 24px;
+      padding: 15px;
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.5), 0 10px 18px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .canvas-box p {
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      color: #b9b9d4;
+      font-size: 1rem;
+      letter-spacing: 0.5px;
+    }
+    canvas {
+      display: block;
+      border-radius: 16px;
+      background: #111122;
+    }
+    .control-panel {
+      background: #2f2f44;
+      border-radius: 28px;
+      padding: 18px 22px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 30px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.5);
+    }
+    .slider-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #222236;
+      padding: 8px 16px;
+      border-radius: 40px;
+    }
+    .slider-group label {
+      font-weight: 600;
+      color: #cfcfea;
+      min-width: 45px;
+      font-size: 0.9rem;
+    }
+    input[type="range"] {
+      width: 110px;
+      accent-color: #f7b05e;
+    }
+    .value-display {
+      background: #0d0d1a;
+      color: #ffd78b;
+      padding: 5px 12px;
+      border-radius: 24px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      min-width: 60px;
+      text-align: center;
+    }
+    .formula-box {
+      background: #1a1a2c;
+      border-radius: 20px;
+      padding: 16px 22px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 20px;
+      font-size: 0.95rem;
+      border: 1px solid #47476b;
+      color: #d4d4f0;
+      line-height: 1.6;
+    }
+    .formula-section {
+      flex: 1 1 260px;
+    }
+    .formula-section strong {
+      color: #fab760;
+    }
+    .math {
+      font-family: 'Courier New', 'Fira Code', monospace;
+      background: #23233a;
+      padding: 4px 10px;
+      border-radius: 12px;
+      display: inline-block;
+      margin: 4px 0;
+      color: #f5d78c;
+      letter-spacing: 0.5px;
+    }
+    .relation {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 5px;
+    }
+    hr {
+      border-color: #4b4b6e;
+      margin: 8px 0;
+    }
+    @media (max-width: 900px) {
+      .canvas-panel {
+        flex-direction: column;
+        align-items: center;
+      }
+      .container {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>⚡ 交流正弦电：瞬时值 · 复数表示 · 相量</h1>
+
+  <!-- 双画布：复平面 + 波形图 -->
+  <div class="canvas-panel">
+    <div class="canvas-box">
+      <p>📐 复平面 (旋转向量 & 相量)</p>
+      <canvas id="complexCanvas" width="440" height="440" aria-label="复平面可视化"></canvas>
+    </div>
+    <div class="canvas-box">
+      <p>📈 瞬时值波形 i(t) = Im[复数表示]</p>
+      <canvas id="waveCanvas" width="440" height="440" aria-label="瞬时值波形"></canvas>
+    </div>
+  </div>
+
+  <!-- 控制滑块 -->
+  <div class="control-panel">
+    <div class="slider-group">
+      <label>🔹 有效值 I</label>
+      <input type="range" id="ampSlider" min="0.5" max="4.0" value="2.0" step="0.1">
+      <span class="value-display" id="ampValue">2.0 A</span>
+    </div>
+    <div class="slider-group">
+      <label>📶 频率 f</label>
+      <input type="range" id="freqSlider" min="0.1" max="1.8" value="0.6" step="0.1">
+      <span class="value-display" id="freqValue">0.6 Hz</span>
+    </div>
+    <div class="slider-group">
+      <label>📐 初相 φ</label>
+      <input type="range" id="phaseSlider" min="-180" max="180" value="30" step="1">
+      <span class="value-display" id="phaseValue">30°</span>
+    </div>
+  </div>
+
+  <!-- 表达式与关系说明 -->
+  <div class="formula-box">
+    <div class="formula-section">
+      <strong>🔵 瞬时值表达式</strong><br>
+      <span class="math">i(t) = √2 · I · sin(ωt + φ)</span><br>
+      <small style="color:#b0b0d0;">真实的物理量，随时间变化</small>
+    </div>
+    <div class="formula-section">
+      <strong>🟠 复数表示式 (复瞬时值)</strong><br>
+      <span class="math">j(t) = √2 · I · e<sup>j(ωt+φ)</sup></span><br>
+      <small style="color:#b0b0d0;">旋转向量，i(t) = Im[ j(t) ]</small>
+    </div>
+    <div class="formula-section">
+      <strong>🔴 相量表示式</strong><br>
+      <span class="math">İ = I ∠ φ</span> &nbsp;或&nbsp; <span class="math">İ = I·e<sup>jφ</sup></span><br>
+      <small style="color:#b0b0d0;">固定复数，提取幅度与相位</small>
+    </div>
+  </div>
+  
+  <div style="color:#b5b5dc; font-size:0.9rem; text-align:center; margin-top:5px;">
+    ⬤ <span style="color:#f97a7a;">旋转向量(红色)</span> 的虚轴投影 = 瞬时值 &nbsp;&nbsp;|&nbsp;&nbsp;
+    ⬤ <span style="color:#6bc5ff;">相量(蓝色虚线)</span> 长度 = 有效值 I，角度 = φ &nbsp;&nbsp;|&nbsp;&nbsp;
+    ⬤ 直角坐标：实部(Re) 虚部(Im)
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ----- 获取元素 -----
+    const complexCanvas = document.getElementById('complexCanvas');
+    const waveCanvas = document.getElementById('waveCanvas');
+    const ctxC = complexCanvas.getContext('2d');
+    const ctxW = waveCanvas.getContext('2d');
+
+    // 滑块与显示
+    const ampSlider = document.getElementById('ampSlider');
+    const freqSlider = document.getElementById('freqSlider');
+    const phaseSlider = document.getElementById('phaseSlider');
+    const ampDisplay = document.getElementById('ampValue');
+    const freqDisplay = document.getElementById('freqValue');
+    const phaseDisplay = document.getElementById('phaseValue');
+
+    // 画布尺寸
+    const widthC = complexCanvas.width;
+    const heightC = complexCanvas.height;
+    const widthW = waveCanvas.width;
+    const heightW = waveCanvas.height;
+
+    // 中心点 (复平面)
+    const cx = widthC / 2;
+    const cy = heightC / 2;
+
+    // 缩放比例：让最大向量长度大约在画布半径的0.7倍以内
+    const MAX_EFFECTIVE = 4.0;   // 最大有效值对应滑块最大值
+    const SCALE = 45;           // 每单位有效值对应像素 (相量长度 I*SCALE)
+    // 旋转向量长度 = √2 * I * SCALE, 最大 ≈ 1.414*4*45 ≈ 254 px, 画布半径220合适
+
+    // 波形图参数
+    const waveMarginLeft = 50;
+    const waveMarginRight = 20;
+    const waveMarginTop = 30;
+    const waveMarginBottom = 40;
+    const wavePlotWidth = widthW - waveMarginLeft - waveMarginRight;
+    const wavePlotHeight = heightW - waveMarginTop - waveMarginBottom;
+    const waveZeroY = waveMarginTop + wavePlotHeight / 2;
+    const waveScaleY = wavePlotHeight / (2 * MAX_EFFECTIVE * Math.sqrt(2) * 1.1); // 幅度对应像素
+
+    // 状态变量
+    let current = {
+      I: 2.0,        // 有效值 (A)
+      f: 0.6,        // 频率 (Hz)
+      phiDeg: 30,    // 初相 (度)
+    };
+
+    // 动画时间相关
+    let animationStartTime = null;
+    let omega = 2 * Math.PI * current.f;   // 角频率 rad/s
+
+    // ----- 工具函数：角度转弧度 -----
+    function degToRad(deg) { return deg * Math.PI / 180; }
+
+    // ----- 从滑块更新参数 -----
+    function updateParameters() {
+      current.I = parseFloat(ampSlider.value);
+      current.f = parseFloat(freqSlider.value);
+      current.phiDeg = parseInt(phaseSlider.value, 10);
+      omega = 2 * Math.PI * current.f;
+
+      // 更新显示
+      ampDisplay.textContent = current.I.toFixed(1) + ' A';
+      freqDisplay.textContent = current.f.toFixed(1) + ' Hz';
+      phaseDisplay.textContent = current.phiDeg + '°';
+    }
+
+    // 绑定事件
+    ampSlider.addEventListener('input', updateParameters);
+    freqSlider.addEventListener('input', updateParameters);
+    phaseSlider.addEventListener('input', updateParameters);
+    updateParameters(); // 初始化显示
+
+    // ----- 绘制复平面 (含旋转向量、相量、投影) -----
+    function drawComplexPlane(angleRad) {
+      ctxC.clearRect(0, 0, widthC, heightC);
+      
+      // 背景网格
+      ctxC.save();
+      ctxC.strokeStyle = '#3b3b5c';
+      ctxC.lineWidth = 0.6;
+      // 画网格
+      for (let i = -5; i <= 5; i++) {
+        let x = cx + i * SCALE;
+        let y = cy - i * SCALE;
+        ctxC.beginPath();
+        ctxC.moveTo(x, 0);
+        ctxC.lineTo(x, heightC);
+        ctxC.strokeStyle = '#3b3b5c';
+        ctxC.stroke();
+        ctxC.beginPath();
+        ctxC.moveTo(0, y);
+        ctxC.lineTo(widthC, y);
+        ctxC.stroke();
+      }
+      
+      // 坐标轴
+      ctxC.beginPath();
+      ctxC.strokeStyle = '#7d7daa';
+      ctxC.lineWidth = 2;
+      ctxC.moveTo(cx, 0);
+      ctxC.lineTo(cx, heightC);
+      ctxC.moveTo(0, cy);
+      ctxC.lineTo(widthC, cy);
+      ctxC.stroke();
+      
+      // 轴箭头
+      ctxC.fillStyle = '#7d7daa';
+      ctxC.beginPath(); // 实轴箭头(右)
+      ctxC.moveTo(widthC-12, cy-5);
+      ctxC.lineTo(widthC-2, cy);
+      ctxC.lineTo(widthC-12, cy+5);
+      ctxC.fill();
+      ctxC.beginPath(); // 虚轴箭头(上)
+      ctxC.moveTo(cx-5, 12);
+      ctxC.lineTo(cx, 2);
+      ctxC.lineTo(cx+5, 12);
+      ctxC.fill();
+      
+      ctxC.font = '14px "Segoe UI", "Noto Sans"';
+      ctxC.fillStyle = '#b9b9dd';
+      ctxC.fillText('Re', widthC-30, cy-12);
+      ctxC.fillText('Im', cx+12, 22);
+
+      // 当前参数
+      const I = current.I;
+      const phiRad = degToRad(current.phiDeg);
+      const rotAngle = angleRad + phiRad;  // ωt + φ
+      
+      // 相量 (固定复数 I∠φ)  长度 = I * SCALE
+      const phasorLen = I * SCALE;
+      const phasorX = cx + phasorLen * Math.cos(phiRad);
+      const phasorY = cy - phasorLen * Math.sin(phiRad); // canvas Y向下为正
+      
+      // 旋转向量 (复瞬时值) 长度 = √2 * I * SCALE
+      const rotLen = Math.sqrt(2) * I * SCALE;
+      const rotX = cx + rotLen * Math.cos(rotAngle);
+      const rotY = cy - rotLen * Math.sin(rotAngle);
+      
+      // 投影到虚轴的点 (虚部值)
+      const imProjection = rotLen * Math.sin(rotAngle);
+      const projY = cy - imProjection;  // Y坐标
+      
+      // ----- 绘制相量 (蓝色虚线) -----
+      ctxC.save();
+      ctxC.strokeStyle = '#6bc5ff';
+      ctxC.lineWidth = 2.8;
+      ctxC.setLineDash([7, 5]);
+      ctxC.beginPath();
+      ctxC.moveTo(cx, cy);
+      ctxC.lineTo(phasorX, phasorY);
+      ctxC.stroke();
+      // 相量箭头
+      ctxC.setLineDash([]);
+      ctxC.fillStyle = '#6bc5ff';
+      ctxC.beginPath();
+      let arrowAngle = phiRad;
+      let arrowSize = 10;
+      let tipX = phasorX, tipY = phasorY;
+      ctxC.moveTo(tipX, tipY);
+      ctxC.lineTo(
+        tipX - arrowSize * Math.cos(arrowAngle - 0.8),
+        tipY + arrowSize * Math.sin(arrowAngle - 0.8)
+      );
+      ctxC.lineTo(
+        tipX - arrowSize * Math.cos(arrowAngle + 0.8),
+        tipY + arrowSize * Math.sin(arrowAngle + 0.8)
+      );
+      ctxC.closePath();
+      ctxC.fill();
+      
+      // 相量标签
+      ctxC.font = 'italic 15px "Fira Code", monospace';
+      ctxC.fillStyle = '#aad4ff';
+      ctxC.fillText('İ = I∠φ', phasorX + 8, phasorY - 10);
+      
+      // ----- 绘制旋转向量 (红色实线) -----
+      ctxC.save();
+      ctxC.strokeStyle = '#f97a7a';
+      ctxC.lineWidth = 3;
+      ctxC.beginPath();
+      ctxC.moveTo(cx, cy);
+      ctxC.lineTo(rotX, rotY);
+      ctxC.stroke();
+      // 箭头
+      ctxC.fillStyle = '#f97a7a';
+      let rotArrowAngle = rotAngle;
+      ctxC.beginPath();
+      ctxC.moveTo(rotX, rotY);
+      ctxC.lineTo(
+        rotX - 12 * Math.cos(rotArrowAngle - 0.7),
+        rotY + 12 * Math.sin(rotArrowAngle - 0.7)
+      );
+      ctxC.lineTo(
+        rotX - 12 * Math.cos(rotArrowAngle + 0.7),
+        rotY + 12 * Math.sin(rotArrowAngle + 0.7)
+      );
+      ctxC.closePath();
+      ctxC.fill();
+      
+      // 旋转向量标签
+      ctxC.font = 'italic 13px "Fira Code", monospace';
+      ctxC.fillStyle = '#ffb5b5';
+      ctxC.fillText('√2İe^{j(ωt+φ)}', rotX + 10, rotY - 12);
+      
+      // ----- 绘制投影线 (虚线到虚轴) 和 投影点 -----
+      ctxC.save();
+      ctxC.strokeStyle = '#ffd966';
+      ctxC.lineWidth = 2;
+      ctxC.setLineDash([5, 4]);
+      ctxC.beginPath();
+      ctxC.moveTo(rotX, rotY);
+      ctxC.lineTo(cx, projY);  // 垂直投影到虚轴
+      ctxC.stroke();
+      // 在虚轴上画点
+      ctxC.setLineDash([]);
+      ctxC.fillStyle = '#ffd966';
+      ctxC.beginPath();
+      ctxC.arc(cx, projY, 6, 0, 2*Math.PI);
+      ctxC.fill();
+      ctxC.strokeStyle = '#ffe484';
+      ctxC.lineWidth = 1.8;
+      ctxC.stroke();
+      
+      // 标注瞬时值 i(t) 在虚轴旁
+      ctxC.font = 'bold 14px "Segoe UI"';
+      ctxC.fillStyle = '#ffd966';
+      ctxC.fillText('i(t) = Im', cx - 65, projY - 8);
+      
+      // 直角坐标数值显示 (右上角)
+      const realPart = rotLen * Math.cos(rotAngle);
+      const imagPart = imProjection;
+      ctxC.font = '14px "Fira Code", monospace';
+      ctxC.fillStyle = '#d0d0f0';
+      ctxC.fillText(`Re: ${realPart.toFixed(2)}`, 15, 30);
+      ctxC.fillText(`Im: ${imagPart.toFixed(2)}`, 15, 52);
+      ctxC.fillText(`|İ|: ${I.toFixed(2)}`, 15, 74);
+      ctxC.fillText(`φ: ${current.phiDeg}°`, 15, 96);
+      
+      // 原点标记
+      ctxC.fillStyle = '#ffffff';
+      ctxC.beginPath();
+      ctxC.arc(cx, cy, 4, 0, 2*Math.PI);
+      ctxC.fill();
+      
+      ctxC.restore();
+    }
+
+    // ----- 绘制波形图 i(t) = √2 I sin(ωt+φ) -----
+    function drawWaveform(angleRad) {
+      ctxW.clearRect(0, 0, widthW, heightW);
+      
+      const I = current.I;
+      const phiRad = degToRad(current.phiDeg);
+      const amplitude = Math.sqrt(2) * I;
+      
+      // 背景网格
+      ctxW.save();
+      ctxW.strokeStyle = '#3a3a5a';
+      ctxW.lineWidth = 0.7;
+      // 水平线
+      for (let val = -4; val <= 4; val += 1) {
+        let y = waveZeroY - val * waveScaleY;
+        if (y >= waveMarginTop && y <= heightW - waveMarginBottom) {
+          ctxW.beginPath();
+          ctxW.moveTo(waveMarginLeft, y);
+          ctxW.lineTo(widthW - waveMarginRight, y);
+          ctxW.stroke();
+          // 刻度值
+          ctxW.fillStyle = '#9a9ac0';
+          ctxW.font = '12px "Segoe UI"';
+          ctxW.fillText(val.toFixed(0), waveMarginLeft-30, y+4);
+        }
+      }
+      // 垂直虚线标记当前角度位置
+      const totalAngleSpan = 4 * Math.PI; // 显示两个周期 (0 到 4π)
+      const currentAngle = angleRad;      // 当前 ωt 角度 (连续增长)
+      // 映射角度到x坐标：显示从0到4π (两个完整周期)
+      const phaseOffset = phiRad;
+      // 我们将x轴表示为 ωt 从0到4π
+      const angleStart = 0;
+      const angleEnd = 4 * Math.PI;
+      const mapAngleToX = (ang) => waveMarginLeft + (ang - angleStart) / (angleEnd - angleStart) * wavePlotWidth;
+      
+      // 绘制正弦曲线
+      ctxW.beginPath();
+      ctxW.strokeStyle = '#f97a7a';
+      ctxW.lineWidth = 2.5;
+      let first = true;
+      for (let pixelX = waveMarginLeft; pixelX <= widthW - waveMarginRight; pixelX += 1) {
+        const ang = angleStart + (pixelX - waveMarginLeft) / wavePlotWidth * (angleEnd - angleStart);
+        const value = amplitude * Math.sin(ang + phiRad);
+        const y = waveZeroY - value * waveScaleY;
+        if (first) {
+          ctxW.moveTo(pixelX, y);
+          first = false;
+        } else {
+          ctxW.lineTo(pixelX, y);
+        }
+      }
+      ctxW.stroke();
+      
+      // 绘制当前点 (对应旋转向量的虚部)
+      const currentValue = amplitude * Math.sin(currentAngle + phiRad);
+      const currentY = waveZeroY - currentValue * waveScaleY;
+      const currentX = mapAngleToX(currentAngle % (4*Math.PI)); // 保持在显示范围内循环
+      
+      // 如果当前角度超出4π，映射回来显示
+      let displayAngle = currentAngle % (4 * Math.PI);
+      const displayX = mapAngleToX(displayAngle);
+      
+      ctxW.fillStyle = '#ffd966';
+      ctxW.beginPath();
+      ctxW.arc(displayX, currentY, 7, 0, 2*Math.PI);
+      ctxW.fill();
+      ctxW.strokeStyle = '#fff';
+      ctxW.lineWidth = 2;
+      ctxW.stroke();
+      
+      // 标注当前瞬时值
+      ctxW.font = 'bold 13px "Segoe UI"';
+      ctxW.fillStyle = '#ffd966';
+      ctxW.fillText(`i = ${currentValue.toFixed(2)} A`, displayX + 12, currentY - 10);
+      
+      // 坐标轴标题
+      ctxW.fillStyle = '#b9b9dd';
+      ctxW.font = '14px "Segoe UI"';
+      ctxW.fillText('ωt (弧度)', widthW/2-30, heightW-10);
+      ctxW.save();
+      ctxW.translate(20, heightW/2);
+      ctxW.rotate(-Math.PI/2);
+      ctxW.fillText('i(t) [A]', -30, 0);
+      ctxW.restore();
+      
+      // 显示参考线：零线
+      ctxW.beginPath();
+      ctxW.strokeStyle = '#7d7daa';
+      ctxW.lineWidth = 1.5;
+      ctxW.moveTo(waveMarginLeft, waveZeroY);
+      ctxW.lineTo(widthW - waveMarginRight, waveZeroY);
+      ctxW.stroke();
+      
+      // 显示表达式
+      ctxW.font = 'italic 14px "Fira Code"';
+      ctxW.fillStyle = '#e0b0ff';
+      ctxW.fillText(`i(t)=√2·${I}·sin(ωt+${current.phiDeg}°)`, waveMarginLeft+10, waveMarginTop+25);
+    }
+
+    // ----- 动画循环 -----
+    function animate(timestamp) {
+      if (!animationStartTime) {
+        animationStartTime = timestamp;
+      }
+      const elapsed = (timestamp - animationStartTime) / 1000; // 秒
+      const angleRad = elapsed * omega;  // ωt 累积角度
+      
+      drawComplexPlane(angleRad);
+      drawWaveform(angleRad);
+      
+      requestAnimationFrame(animate);
+    }
+
+    // 重置动画起始时间当频率改变时，保证相位连续 (可选)
+    function resetAnimationTime() {
+      animationStartTime = performance.now();
+    }
+    
+    freqSlider.addEventListener('input', () => {
+      updateParameters();
+      resetAnimationTime();
+    });
+    // 其他滑块改变不需要重置时间，但改变频率要重置以避免跳跃太大
+    ampSlider.addEventListener('input', () => {
+      updateParameters();
+      // 幅度改变不影响相位连续性
+    });
+    phaseSlider.addEventListener('input', () => {
+      updateParameters();
+      // 初相改变会立即反映
+    });
+
+    // 启动动画
+    updateParameters();
+    animationStartTime = performance.now();
+    requestAnimationFrame(animate);
+
+    // 窗口失去焦点时不做特殊处理，保持运行
+  })();
+</script>
+</body>
+</html>

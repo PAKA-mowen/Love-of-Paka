@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>三相交流电可视化 | 波形与相量图</title>
+  <style>
+    * {
+      margin: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', 'Roboto', 'Noto Sans', system-ui, sans-serif;
+      background: #1a1e2b;
+      color: #e0e0e0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1350px;
+      width: 100%;
+      background: #232838;
+      border-radius: 32px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      padding: 25px 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    h1 {
+      font-size: 1.9rem;
+      font-weight: 500;
+      letter-spacing: 1px;
+      color: #ffd78b;
+      text-align: center;
+      margin-bottom: 4px;
+      border-bottom: 1px solid #4a4a6a;
+      padding-bottom: 12px;
+    }
+    .main-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 25px;
+      justify-content: center;
+    }
+    .canvas-box {
+      background: #1c1f2e;
+      border-radius: 24px;
+      padding: 15px;
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.5), 0 10px 18px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .canvas-box p {
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      color: #b9b9d4;
+      font-size: 1rem;
+      letter-spacing: 0.5px;
+    }
+    canvas {
+      display: block;
+      border-radius: 16px;
+      background: #121524;
+    }
+    .control-panel {
+      background: #2a2d3f;
+      border-radius: 28px;
+      padding: 16px 22px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 25px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.5);
+    }
+    .slider-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #1f2335;
+      padding: 8px 16px;
+      border-radius: 40px;
+    }
+    .slider-group label {
+      font-weight: 600;
+      color: #cfcfea;
+      min-width: 55px;
+      font-size: 0.9rem;
+    }
+    input[type="range"] {
+      width: 110px;
+      accent-color: #f7b05e;
+    }
+    .value-display {
+      background: #0d0d1a;
+      color: #ffd78b;
+      padding: 5px 12px;
+      border-radius: 24px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      min-width: 65px;
+      text-align: center;
+    }
+    .check-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #1f2335;
+      padding: 8px 16px;
+      border-radius: 40px;
+      color: #cfcfea;
+      font-weight: 600;
+    }
+    input[type="checkbox"] {
+      accent-color: #6bc5ff;
+      width: 18px;
+      height: 18px;
+    }
+    .info-box {
+      background: #1c1f2e;
+      border-radius: 20px;
+      padding: 16px 22px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 20px;
+      font-size: 0.95rem;
+      border: 1px solid #3f4260;
+      color: #d4d4f0;
+      line-height: 1.6;
+    }
+    .info-section {
+      flex: 1 1 240px;
+    }
+    .info-section strong {
+      color: #fab760;
+    }
+    .math {
+      font-family: 'Courier New', 'Fira Code', monospace;
+      background: #232a3a;
+      padding: 4px 10px;
+      border-radius: 12px;
+      display: inline-block;
+      margin: 4px 0;
+      color: #f5d78c;
+    }
+    @media (max-width: 1000px) {
+      .main-panel {
+        flex-direction: column;
+        align-items: center;
+      }
+      .container {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>⚡ 对称三相交流电 · 波形与相量图</h1>
+
+  <!-- 双画布：波形图 + 相量图 -->
+  <div class="main-panel">
+    <div class="canvas-box">
+      <p>📈 三相电压波形 (时域)</p>
+      <canvas id="waveCanvas" width="500" height="360" aria-label="三相电压波形"></canvas>
+    </div>
+    <div class="canvas-box">
+      <p>📐 相量图 (旋转向量 & 线电压)</p>
+      <canvas id="phasorCanvas" width="460" height="460" aria-label="相量图"></canvas>
+    </div>
+  </div>
+
+  <!-- 控制区 -->
+  <div class="control-panel">
+    <div class="slider-group">
+      <label>🔹 相电压 Up</label>
+      <input type="range" id="ampSlider" min="0.5" max="3.5" value="2.0" step="0.1">
+      <span class="value-display" id="ampValue">2.0 V</span>
+    </div>
+    <div class="slider-group">
+      <label>📶 频率 f</label>
+      <input type="range" id="freqSlider" min="0.2" max="2.0" value="0.5" step="0.1">
+      <span class="value-display" id="freqValue">0.5 Hz</span>
+    </div>
+    <div class="check-group">
+      <input type="checkbox" id="showLineVoltage" checked>
+      <label for="showLineVoltage">显示线电压相量</label>
+    </div>
+  </div>
+
+  <!-- 关系说明 -->
+  <div class="info-box">
+    <div class="info-section">
+      <strong>🔵 对称三相电源 (正序)</strong><br>
+      <span class="math">u<sub>A</sub>(t) = √2 U<sub>p</sub> sin(ωt)</span><br>
+      <span class="math">u<sub>B</sub>(t) = √2 U<sub>p</sub> sin(ωt − 120°)</span><br>
+      <span class="math">u<sub>C</sub>(t) = √2 U<sub>p</sub> sin(ωt + 120°)</span>
+    </div>
+    <div class="info-section">
+      <strong>🔴 星形(Y)连接线电压</strong><br>
+      <span class="math">U<sub>L</sub> = √3 · U<sub>p</sub></span><br>
+      <span class="math">U<sub>AB</sub> = U<sub>A</sub> − U<sub>B</sub></span> (超前相电压30°)<br>
+      <small style="color:#b0b0d0;">线电压相量长度是相电压的√3≈1.732倍</small>
+    </div>
+    <div class="info-section">
+      <strong>🟢 相量图说明</strong><br>
+      <span style="color:#ff7a7a;">● A相</span> <span style="color:#7aff7a;">● B相</span> <span style="color:#7a7aff;">● C相</span><br>
+      <span style="color:#ffd966;">--- 线电压(虚线)</span><br>
+      <small style="color:#b0b0d0;">旋转向量随时间转动，波形为虚轴投影</small>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // 画布
+    const waveCanvas = document.getElementById('waveCanvas');
+    const phasorCanvas = document.getElementById('phasorCanvas');
+    const ctxW = waveCanvas.getContext('2d');
+    const ctxP = phasorCanvas.getContext('2d');
+
+    // 控件
+    const ampSlider = document.getElementById('ampSlider');
+    const freqSlider = document.getElementById('freqSlider');
+    const showLineVoltageCheck = document.getElementById('showLineVoltage');
+    const ampDisplay = document.getElementById('ampValue');
+    const freqDisplay = document.getElementById('freqValue');
+
+    // 状态
+    let params = {
+      Up: 2.0,        // 相电压有效值
+      f: 0.5,         // 频率 Hz
+      showLine: true
+    };
+
+    // 波形画布尺寸
+    const wW = waveCanvas.width;
+    const wH = waveCanvas.height;
+    const marginLeft = 55;
+    const marginRight = 25;
+    const marginTop = 35;
+    const marginBottom = 45;
+    const plotW = wW - marginLeft - marginRight;
+    const plotH = wH - marginTop - marginBottom;
+    const zeroY = marginTop + plotH / 2;
+    // 幅度映射：最大幅值 √2 * Up_max ≈ 1.414*3.5 ≈ 4.95，用5V对应半高
+    const maxAmp = 5.0;
+    const scaleY = (plotH / 2) / maxAmp;
+
+    // 相量画布尺寸
+    const pW = phasorCanvas.width;
+    const pH = phasorCanvas.height;
+    const cx = pW / 2;
+    const cy = pH / 2;
+    const phasorScale = 42;  // 每单位有效值像素 (相电压向量长度 Up*phasorScale)
+
+    // 角度参数
+    let omega = 2 * Math.PI * params.f;
+    let animStart = null;
+
+    // 更新参数
+    function updateParams() {
+      params.Up = parseFloat(ampSlider.value);
+      params.f = parseFloat(freqSlider.value);
+      params.showLine = showLineVoltageCheck.checked;
+      omega = 2 * Math.PI * params.f;
+      ampDisplay.textContent = params.Up.toFixed(1) + ' V';
+      freqDisplay.textContent = params.f.toFixed(1) + ' Hz';
+    }
+
+    ampSlider.addEventListener('input', updateParams);
+    freqSlider.addEventListener('input', () => { updateParams(); animStart = null; });
+    showLineVoltageCheck.addEventListener('change', updateParams);
+    updateParams();
+
+    // 角度转弧度
+    function degToRad(d) { return d * Math.PI / 180; }
+
+    // 三相初相 (正序 A:0°, B:-120°, C:+120°)
+    const phases = [0, -120, 120];
+    const colors = ['#ff7a7a', '#7aff7a', '#7a7aff']; // 红,绿,蓝
+    const names = ['A', 'B', 'C'];
+
+    // ----- 绘制波形 -----
+    function drawWaveform(angleRad) {
+      ctxW.clearRect(0, 0, wW, wH);
+      // 网格
+      ctxW.save();
+      ctxW.strokeStyle = '#3a3d5a';
+      ctxW.lineWidth = 0.6;
+      for (let v = -4; v <= 4; v += 1) {
+        let y = zeroY - v * scaleY;
+        if (y > marginTop && y < wH - marginBottom) {
+          ctxW.beginPath();
+          ctxW.moveTo(marginLeft, y);
+          ctxW.lineTo(wW - marginRight, y);
+          ctxW.stroke();
+          ctxW.fillStyle = '#9a9ac0';
+          ctxW.font = '11px "Segoe UI"';
+          ctxW.fillText(v.toFixed(0), marginLeft - 32, y + 4);
+        }
+      }
+      // 时间轴
+      const cycles = 2; // 显示2个周期
+      const angleStart = 0;
+      const angleEnd = cycles * 2 * Math.PI;
+      const mapAngleToX = (ang) => marginLeft + (ang - angleStart) / (angleEnd - angleStart) * plotW;
+
+      // 绘制三相正弦波
+      for (let i = 0; i < 3; i++) {
+        const phiRad = degToRad(phases[i]);
+        ctxW.beginPath();
+        ctxW.strokeStyle = colors[i];
+        ctxW.lineWidth = 2.5;
+        let first = true;
+        for (let px = marginLeft; px <= wW - marginRight; px += 1) {
+          const ang = angleStart + (px - marginLeft) / plotW * (angleEnd - angleStart);
+          const val = Math.sqrt(2) * params.Up * Math.sin(ang + phiRad);
+          const y = zeroY - val * scaleY;
+          if (first) { ctxW.moveTo(px, y); first = false; }
+          else { ctxW.lineTo(px, y); }
+        }
+        ctxW.stroke();
+        // 标注相名
+        ctxW.fillStyle = colors[i];
+        ctxW.font = 'bold 13px "Segoe UI"';
+        ctxW.fillText(names[i], wW - marginRight - 40, zeroY - i * 18 - 10);
+      }
+
+      // 当前时刻标记线 (基于angleRad映射)
+      let displayAngle = angleRad % (2 * Math.PI);
+      let markerX = mapAngleToX(displayAngle);
+      if (markerX >= marginLeft && markerX <= wW - marginRight) {
+        ctxW.beginPath();
+        ctxW.strokeStyle = '#ffffff';
+        ctxW.lineWidth = 1.2;
+        ctxW.setLineDash([5, 4]);
+        ctxW.moveTo(markerX, marginTop);
+        ctxW.lineTo(markerX, wH - marginBottom);
+        ctxW.stroke();
+        ctxW.setLineDash([]);
+      }
+
+      // 零线
+      ctxW.beginPath();
+      ctxW.strokeStyle = '#7d7daa';
+      ctxW.lineWidth = 1.5;
+      ctxW.moveTo(marginLeft, zeroY);
+      ctxW.lineTo(wW - marginRight, zeroY);
+      ctxW.stroke();
+      ctxW.restore();
+    }
+
+    // ----- 绘制相量图 -----
+    function drawPhasorDiagram(angleRad) {
+      ctxP.clearRect(0, 0, pW, pH);
+      // 网格和坐标轴
+      ctxP.save();
+      ctxP.strokeStyle = '#3a3d5a';
+      ctxP.lineWidth = 0.7;
+      for (let i = -5; i <= 5; i++) {
+        let x = cx + i * phasorScale;
+        let y = cy - i * phasorScale;
+        ctxP.beginPath(); ctxP.moveTo(x, 0); ctxP.lineTo(x, pH); ctxP.stroke();
+        ctxP.beginPath(); ctxP.moveTo(0, y); ctxP.lineTo(pW, y); ctxP.stroke();
+      }
+      // 坐标轴
+      ctxP.beginPath();
+      ctxP.strokeStyle = '#7d7daa';
+      ctxP.lineWidth = 2;
+      ctxP.moveTo(cx, 0); ctxP.lineTo(cx, pH);
+      ctxP.moveTo(0, cy); ctxP.lineTo(pW, cy);
+      ctxP.stroke();
+      ctxP.fillStyle = '#b9b9dd';
+      ctxP.font = '14px "Segoe UI"';
+      ctxP.fillText('Re', pW-25, cy-12);
+      ctxP.fillText('Im', cx+12, 22);
+
+      const Up = params.Up;
+      const len = Up * phasorScale;       // 相电压向量长度
+      const lineLen = len * Math.sqrt(3); // 线电压长度
+
+      // 绘制三个相电压旋转向量
+      const angles = phases.map(p => angleRad + degToRad(p));
+      const tips = [];
+      for (let i = 0; i < 3; i++) {
+        const ang = angles[i];
+        const tx = cx + len * Math.cos(ang);
+        const ty = cy - len * Math.sin(ang);
+        tips.push({x: tx, y: ty, ang: ang});
+
+        // 向量线
+        ctxP.beginPath();
+        ctxP.strokeStyle = colors[i];
+        ctxP.lineWidth = 3;
+        ctxP.moveTo(cx, cy);
+        ctxP.lineTo(tx, ty);
+        ctxP.stroke();
+        // 箭头
+        ctxP.fillStyle = colors[i];
+        ctxP.beginPath();
+        ctxP.moveTo(tx, ty);
+        ctxP.lineTo(tx - 10 * Math.cos(ang - 0.7), ty + 10 * Math.sin(ang - 0.7));
+        ctxP.lineTo(tx - 10 * Math.cos(ang + 0.7), ty + 10 * Math.sin(ang + 0.7));
+        ctxP.closePath();
+        ctxP.fill();
+        // 标签
+        ctxP.font = 'bold 14px "Segoe UI"';
+        ctxP.fillStyle = colors[i];
+        ctxP.fillText('U'+names[i], tx + 8 * Math.cos(ang), ty - 8 * Math.sin(ang));
+      }
+
+      // 绘制线电压相量（可选）
+      if (params.showLine) {
+        // 线电压 Uab = Ua - Ub, Ubc = Ub - Uc, Uca = Uc - Ua
+        const linePairs = [
+          { from: 0, to: 1, label: 'Uab' }, // A - B
+          { from: 1, to: 2, label: 'Ubc' }, // B - C
+          { from: 2, to: 0, label: 'Uca' }  // C - A
+        ];
+        const lineColor = '#ffd966';
+        linePairs.forEach(pair => {
+          const i = pair.from, j = pair.to;
+          // Uij = Ui - Uj，向量从j点指向i点（因为 Ui - Uj 的几何意义是从Uj终点指向Ui终点）
+          const fromX = tips[j].x, fromY = tips[j].y;
+          const toX = tips[i].x, toY = tips[i].y;
+          ctxP.beginPath();
+          ctxP.strokeStyle = lineColor;
+          ctxP.lineWidth = 2.5;
+          ctxP.setLineDash([8, 5]);
+          ctxP.moveTo(fromX, fromY);
+          ctxP.lineTo(toX, toY);
+          ctxP.stroke();
+          ctxP.setLineDash([]);
+          // 箭头在线电压向量终点
+          const dx = toX - fromX, dy = toY - fromY;
+          const angLine = Math.atan2(-dy, dx); // canvas坐标Y反转
+          ctxP.fillStyle = lineColor;
+          ctxP.beginPath();
+          ctxP.moveTo(toX, toY);
+          ctxP.lineTo(toX - 10 * Math.cos(angLine - 0.7), toY + 10 * Math.sin(angLine - 0.7));
+          ctxP.lineTo(toX - 10 * Math.cos(angLine + 0.7), toY + 10 * Math.sin(angLine + 0.7));
+          ctxP.closePath();
+          ctxP.fill();
+          // 标签
+          const midX = (fromX + toX) / 2;
+          const midY = (fromY + toY) / 2;
+          ctxP.font = 'italic 13px "Fira Code"';
+          ctxP.fillStyle = lineColor;
+          ctxP.fillText(pair.label, midX + 10, midY - 8);
+        });
+
+        // 标注线电压大小 = √3 Up
+        ctxP.font = '14px "Segoe UI"';
+        ctxP.fillStyle = '#ffd966';
+        ctxP.fillText(`|U线| = √3·Up = ${(Math.sqrt(3)*Up).toFixed(2)} V`, 15, pH-25);
+      }
+
+      // 原点
+      ctxP.fillStyle = '#ffffff';
+      ctxP.beginPath();
+      ctxP.arc(cx, cy, 4, 0, 2*Math.PI);
+      ctxP.fill();
+      ctxP.restore();
+    }
+
+    // 动画循环
+    function animate(timestamp) {
+      if (!animStart) animStart = timestamp;
+      const elapsed = (timestamp - animStart) / 1000;
+      const angleRad = elapsed * omega;
+      drawWaveform(angleRad);
+      drawPhasorDiagram(angleRad);
+      requestAnimationFrame(animate);
+    }
+
+    animStart = performance.now();
+    requestAnimationFrame(animate);
+  })();
+</script>
+</body>
+</html>

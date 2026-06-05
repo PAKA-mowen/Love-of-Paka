@@ -233,111 +233,83 @@
 
     <script>
     // ========== 宝藏库（可自由增改） ==========
-    const treasureChest = [
-      {
-        name: "梦幻壁纸包",
-        format: "ZIP",
-        size: "32MB",
-        desc: "一组手绘风格的奇幻壁纸，适合桌面和手机。",
-        url: "assets/downloads/wallpaper-dream.zip"
-      },
-      {
-        name: "像素字体集",
-        format: "TTF / OTF",
-        size: "8MB",
-        desc: "5 款复古像素字体，适合游戏开发或艺术字设计。",
-        url: "assets/downloads/pixel-fonts.zip"
-      },
-      {
-        name: "前端代码片段",
-        format: "HTML/CSS/JS",
-        size: "1.2MB",
-        desc: "一些常用的交互动效和组件源码，可直接使用。",
-        url: "assets/downloads/code-snippets.zip"
-      },
-      {
-        name: "治愈系音频集",
-        format: "MP3",
-        size: "45MB",
-        desc: "雨声、海浪、篝火声，帮助你放松或专注。",
-        url: "assets/downloads/healing-sounds.zip"
-      },
-      {
-        name: "图标合集",
-        format: "SVG / PNG",
-        size: "15MB",
-        desc: "1000+ 常用图标，适用于网站和 App 设计。",
-        url: "assets/downloads/icon-pack.zip"
-      },
-      {
-        name: "神秘链接",
-        format: "在线",
-        size: "—",
-        desc: "一个有趣的在线小工具，等你探索。",
-        url: "https://example.com"  // 可替换为真实链接
-      }
-    ];
+    
+        const diceArea = document.getElementById('diceArea');
+        const diceCSS = document.getElementById('diceCSS');
+        const resultCard = document.getElementById('resultCard');
+        let isRolling = false;
+        let treasures = []; // 动态加载的宝藏库
 
-    // ========== 随机主题配色 ==========
-    const themes = [
-      { bg: "#F5F0E0", cardBg: "#ffffff", accent: "#3a4a4a", btnBg: "#3a4a4a", btnText: "#F5F0E0" },
-      { bg: "#E8F0FE", cardBg: "#ffffff", accent: "#2c3e50", btnBg: "#2c3e50", btnText: "#E8F0FE" },
-      { bg: "#FDE8E9", cardBg: "#ffffff", accent: "#c0392b", btnBg: "#c0392b", btnText: "#FDE8E9" },
-      { bg: "#E8F8F5", cardBg: "#ffffff", accent: "#1abc9c", btnBg: "#1abc9c", btnText: "#fff" },
-      { bg: "#F9EBEA", cardBg: "#ffffff", accent: "#8e44ad", btnBg: "#8e44ad", btnText: "#F9EBEA" },
-      { bg: "#FDEDEC", cardBg: "#ffffff", accent: "#d35400", btnBg: "#d35400", btnText: "#fff" }
-    ];
+        // 随机主题
+        const themes = [
+            { bg: "#F5F0E0", cardBg: "#ffffff", accent: "#3a4a4a", btnBg: "#3a4a4a", btnText: "#F5F0E0" },
+            { bg: "#E8F0FE", cardBg: "#ffffff", accent: "#2c3e50", btnBg: "#2c3e50", btnText: "#E8F0FE" },
+            { bg: "#FDE8E9", cardBg: "#ffffff", accent: "#c0392b", btnBg: "#c0392b", btnText: "#FDE8E9" },
+            { bg: "#E8F8F5", cardBg: "#ffffff", accent: "#1abc9c", btnBg: "#1abc9c", btnText: "#fff" },
+            { bg: "#F9EBEA", cardBg: "#ffffff", accent: "#8e44ad", btnBg: "#8e44ad", btnText: "#F9EBEA" },
+            { bg: "#FDEDEC", cardBg: "#ffffff", accent: "#d35400", btnBg: "#d35400", btnText: "#fff" }
+        ];
 
-    const diceArea = document.getElementById('diceArea');
-    const diceCSS = document.getElementById('diceCSS');
-    const resultCard = document.getElementById('resultCard');
-    let isRolling = false;
-
-    // 点击骰子
-    diceArea.addEventListener('click', () => {
-      if (isRolling) return;
-      isRolling = true;
-      diceArea.classList.add('disabled');
-      diceCSS.classList.add('roll-animation');
-
-      // 随机选择宝藏
-      const randomTreasure = treasureChest[Math.floor(Math.random() * treasureChest.length)];
-      // 随机选择主题
-      const randomTheme = themes[Math.floor(Math.random() * themes.length)];
-
-      // 应用随机主题
-      document.body.style.backgroundColor = randomTheme.bg;
-      resultCard.style.backgroundColor = randomTheme.cardBg;
-      document.querySelector('.download-btn').style.backgroundColor = randomTheme.accent;
-      document.querySelector('.download-btn').style.borderColor = randomTheme.accent;
-      document.querySelector('.download-btn').style.color = randomTheme.btnText;
-
-      // 3 秒后停止动画并展示结果
-      setTimeout(() => {
-        diceCSS.classList.remove('roll-animation');
-        diceArea.classList.remove('disabled');
-
-        // 填充结果
-        document.getElementById('resName').textContent = randomTreasure.name;
-        document.getElementById('resFormat').textContent = '格式：' + randomTreasure.format;
-        document.getElementById('resSize').textContent = '大小：' + randomTreasure.size;
-        document.getElementById('resDesc').textContent = randomTreasure.desc;
-        const downloadLink = document.getElementById('downloadLink');
-        downloadLink.href = randomTreasure.url;
-        // 如果是外部链接，则新窗口打开
-        if (randomTreasure.url.startsWith('http')) {
-          downloadLink.setAttribute('target', '_blank');
-          downloadLink.textContent = '🔗 前往宝藏';
-        } else {
-          downloadLink.setAttribute('download', '');
-          downloadLink.textContent = '⬇️ 下载宝藏';
+        // 页面加载时获取宝藏列表
+        async function loadTreasures() {
+            try {
+                const res = await fetch('../treasures/treasures.json');
+                if (res.ok) {
+                    treasures = await res.json();
+                    console.log(`加载了 ${treasures.length} 个宝藏`);
+                } else {
+                    console.error('宝藏列表加载失败');
+                    treasures = [];
+                }
+            } catch (err) {
+                console.error('网络错误', err);
+                treasures = [];
+            }
         }
+        loadTreasures();
 
-        resultCard.classList.add('show');
-        isRolling = false;
-      }, 3000);
-    });
+        // 点击骰子
+        diceArea.addEventListener('click', () => {
+            if (isRolling || treasures.length === 0) return;
+            isRolling = true;
+            diceArea.classList.add('disabled');
+            diceCSS.classList.add('roll-animation');
 
+            // 随机选择宝藏和主题
+            const randomTreasure = treasures[Math.floor(Math.random() * treasures.length)];
+            const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+
+            // 应用随机主题
+            document.body.style.backgroundColor = randomTheme.bg;
+            resultCard.style.backgroundColor = randomTheme.cardBg;
+            const downloadBtn = document.getElementById('downloadLink');
+            downloadBtn.style.backgroundColor = randomTheme.accent;
+            downloadBtn.style.borderColor = randomTheme.accent;
+            downloadBtn.style.color = randomTheme.btnText;
+
+            // 3秒后显示结果
+            setTimeout(() => {
+                diceCSS.classList.remove('roll-animation');
+                diceArea.classList.remove('disabled');
+
+                document.getElementById('resName').textContent = randomTreasure.name;
+                document.getElementById('resFormat').textContent = '格式：' + randomTreasure.format;
+                document.getElementById('resSize').textContent = '大小：' + randomTreasure.size;
+                document.getElementById('resDesc').textContent = randomTreasure.desc;
+
+                downloadBtn.href = randomTreasure.url;
+                if (randomTreasure.url.startsWith('http')) {
+                    downloadBtn.setAttribute('target', '_blank');
+                    downloadBtn.textContent = '🔗 前往宝藏';
+                } else {
+                    downloadBtn.setAttribute('download', '');
+                    downloadBtn.textContent = '⬇️ 下载宝藏';
+                }
+
+                resultCard.classList.add('show');
+                isRolling = false;
+            }, 3000);
+        });
     // 如果你想替换成真正的骰子图片，只需：
     // 1. 将 id="diceCSS" 的 div 替换为 <img id="diceImg" src="你的图片路径" class="dice-img">
     // 2. 并在 JS 中将动画目标换成 diceImg（可同时修改样式）

@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多巴胺猛击前额叶 - 大脑实况直播</title>
+    <style>
+        :root {
+            --bg: #1a0a2e;
+            --text: #e0d8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            cursor: crosshair;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #mainCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .ui-overlay {
+            position: fixed;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .top-bar {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: rgba(20, 5, 40, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1.5px solid rgba(255, 120, 180, 0.5);
+            border-radius: 40px;
+            padding: 10px 22px;
+            box-shadow: 0 8px 32px rgba(255, 60, 140, 0.25);
+        }
+        .top-bar .live-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff2d55;
+            animation: livePulse 0.8s ease-in-out infinite;
+            box-shadow: 0 0 14px #ff2d55, 0 0 28px #ff2d55;
+        }
+        @keyframes livePulse {
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.9);
+                opacity: 0.35;
+            }
+        }
+        .top-bar .title {
+            color: #ffe0f0;
+            font-weight: 900;
+            font-size: 1rem;
+            letter-spacing: 0.06em;
+            text-shadow: 0 0 18px rgba(255, 140, 200, 0.7);
+            white-space: nowrap;
+        }
+        .top-bar .viewers {
+            color: #ffb0d0;
+            font-size: 0.78rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .hp-bar-wrap {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .hp-label {
+            color: #b0c8f0;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-shadow: 0 0 10px rgba(140, 180, 255, 0.6);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .hp-label .icon {
+            font-size: 1rem;
+        }
+        .hp-outer {
+            width: 200px;
+            height: 14px;
+            border-radius: 10px;
+            background: rgba(20, 10, 40, 0.8);
+            border: 1.5px solid rgba(140, 180, 255, 0.5);
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(100, 150, 255, 0.3);
+        }
+        .hp-inner {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.2s ease-out;
+            background: linear-gradient(90deg, #ff4d7a, #ff2d55, #ff6b8a);
+            box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.4), 0 0 16px rgba(255, 50, 100, 0.6);
+            width: 100%;
+        }
+        .hp-text {
+            color: #ffb0c8;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+        }
+
+        .combo-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 20;
+            pointer-events: none;
+            font-weight: 900;
+            font-size: 3rem;
+            color: #ffdd00;
+            text-shadow: 0 0 40px #ff8c00, 0 0 80px #ff4500, 0 4px 20px rgba(0, 0, 0, 0.6);
+            animation: none;
+            white-space: nowrap;
+            letter-spacing: 0.04em;
+        }
+        .combo-popup.fire {
+            animation: comboBoom 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes comboBoom {
+            0% {
+                transform: translate(-50%, -50%) scale(0.1) rotate(-10deg);
+                opacity: 0;
+            }
+            25% {
+                transform: translate(-50%, -50%) scale(1.5) rotate(8deg);
+                opacity: 1;
+            }
+            55% {
+                transform: translate(-50%, -50%) scale(1.15) rotate(-3deg);
+                opacity: 0.9;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+                opacity: 0;
+            }
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 15;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 8px;
+        }
+        .toast {
+            background: rgba(15, 5, 30, 0.9);
+            border: 1px solid rgba(255, 120, 180, 0.5);
+            border-radius: 20px;
+            padding: 8px 16px;
+            color: #ffd0e8;
+            font-size: 0.72rem;
+            font-weight: 600;
+            animation: toastIn 0.5s ease-out, toastOut 0.5s 2.5s ease-in forwards;
+            box-shadow: 0 4px 20px rgba(255, 60, 130, 0.3);
+            max-width: 260px;
+            white-space: nowrap;
+        }
+        @keyframes toastIn {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes toastOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+        }
+
+        .click-hint {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            pointer-events: none;
+            color: rgba(255, 200, 220, 0.7);
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            animation: hintFade 3s ease-in-out infinite;
+            text-align: center;
+        }
+        @keyframes hintFade {
+            0%,
+            100% {
+                opacity: 0.4;
+            }
+            50% {
+                opacity: 0.9;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .top-bar {
+                gap: 8px;
+                padding: 8px 14px;
+                border-radius: 30px;
+            }
+            .top-bar .title {
+                font-size: 0.78rem;
+            }
+            .top-bar .viewers {
+                font-size: 0.65rem;
+            }
+            .hp-outer {
+                width: 140px;
+                height: 10px;
+            }
+            .hp-label {
+                font-size: 0.6rem;
+            }
+            .combo-popup {
+                font-size: 2rem;
+            }
+            .toast {
+                font-size: 0.6rem;
+                padding: 6px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="mainCanvas"></canvas>
+
+    <!-- 顶部直播栏 -->
+    <div class="top-bar">
+        <div class="live-dot"></div>
+        <span class="title">🧠 多巴胺攻击前额叶·实况</span>
+        <span class="viewers">👁️ <span id="viewerCount">13.7万</span> 观看</span>
+    </div>
+
+    <!-- 理智值血条 -->
+    <div class="hp-bar-wrap">
+        <div class="hp-label">
+            <span class="icon">🧊</span> 前额叶·理性值
+        </div>
+        <div class="hp-outer">
+            <div class="hp-inner" id="hpBar"></div>
+        </div>
+        <div class="hp-text" id="hpText">理性尚存: 100%</div>
+    </div>
+
+    <!-- 连击弹窗 -->
+    <div class="combo-popup" id="comboPopup"></div>
+
+    <!-- 提示 -->
+    <div class="click-hint">🖱️ 点击画面释放更多多巴胺！</div>
+
+    <!-- 通知弹窗容器 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        (function() {
+            const canvas = document.getElementById('mainCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // UI元素
+            const hpBar = document.getElementById('hpBar');
+            const hpText = document.getElementById('hpText');
+            const comboPopup = document.getElementById('comboPopup');
+            const toastContainer = document.getElementById('toastContainer');
+            const viewerCountEl = document.getElementById('viewerCount');
+
+            let W, H;
+            let brainCenterX, brainCenterY, brainRx, brainRy;
+            let pfcX, pfcY, pfcW, pfcH; // 前额叶区域
+
+            // 理智值
+            let sanity = 100;
+            const MAX_SANITY = 100;
+            const SANITY_DECAY_PER_HIT = 3.5;
+
+            // 连击系统
+            let comboCount = 0;
+            let comboTimer = null;
+            const COMBO_TIMEOUT = 1500; // ms内连续击中算连击
+
+            // 多巴胺球
+            let dopamineBalls = [];
+            const INITIAL_BALL_COUNT = 6;
+            const MAX_BALLS = 20;
+
+            // 粒子系统
+            let particles = [];
+
+            // 浮动文字
+            let floatingTexts = [];
+
+            // 前额叶抖动
+            let pfcShakeX = 0;
+            let pfcShakeY = 0;
+            let pfcShakeIntensity = 0;
+
+            // 前额叶表情状态
+            let pfcExpression = 'normal'; // normal, worried, dizzy, knocked
+            let pfcExpressionTimer = 0;
+
+            // 防御波
+            let defenseWaves = [];
+            let lastDefenseWaveTime = 0;
+            const DEFENSE_WAVE_COOLDOWN = 2000;
+
+            // 鼠标/触摸位置
+            let mouseX = -100;
+            let mouseY = -100;
+            let mouseActive = false;
+            let mouseClickCooldown = 0;
+
+            // 时间
+            let lastTime = 0;
+            let deltaTime = 0;
+
+            // 观众数波动
+            let viewerBase = 137000;
+            let viewerNoise = 0;
+
+            // ============ 响应式尺寸计算 ============
+            function resize() {
+                W = window.innerWidth;
+                H = window.innerHeight;
+                canvas.width = W;
+                canvas.height = H;
+
+                // 大脑椭圆参数（侧视图，朝右）
+                const scale = Math.min(W / 900, H / 650);
+                brainRx = 260 * scale;
+                brainRy = 190 * scale;
+                brainCenterX = W * 0.38;
+                brainCenterY = H * 0.48;
+
+                // 前额叶在大脑前部（右侧偏上）
+                pfcW = 100 * scale;
+                pfcH = 80 * scale;
+                pfcX = brainCenterX + brainRx * 0.45;
+                pfcY = brainCenterY - brainRy * 0.25;
+
+                // 确保前额叶在大脑椭圆内
+                const clampMargin = 30 * scale;
+                pfcX = Math.min(pfcX, brainCenterX + brainRx - pfcW / 2 - clampMargin);
+                pfcX = Math.max(pfcX, brainCenterX - brainRx + pfcW / 2 + clampMargin);
+                pfcY = Math.min(pfcY, brainCenterY + brainRy - pfcH / 2 - clampMargin);
+                pfcY = Math.max(pfcY, brainCenterY - brainRy + pfcH / 2 + clampMargin);
+            }
+
+            // ============ 多巴胺球类 ============
+            class DopamineBall {
+                constructor(x, y, vx, vy) {
+                    this.x = x || brainCenterX + (Math.random() - 0.5) * brainRx * 1.2;
+                    this.y = y || brainCenterY + (Math.random() - 0.5) * brainRy * 1.2;
+                    const speed = 1.5 + Math.random() * 3.5;
+                    const angle = vx !== undefined ? Math.atan2(vy, vx) : Math.random() * Math.PI * 2;
+                    this.vx = vx !== undefined ? vx : Math.cos(angle) * speed;
+                    this.vy = vy !== undefined ? vy : Math.sin(angle) * speed;
+                    this.radius = 14 + Math.random() * 16;
+                    this.baseSpeed = speed;
+                    this.attackCooldown = 0;
+                    this.attackCooldownMax = 2000 + Math.random() * 4000;
+                    this.isAttacking = false;
+                    this.attackTimer = 0;
+                    this.attackDuration = 600 + Math.random() * 500;
+                    this.trailPositions = [];
+                    this.maxTrail = 10;
+                    this.wobblePhase = Math.random() * Math.PI * 2;
+                    this.wobbleAmp = 0.3 + Math.random() * 0.6;
+                    this.colorHue = 330 + Math.random() * 35; // 粉橙色调
+                    this.eyeStyle = Math.floor(Math.random() * 3); // 不同眼睛风格
+                    this.hornLength = 6 + Math.random() * 10;
+                    this.sparkTimer = 0;
+                }
+
+                update(dt) {
+                    const dtSec = dt / 1000;
+                    this.wobblePhase += dtSec * (4 + Math.random() * 4);
+                    this.sparkTimer += dt;
+
+                    // 攻击冷却
+                    if (this.attackCooldown > 0) {
+                        this.attackCooldown -= dt;
+                    }
+
+                    // 攻击行为
+                    if (this.isAttacking) {
+                        this.attackTimer -= dt;
+                        if (this.attackTimer <= 0) {
+                            this.isAttacking = false;
+                            this.attackCooldown = this.attackCooldownMax;
+                        } else {
+                            // 冲向前额叶
+                            const tx = pfcX + pfcShakeX;
+                            const ty = pfcY + pfcShakeY;
+                            const dx = tx - this.x;
+                            const dy = ty - this.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                            const attackSpeed = 6 + Math.random() * 2;
+                            const wobble = Math.sin(this.wobblePhase * 3) * this.wobbleAmp * 0.4;
+                            this.vx += (dx / dist * attackSpeed - this.vx) * 0.15;
+                            this.vy += (dy / dist * attackSpeed - this.vy) * 0.15;
+                            this.vx += Math.cos(this.wobblePhase * 5) * wobble;
+                            this.vy += Math.sin(this.wobblePhase * 5) * wobble;
+                        }
+                    } else if (this.attackCooldown <= 0 && !this.isAttacking) {
+                        // 随机决定是否攻击
+                        if (Math.random() < 0.008) {
+                            this.startAttack();
+                        }
+                    }
+
+                    // 移动
+                    this.x += this.vx * dtSec * 60;
+                    this.y += this.vy * dtSec * 60;
+
+                    // 速度限制
+                    const currentSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                    const maxSpeed = this.isAttacking ? 9 : 5;
+                    if (currentSpeed > maxSpeed) {
+                        const scale = maxSpeed / currentSpeed;
+                        this.vx *= scale;
+                        this.vy *= scale;
+                    }
+                    // 最小速度
+                    const minSpeed = this.isAttacking ? 3 : 0.6;
+                    if (currentSpeed < minSpeed && (this.isAttacking || Math.random() < 0.02)) {
+                        const scale2 = minSpeed / (currentSpeed || 1);
+                        this.vx *= scale2;
+                        this.vy *= scale2;
+                    }
+
+                    // 在大脑椭圆内弹跳
+                    const dxCenter = this.x - brainCenterX;
+                    const dyCenter = this.y - brainCenterY;
+                    const ellipseDist = (dxCenter * dxCenter) / (brainRx * brainRx) + (dyCenter * dyCenter) / (brainRy *
+                        brainRy);
+
+                    if (ellipseDist > 0.85) {
+                        // 弹回
+                        const nx = dxCenter / (brainRx * brainRx);
+                        const ny = dyCenter / (brainRy * brainRy);
+                        const nLen = Math.sqrt(nx * nx + ny * ny) || 1;
+                        const unx = nx / nLen;
+                        const uny = ny / nLen;
+                        const dot = this.vx * unx + this.vy * uny;
+                        if (dot > 0) {
+                            this.vx -= 2 * dot * unx;
+                            this.vy -= 2 * dot * uny;
+                        }
+                        // 推回椭圆内
+                        const pushFactor = 0.92;
+                        const targetDist = Math.sqrt(ellipseDist);
+                        const scaleBack = pushFactor / targetDist;
+                        this.x = brainCenterX + dxCenter * scaleBack;
+                        this.y = brainCenterY + dyCenter * scaleBack;
+                        this.vx *= 0.85;
+                        this.vy *= 0.85;
+                    }
+
+                    // 检查是否击中前额叶
+                    if (this.isAttacking) {
+                        const pfcCX = pfcX + pfcShakeX;
+                        const pfcCY = pfcY + pfcShakeY;
+                        const hitDX = this.x - pfcCX;
+                        const hitDY = this.y - pfcCY;
+                        const hitDist = Math.sqrt(hitDX * hitDX + hitDY * hitDY);
+                        const hitThreshold = this.radius + pfcW * 0.4;
+                        if (hitDist < hitThreshold) {
+                            this.onHitPFC();
+                        }
+                    }
+
+                    // 尾迹
+                    this.trailPositions.push({ x: this.x, y: this.y, life: 1 });
+                    if (this.trailPositions.length > this.maxTrail) this.trailPositions.shift();
+                    for (let t of this.trailPositions) t.life -= 0.08;
+                    this.trailPositions = this.trailPositions.filter(t => t.life > 0);
+                }
+
+                startAttack() {
+                    if (this.attackCooldown > 0) return;
+                    this.isAttacking = true;
+                    this.attackTimer = this.attackDuration;
+                }
+
+                onHitPFC() {
+                    // 撞击效果
+                    sanity = Math.max(0, sanity - SANITY_DECAY_PER_HIT);
+                    pfcShakeIntensity = Math.min(25, pfcShakeIntensity + 7);
+                    pfcExpression = 'knocked';
+                    pfcExpressionTimer = 400;
+
+                    // 粒子爆炸
+                    const cx = pfcX + pfcShakeX;
+                    const cy = pfcY + pfcShakeY;
+                    for (let i = 0; i < 25; i++) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const speed = 2 + Math.random() * 8;
+                        particles.push(new Particle(
+                            cx, cy,
+                            Math.cos(angle) * speed,
+                            Math.sin(angle) * speed,
+                            `hsl(${this.colorHue + Math.random() * 30}, 90%, ${55 + Math.random() * 35}%)`,
+                            2 + Math.random() * 5,
+                            500 + Math.random() * 700
+                        ));
+                    }
+                    // 爱心粒子
+                    for (let i = 0; i < 5; i++) {
+                        const a = Math.random() * Math.PI * 2;
+                        const s = 3 + Math.random() * 5;
+                        particles.push(new Particle(
+                            cx, cy,
+                            Math.cos(a) * s, Math.sin(a) * s - 2,
+                            '#ff4088',
+                            3 + Math.random() * 4,
+                            800 + Math.random() * 600,
+                            '❤️'
+                        ));
+                    }
+
+                    // 浮动文字
+                    const texts = ['啪！', '理性-3', '爱情+100', '😍', '💥', 'BOOM', '啊！'];
+                    floatingTexts.push({
+                        x: cx,
+                        y: cy,
+                        text: texts[Math.floor(Math.random() * texts.length)],
+                        life: 1,
+                        vy: -2 - Math.random() * 3,
+                        vx: (Math.random() - 0.5) * 2
+                    });
+
+                    // 连击
+                    comboCount++;
+                    if (comboTimer) clearTimeout(comboTimer);
+                    comboTimer = setTimeout(() => {
+                        if (comboCount >= 3) showCombo(comboCount);
+                        comboCount = 0;
+                    }, COMBO_TIMEOUT);
+
+                    // 通知
+                    if (Math.random() < 0.4) {
+                        const msgs = [
+                            '⚠️ 前额叶：我顶不住了...',
+                            '🔔 理性.exe 已停止响应',
+                            '💊 需要更多血清素！',
+                            '🧠 前额叶：申请休假...',
+                            '💘 恋爱脑模式启动中',
+                            '📉 判断力-50',
+                            '🤪 理智值跌破警戒线',
+                        ];
+                        showToast(msgs[Math.floor(Math.random() * msgs.length)]);
+                    }
+
+                    // 反弹
+                    const pfcCX = pfcX + pfcShakeX;
+                    const pfcCY = pfcY + pfcShakeY;
+                    const rdx = this.x - pfcCX;
+                    const rdy = this.y - pfcCY;
+                    const rdist = Math.sqrt(rdx * rdx + rdy * rdy) || 1;
+                    const bounceSpeed = 7 + Math.random() * 4;
+                    this.vx = (rdx / rdist) * bounceSpeed;
+                    this.vy = (rdy / rdist) * bounceSpeed - 3;
+                    this.isAttacking = false;
+                    this.attackCooldown = this.attackCooldownMax * (0.6 + Math.random() * 0.4);
+                    this.attackTimer = 0;
+
+                    // 添加新多巴胺球（概率）
+                    if (dopamineBalls.length < MAX_BALLS && Math.random() < 0.25) {
+                        const spawnX = this.x + (Math.random() - 0.5) * 60;
+                        const spawnY = this.y + (Math.random() - 0.5) * 60;
+                        dopamineBalls.push(new DopamineBall(spawnX, spawnY,
+                            (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4));
+                    }
+                }
+
+                draw(ctx) {
+                    // 尾迹
+                    for (let i = 0; i < this.trailPositions.length; i++) {
+                        const t = this.trailPositions[i];
+                        const alpha = t.life * 0.35;
+                        const r = this.radius * t.life * 0.7;
+                        ctx.beginPath();
+                        ctx.arc(t.x, t.y, r, 0, Math.PI * 2);
+                        ctx.fillStyle = `hsla(${this.colorHue}, 100%, 65%, ${alpha})`;
+                        ctx.fill();
+                    }
+
+                    // 光晕
+                    const glowGrad = ctx.createRadialGradient(this.x, this.y, this.radius * 0.3, this.x, this.y, this
+                        .radius * 1.8);
+                    glowGrad.addColorStop(0, `hsla(${this.colorHue}, 100%, 70%, 0.7)`);
+                    glowGrad.addColorStop(0.5, `hsla(${this.colorHue}, 100%, 55%, 0.3)`);
+                    glowGrad.addColorStop(1, `hsla(${this.colorHue}, 100%, 50%, 0)`);
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius * 1.8, 0, Math.PI * 2);
+                    ctx.fillStyle = glowGrad;
+                    ctx.fill();
+
+                    // 主体球
+                    const bodyGrad = ctx.createRadialGradient(
+                        this.x - this.radius * 0.25, this.y - this.radius * 0.3, this.radius * 0.1,
+                        this.x, this.y, this.radius
+                    );
+                    bodyGrad.addColorStop(0, `hsl(${this.colorHue}, 95%, 75%)`);
+                    bodyGrad.addColorStop(0.5, `hsl(${this.colorHue}, 90%, 58%)`);
+                    bodyGrad.addColorStop(1, `hsl(${this.colorHue - 15}, 85%, 38%)`);
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = bodyGrad;
+                    ctx.fill();
+                    ctx.strokeStyle = `hsl(${this.colorHue}, 80%, 72%)`;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // 小恶魔角
+                    const hornLen = this.hornLength;
+                    const hornSpread = this.radius * 0.55;
+                    ctx.fillStyle = `hsl(${this.colorHue - 20}, 85%, 45%)`;
+                    ctx.strokeStyle = `hsl(${this.colorHue - 20}, 80%, 55%)`;
+                    ctx.lineWidth = 2;
+                    // 左角
+                    ctx.beginPath();
+                    ctx.moveTo(this.x - hornSpread * 0.7, this.y - this.radius * 0.85);
+                    ctx.lineTo(this.x - hornSpread * 1.1, this.y - this.radius - hornLen);
+                    ctx.lineTo(this.x - hornSpread * 0.3, this.y - this.radius * 0.65);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                    // 右角
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + hornSpread * 0.7, this.y - this.radius * 0.85);
+                    ctx.lineTo(this.x + hornSpread * 1.1, this.y - this.radius - hornLen);
+                    ctx.lineTo(this.x + hornSpread * 0.3, this.y - this.radius * 0.65);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // 表情 - 调皮笑脸
+                    const eyeY = this.y - this.radius * 0.18;
+                    const eyeSpread = this.radius * 0.35;
+                    // 眼睛
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(this.x - eyeSpread, eyeY, this.radius * 0.25, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(this.x + eyeSpread, eyeY, this.radius * 0.25, 0, Math.PI * 2);
+                    ctx.fill();
+                    // 瞳孔
+                    ctx.fillStyle = '#1a0a2e';
+                    const pupilOffX = (this.isAttacking ? 0.06 : 0.02) * this.radius;
+                    const pupilOffY = (this.isAttacking ? -0.04 : 0) * this.radius;
+                    ctx.beginPath();
+                    ctx.arc(this.x - eyeSpread + pupilOffX, eyeY + pupilOffY, this.radius * 0.12, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(this.x + eyeSpread + pupilOffX, eyeY + pupilOffY, this.radius * 0.12, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // 嘴巴 - 调皮笑
+                    const mouthY = this.y + this.radius * 0.2;
+                    ctx.strokeStyle = '#3a1025';
+                    ctx.lineWidth = 2.5;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    if (this.isAttacking) {
+                        // 兴奋张嘴
+                        ctx.arc(this.x, mouthY, this.radius * 0.3, 0.1 * Math.PI, 0.9 * Math.PI);
+                    } else {
+                        // 坏笑
+                        ctx.arc(this.x, mouthY - this.radius * 0.1, this.radius * 0.32, 0.15 * Math.PI, 0.85 * Math.PI);
+                    }
+                    ctx.stroke();
+
+                    // 攻击状态额外闪光
+                    if (this.isAttacking) {
+                        const sparkAlpha = 0.5 + Math.sin(this.sparkTimer * 20) * 0.4;
+                        ctx.fillStyle = `rgba(255,255,200,${sparkAlpha})`;
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y - this.radius * 0.7, this.radius * 0.22, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+
+            // ============ 粒子类 ============
+            class Particle {
+                constructor(x, y, vx, vy, color, size, life, emoji) {
+                    this.x = x;
+                    this.y = y;
+                    this.vx = vx;
+                    this.vy = vy;
+                    this.color = color;
+                    this.size = size;
+                    this.life = life;
+                    this.maxLife = life;
+                    this.emoji = emoji || null;
+                    this.gravity = 0.03;
+                }
+                update(dt) {
+                    const dtSec = dt / 1000;
+                    this.x += this.vx * dtSec * 60;
+                    this.y += this.vy * dtSec * 60;
+                    this.vy += this.gravity * dtSec * 60;
+                    this.life -= dt;
+                    return this.life > 0;
+                }
+                draw(ctx) {
+                    const alpha = Math.max(0, this.life / this.maxLife);
+                    if (this.emoji) {
+                        ctx.font = `${this.size * 4}px sans-serif`;
+                        ctx.textAlign = 'center';
+                        ctx.fillText(this.emoji, this.x, this.y);
+                    } else {
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size * alpha, 0, Math.PI * 2);
+                        ctx.fillStyle = this.color.replace(')', `, ${alpha})`).replace('hsl', 'hsla');
+                        if (this.color.startsWith('#')) {
+                            ctx.fillStyle = this.color;
+                            ctx.globalAlpha = alpha;
+                        }
+                        ctx.fill();
+                        ctx.globalAlpha = 1;
+                    }
+                }
+            }
+
+            // ============ 防御波 ============
+            class DefenseWave {
+                constructor(x, y) {
+                    this.x = x;
+                    this.y = y;
+                    this.radius = 5;
+                    this.maxRadius = 60;
+                    this.life = 1;
+                    this.speed = 2.5;
+                }
+                update(dt) {
+                    const dtSec = dt / 1000;
+                    this.radius += this.speed * dtSec * 60;
+                    this.life = 1 - this.radius / this.maxRadius;
+                    return this.life > 0;
+                }
+                draw(ctx) {
+                    const alpha = this.life * 0.5;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(140,190,255,${alpha})`;
+                    ctx.lineWidth = 3 * this.life;
+                    ctx.setLineDash([8, 8]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            }
+
+            // ============ 显示连击 ============
+            function showCombo(count) {
+                comboPopup.textContent = count >= 8 ? `💥 ${count}连击!! 前额叶大破!` :
+                    count >= 5 ? `🔥 ${count}连击!` :
+                    `✨ ${count}连击!`;
+                comboPopup.classList.remove('fire');
+                void comboPopup.offsetWidth;
+                comboPopup.classList.add('fire');
+                setTimeout(() => comboPopup.classList.remove('fire'), 1300);
+            }
+
+            // ============ 显示通知 ============
+            function showToast(msg) {
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.textContent = msg;
+                toastContainer.appendChild(toast);
+                setTimeout(() => {
+                    if (toast.parentNode) toast.remove();
+                }, 3200);
+                // 限制通知数量
+                const toasts = toastContainer.querySelectorAll('.toast');
+                if (toasts.length > 4) toasts[0].remove();
+            }
+
+            // ============ 初始化多巴胺球 ============
+            function initBalls() {
+                dopamineBalls = [];
+                for (let i = 0; i < INITIAL_BALL_COUNT; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = Math.random() * brainRx * 0.6;
+                    const x = brainCenterX + Math.cos(angle) * dist;
+                    const y = brainCenterY + Math.sin(angle) * dist * (brainRy / brainRx);
+                    const speed = 1.5 + Math.random() * 3;
+                    const a = Math.random() * Math.PI * 2;
+                    dopamineBalls.push(new DopamineBall(x, y, Math.cos(a) * speed, Math.sin(a) * speed));
+                }
+            }
+
+            // ============ 点击添加多巴胺 ============
+            function spawnBallAtClick(x, y) {
+                if (dopamineBalls.length >= MAX_BALLS) {
+                    // 移除最旧的非攻击球
+                    const nonAttacking = dopamineBalls.filter(b => !b.isAttacking);
+                    if (nonAttacking.length > 0) {
+                        const idx = dopamineBalls.indexOf(nonAttacking[0]);
+                        if (idx >= 0) dopamineBalls.splice(idx, 1);
+                    }
+                }
+                const ball = new DopamineBall(x, y,
+                    (Math.random() - 0.5) * 5,
+                    (Math.random() - 0.5) * 5 - 3);
+                ball.attackCooldown = 0;
+                ball.startAttack();
+                dopamineBalls.push(ball);
+                // 小粒子
+                for (let i = 0; i < 12; i++) {
+                    const a = Math.random() * Math.PI * 2;
+                    const s = 2 + Math.random() * 5;
+                    particles.push(new Particle(x, y, Math.cos(a) * s, Math.sin(a) * s,
+                        '#ff6ba0', 2 + Math.random() * 3, 400 + Math.random() * 400));
+                }
+            }
+
+            // ============ 绘制大脑 ============
+            function drawBrain(ctx) {
+                // 大脑皮层阴影
+                const shadowGrad = ctx.createRadialGradient(brainCenterX, brainCenterY, brainRy * 0.3,
+                    brainCenterX, brainCenterY, brainRy * 1.5);
+                shadowGrad.addColorStop(0, 'rgba(180,140,160,0.15)');
+                shadowGrad.addColorStop(1, 'rgba(30,10,50,0.5)');
+                ctx.fillStyle = shadowGrad;
+                ctx.beginPath();
+                ctx.ellipse(brainCenterX, brainCenterY, brainRx + 25, brainRy + 25, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 大脑主体 - 侧视图椭圆
+                const brainGrad = ctx.createRadialGradient(
+                    brainCenterX - brainRx * 0.2, brainCenterY - brainRy * 0.25, brainRx * 0.15,
+                    brainCenterX, brainCenterY, brainRx * 0.95
+                );
+                brainGrad.addColorStop(0, '#f5e0d8');
+                brainGrad.addColorStop(0.4, '#e8c8b8');
+                brainGrad.addColorStop(0.75, '#d4a895');
+                brainGrad.addColorStop(1, '#b88070');
+                ctx.fillStyle = brainGrad;
+                ctx.beginPath();
+                ctx.ellipse(brainCenterX, brainCenterY, brainRx, brainRy, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(140,90,70,0.5)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // 脑回褶皱
+                ctx.strokeStyle = 'rgba(160,110,90,0.4)';
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+                const foldCount = 9;
+                for (let i = 0; i < foldCount; i++) {
+                    const angle = (i / foldCount) * Math.PI * 1.6 - 0.8 * Math.PI;
+                    const r = brainRx * 0.7;
+                    const cx = brainCenterX + Math.cos(angle) * r * 0.5;
+                    const cy = brainCenterY + Math.sin(angle) * r * 0.35;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, r * (0.25 + Math.random() * 0.3), angle - 0.5, angle + 0.5);
+                    ctx.stroke();
+                }
+                // 更多小褶皱
+                for (let i = 0; i < 6; i++) {
+                    const a = Math.random() * Math.PI * 2;
+                    const r = brainRx * (0.3 + Math.random() * 0.5);
+                    const cx = brainCenterX + Math.cos(a) * r;
+                    const cy = brainCenterY + Math.sin(a) * r * (brainRy / brainRx);
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, brainRx * (0.08 + Math.random() * 0.18), a - 0.7, a + 0.7);
+                    ctx.stroke();
+                }
+
+                // 中央沟（模拟）
+                ctx.strokeStyle = 'rgba(130,80,60,0.35)';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(brainCenterX - brainRx * 0.15, brainCenterY - brainRy * 0.7);
+                ctx.quadraticCurveTo(brainCenterX + brainRx * 0.1, brainCenterY,
+                    brainCenterX - brainRx * 0.05, brainCenterY + brainRy * 0.65);
+                ctx.stroke();
+            }
+
+            // ============ 绘制前额叶 ============
+            function drawPFC(ctx) {
+                const cx = pfcX + pfcShakeX;
+                const cy = pfcY + pfcShakeY;
+                const hw = pfcW / 2;
+                const hh = pfcH / 2;
+
+                // 防御波
+                for (let wave of defenseWaves) {
+                    wave.draw(ctx);
+                }
+
+                // 高亮区域光晕
+                const highlightGrad = ctx.createRadialGradient(cx, cy, hw * 0.3, cx, cy, hw * 1.3);
+                highlightGrad.addColorStop(0, 'rgba(160,200,255,0.25)');
+                highlightGrad.addColorStop(1, 'rgba(80,130,200,0)');
+                ctx.fillStyle = highlightGrad;
+                ctx.beginPath();
+                ctx.roundRect(cx - hw * 1.3, cy - hh * 1.3, hw * 2.6, hh * 2.6, 30);
+                ctx.fill();
+
+                // 前额叶主体 - 理性蓝灰
+                const pfcGrad = ctx.createLinearGradient(cx - hw, cy - hh, cx + hw, cy + hh);
+                pfcGrad.addColorStop(0, '#c8ddf8');
+                pfcGrad.addColorStop(0.5, '#a8c8e8');
+                pfcGrad.addColorStop(1, '#7a9fc0');
+                ctx.fillStyle = pfcGrad;
+                ctx.beginPath();
+                ctx.roundRect(cx - hw, cy - hh, hw * 2, hh * 2, 18);
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(60,100,160,0.7)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // 网格纹理（理性=秩序）
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                ctx.lineWidth = 0.8;
+                const gridSpacing = 14;
+                for (let gx = cx - hw + gridSpacing; gx < cx + hw; gx += gridSpacing) {
+                    ctx.beginPath();
+                    ctx.moveTo(gx, cy - hh + 8);
+                    ctx.lineTo(gx, cy + hh - 8);
+                    ctx.stroke();
+                }
+                for (let gy = cy - hh + gridSpacing; gy < cy + hh; gy += gridSpacing) {
+                    ctx.beginPath();
+                    ctx.moveTo(cx - hw + 8, gy);
+                    ctx.lineTo(cx + hw - 8, gy);
+                    ctx.stroke();
+                }
+
+                // 标签
+                ctx.fillStyle = 'rgba(30,60,100,0.8)';
+                ctx.font = `bold ${Math.max(10, hh * 0.28)}px "PingFang SC","Microsoft YaHei",sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText('前额叶皮层', cx, cy - hh * 0.15);
+                ctx.fillStyle = 'rgba(40,70,110,0.6)';
+                ctx.font = `${Math.max(8, hh * 0.2)}px "PingFang SC","Microsoft YaHei",sans-serif`;
+                ctx.fillText('PREFRONTAL CORTEX', cx, cy + hh * 0.25);
+
+                // 表情
+                const faceY = cy + hh * 0.35;
+                const faceSize = hh * 0.5;
+                if (pfcExpression === 'knocked') {
+                    // X_X 眼
+                    ctx.strokeStyle = '#1a3050';
+                    ctx.lineWidth = 2.5;
+                    const ex = cx - faceSize * 0.5;
+                    const ey = faceY - faceSize * 0.2;
+                    ctx.beginPath();
+                    ctx.moveTo(ex - 8, ey - 8);
+                    ctx.lineTo(ex + 8, ey + 8);
+                    ctx.moveTo(ex + 8, ey - 8);
+                    ctx.lineTo(ex - 8, ey + 8);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(ex + faceSize - 8, ey - 8);
+                    ctx.lineTo(ex + faceSize + 8, ey + 8);
+                    ctx.moveTo(ex + faceSize + 8, ey - 8);
+                    ctx.lineTo(ex + faceSize - 8, ey + 8);
+                    ctx.stroke();
+                    // 嘴
+                    ctx.beginPath();
+                    ctx.arc(cx, faceY + faceSize * 0.4, faceSize * 0.25, 0.2 * Math.PI, 0.8 * Math.PI);
+                    ctx.stroke();
+                } else if (pfcExpression === 'worried') {
+                    // >_< 担心
+                    ctx.fillStyle = '#1a3050';
+                    ctx.beginPath();
+                    ctx.arc(cx - faceSize * 0.3, faceY, faceSize * 0.15, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(cx + faceSize * 0.3, faceY, faceSize * 0.15, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(cx, faceY + faceSize * 0.5, faceSize * 0.2, 0.1 * Math.PI, 0.9 * Math.PI);
+                    ctx.strokeStyle = '#1a3050';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                } else {
+                    // 正常 - 戴眼镜的严肃表情
+                    // 眼镜框
+                    ctx.strokeStyle = '#2a4060';
+                    ctx.lineWidth = 2;
+                    const glx = cx - faceSize * 0.45;
+                    const gly = faceY - faceSize * 0.3;
+                    const glr = faceSize * 0.35;
+                    ctx.beginPath();
+                    ctx.arc(glx, gly, glr, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(glx + faceSize * 0.9, gly, glr, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(glx + glr, gly);
+                    ctx.lineTo(glx + faceSize * 0.9 - glr, gly);
+                    ctx.stroke();
+                    // 眼睛
+                    ctx.fillStyle = '#1a3050';
+                    ctx.beginPath();
+                    ctx.arc(glx, gly, glr * 0.35, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(glx + faceSize * 0.9, gly, glr * 0.35, 0, Math.PI * 2);
+                    ctx.fill();
+                    // 严肃嘴
+                    ctx.beginPath();
+                    ctx.moveTo(cx - faceSize * 0.25, faceY + faceSize * 0.5);
+                    ctx.lineTo(cx + faceSize * 0.25, faceY + faceSize * 0.5);
+                    ctx.strokeStyle = '#1a3050';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+
+            // ============ 绘制浮动文字 ============
+            function drawFloatingTexts(ctx) {
+                for (let ft of floatingTexts) {
+                    const alpha = ft.life;
+                    ctx.fillStyle = `rgba(255,220,100,${alpha})`;
+                    ctx.font = `bold ${14 + (1 - ft.life) * 10}px "PingFang SC","Microsoft YaHei",sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText(ft.text, ft.x, ft.y);
+                    ctx.fillStyle = `rgba(0,0,0,${alpha * 0.3})`;
+                    ctx.fillText(ft.text, ft.x + 1, ft.y + 1);
+                }
+            }
+
+            // ============ 主循环 ============
+            function update(dt) {
+                const dtClamped = Math.min(dt, 50); // 防止大帧跳跃
+
+                // 更新前额叶抖动
+                if (pfcShakeIntensity > 0) {
+                    pfcShakeX = (Math.random() - 0.5) * pfcShakeIntensity * 2;
+                    pfcShakeY = (Math.random() - 0.5) * pfcShakeIntensity * 2;
+                    pfcShakeIntensity *= 0.88;
+                    if (pfcShakeIntensity < 0.5) {
+                        pfcShakeIntensity = 0;
+                        pfcShakeX = 0;
+                        pfcShakeY = 0;
+                    }
+                }
+
+                // 前额叶表情恢复
+                if (pfcExpressionTimer > 0) {
+                    pfcExpressionTimer -= dtClamped;
+                    if (pfcExpressionTimer <= 0) {
+                        pfcExpression = sanity < 30 ? 'worried' : 'normal';
+                    }
+                }
+                if (sanity < 30 && pfcExpression === 'normal' && pfcExpressionTimer <= 0) {
+                    pfcExpression = 'worried';
+                }
+                if (sanity < 10 && pfcExpression === 'worried') {
+                    pfcExpression = 'knocked';
+                    pfcExpressionTimer = 2000;
+                }
+
+                // 防御波
+                const now = Date.now();
+                if (now - lastDefenseWaveTime > DEFENSE_WAVE_COOLDOWN && sanity < 60) {
+                    defenseWaves.push(new DefenseWave(pfcX + pfcShakeX, pfcY + pfcShakeY));
+                    lastDefenseWaveTime = now;
+                }
+                for (let i = defenseWaves.length - 1; i >= 0; i--) {
+                    if (!defenseWaves[i].update(dtClamped)) defenseWaves.splice(i, 1);
+                }
+                // 限制防御波数量
+                if (defenseWaves.length > 3) defenseWaves.shift();
+
+                // 更新多巴胺球
+                for (let ball of dopamineBalls) {
+                    ball.update(dtClamped);
+                }
+
+                // 更新粒子
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    if (!particles[i].update(dtClamped)) particles.splice(i, 1);
+                }
+
+                // 更新浮动文字
+                for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                    floatingTexts[i].y += floatingTexts[i].vy * dtClamped / 1000 * 60;
+                    floatingTexts[i].x += floatingTexts[i].vx * dtClamped / 1000 * 60;
+                    floatingTexts[i].life -= dtClamped / 1800;
+                    if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
+                }
+
+                // 鼠标冷却
+                if (mouseClickCooldown > 0) mouseClickCooldown -= dtClamped;
+
+                // 理智值缓慢恢复（非常慢）
+                if (sanity < MAX_SANITY && pfcShakeIntensity < 0.5) {
+                    sanity = Math.min(MAX_SANITY, sanity + dtClamped * 0.003);
+                }
+
+                // 更新UI
+                const sanityPercent = Math.round(sanity);
+                hpBar.style.width = sanityPercent + '%';
+                hpText.textContent = sanity > 60 ? `理性尚存: ${sanityPercent}%` :
+                    sanity > 30 ? `理性告急: ${sanityPercent}% ⚠️` :
+                    sanity > 10 ? `理性崩坏: ${sanityPercent}% 🔥` :
+                    `理性蒸发: ${sanityPercent}% 💀`;
+                if (sanity < 30) {
+                    hpBar.style.background = 'linear-gradient(90deg, #ff2d2d, #ff6b3d, #ff2d55)';
+                } else if (sanity < 60) {
+                    hpBar.style.background = 'linear-gradient(90deg, #ff8c3d, #ff4d7a, #ff6b8a)';
+                } else {
+                    hpBar.style.background = 'linear-gradient(90deg, #ff4d7a, #ff2d55, #ff6b8a)';
+                }
+
+                // 观众数波动
+                viewerNoise += (Math.random() - 0.5) * 200;
+                viewerNoise *= 0.9;
+                const viewers = Math.round(viewerBase + viewerNoise + sanity * 15);
+                viewerCountEl.textContent = (viewers / 10000).toFixed(1) + '万';
+            }
+
+            function draw(ctx) {
+                // 清屏
+                ctx.clearRect(0, 0, W, H);
+
+                // 背景
+                const bgGrad = ctx.createRadialGradient(W * 0.5, H * 0.45, W * 0.1, W * 0.5, H * 0.5, W * 0.8);
+                bgGrad.addColorStop(0, '#1e1040');
+                bgGrad.addColorStop(0.5, '#150830');
+                bgGrad.addColorStop(1, '#0a0418');
+                ctx.fillStyle = bgGrad;
+                ctx.fillRect(0, 0, W, H);
+
+                // 背景粒子（远处漂浮的）
+                const bgParticleCount = 30;
+                ctx.fillStyle = 'rgba(200,180,220,0.25)';
+                for (let i = 0; i < bgParticleCount; i++) {
+                    const bx = (Math.sin(i * 73.7 + Date.now() * 0.0003) * 0.5 + 0.5) * W;
+                    const by = (Math.cos(i * 47.3 + Date.now() * 0.0004) * 0.5 + 0.5) * H;
+                    const br = 1.5 + Math.sin(i * 13.7) * 1;
+                    ctx.beginPath();
+                    ctx.arc(bx, by, br, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // 绘制大脑
+                drawBrain(ctx);
+
+                // 绘制前额叶
+                drawPFC(ctx);
+
+                // 绘制多巴胺球
+                for (let ball of dopamineBalls) {
+                    ball.draw(ctx);
+                }
+
+                // 绘制粒子
+                for (let p of particles) {
+                    p.draw(ctx);
+                }
+
+                // 绘制浮动文字
+                drawFloatingTexts(ctx);
+
+                // 鼠标光标效果
+                if (mouseActive && mouseClickCooldown <= 0) {
+                    const cursorGrad = ctx.createRadialGradient(mouseX, mouseY, 4, mouseX, mouseY, 30);
+                    cursorGrad.addColorStop(0, 'rgba(255,180,200,0.5)');
+                    cursorGrad.addColorStop(1, 'rgba(255,100,150,0)');
+                    ctx.fillStyle = cursorGrad;
+                    ctx.beginPath();
+                    ctx.arc(mouseX, mouseY, 30, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = 'rgba(255,200,220,0.7)';
+                    ctx.beginPath();
+                    ctx.arc(mouseX, mouseY, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            function loop(timestamp) {
+                if (!lastTime) lastTime = timestamp;
+                deltaTime = timestamp - lastTime;
+                lastTime = timestamp;
+
+                update(deltaTime);
+                draw(ctx);
+
+                requestAnimationFrame(loop);
+            }
+
+            // ============ 事件处理 ============
+            canvas.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                mouseActive = true;
+            });
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                mouseX = e.touches[0].clientX;
+                mouseY = e.touches[0].clientY;
+                mouseActive = true;
+            }, { passive: false });
+            canvas.addEventListener('mouseleave', () => { mouseActive = false; });
+            canvas.addEventListener('click', (e) => {
+                if (mouseClickCooldown <= 0) {
+                    spawnBallAtClick(e.clientX, e.clientY);
+                    mouseClickCooldown = 200;
+                }
+            });
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (mouseClickCooldown <= 0 && e.touches.length > 0) {
+                    spawnBallAtClick(e.touches[0].clientX, e.touches[0].clientY);
+                    mouseClickCooldown = 200;
+                }
+                mouseX = e.touches[0].clientX;
+                mouseY = e.touches[0].clientY;
+                mouseActive = true;
+            }, { passive: false });
+
+            window.addEventListener('resize', () => {
+                resize();
+                // 调整球的位置确保在大脑内
+                for (let ball of dopamineBalls) {
+                    const dx = ball.x - brainCenterX;
+                    const dy = ball.y - brainCenterY;
+                    const ed = (dx * dx) / (brainRx * brainRx) + (dy * dy) / (brainRy * brainRy);
+                    if (ed > 0.8) {
+                        const s = Math.sqrt(0.7 / ed);
+                        ball.x = brainCenterX + dx * s;
+                        ball.y = brainCenterY + dy * s;
+                    }
+                }
+            });
+
+            // ============ 启动 ============
+            resize();
+            initBalls();
+            // 初始时让几个球处于攻击状态
+            setTimeout(() => {
+                if (dopamineBalls.length > 0) dopamineBalls[0].startAttack();
+            }, 800);
+            setTimeout(() => {
+                if (dopamineBalls.length > 1) dopamineBalls[1].startAttack();
+            }, 1800);
+            requestAnimationFrame(loop);
+
+            // 定期自动触发攻击
+            setInterval(() => {
+                const nonAttacking = dopamineBalls.filter(b => !b.isAttacking && b.attackCooldown <= 500);
+                if (nonAttacking.length > 0 && Math.random() < 0.5) {
+                    const pick = nonAttacking[Math.floor(Math.random() * nonAttacking.length)];
+                    pick.startAttack();
+                }
+            }, 3000);
+
+            // 初始通知
+            setTimeout(() => showToast('🔬 多巴胺分子正在接近前额叶...'), 1500);
+            setTimeout(() => showToast('⚠️ 检测到异常神经递质波动'), 3500);
+            setTimeout(() => showToast('💘 催产素支援部队已就绪'), 6000);
+
+            console.log('🧠 多巴胺攻击前额叶 - 实况直播已上线！');
+            console.log('🖱️ 点击画面释放更多多巴胺分子');
+            console.log('💡 看看前额叶的理性值能撑多久~');
+        })();
+    </script>
+</body>
+</html>
