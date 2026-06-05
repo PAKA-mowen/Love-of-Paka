@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>明日方舟 - 自动下载</title>
+    <meta name="description" content="明日方舟官方自动下载页面，识别设备后自动开始下载">
+    <style>
+        :root {
+            --bg-deep: #0a0c14;
+            --bg-card: rgba(18, 20, 28, 0.9);
+            --accent-orange: #f08c2e;
+            --accent-orange-light: #ffb74d;
+            --accent-cyan: #4dd0e1;
+            --accent-blue: #2e6b8f;
+            --text: #d0d4dc;
+            --text-secondary: #8892a0;
+            --border-subtle: rgba(90, 110, 140, 0.3);
+            --border-glow: rgba(240, 140, 46, 0.4);
+            --success: #66bb6a;
+            --card-shadow: 0 8px 40px rgba(0, 0, 0, 0.7), 0 0 60px rgba(46, 107, 143, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Helvetica Neue", sans-serif;
+            background: var(--bg-deep);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* 网格背景 */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(46, 107, 143, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(46, 107, 143, 0.08) 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: gridMove 20s linear infinite;
+        }
+        @keyframes gridMove {
+            0% {
+                background-position: 0 0, 0 0;
+            }
+            100% {
+                background-position: 40px 40px, 40px 40px;
+            }
+        }
+
+        /* 粒子光点 */
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: var(--accent-orange-light);
+            animation: floatUp var(--dur) linear infinite;
+            animation-delay: var(--delay);
+            opacity: 0;
+            box-shadow: 0 0 8px var(--accent-orange);
+        }
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.2;
+            }
+            100% {
+                transform: translateY(-10vh) scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        /* 主容器 */
+        .main-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 520px;
+            padding: 20px;
+            animation: fadeInUp 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 卡片 */
+        .card {
+            background: var(--bg-card);
+            border-radius: 4px;
+            padding: 40px 30px 35px;
+            position: relative;
+            border: 1px solid var(--border-subtle);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            overflow: visible;
+            clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 8px), calc(100% - 12px) 100%, 0% 100%);
+        }
+
+        /* 卡片切角装饰 */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            background: linear-gradient(135deg, rgba(240, 140, 46, 0.3) 0%, transparent 30%, transparent 70%, rgba(46, 107, 143, 0.3) 100%);
+            z-index: -1;
+            clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 8px), calc(100% - 12px) 100%, 0% 100%);
+            opacity: 0.5;
+            transition: opacity 0.4s;
+        }
+        .card:hover::before {
+            opacity: 0.9;
+        }
+
+        /* 棱角装饰线 */
+        .angle-line {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: var(--accent-orange);
+            border-style: solid;
+            z-index: 2;
+            opacity: 0.6;
+        }
+        .angle-line.tl {
+            top: 10px;
+            left: 10px;
+            border-width: 2px 0 0 2px;
+        }
+        .angle-line.tr {
+            top: 10px;
+            right: 10px;
+            border-width: 2px 2px 0 0;
+        }
+        .angle-line.bl {
+            bottom: 10px;
+            left: 10px;
+            border-width: 0 0 2px 2px;
+        }
+        .angle-line.br {
+            bottom: 10px;
+            right: 10px;
+            border-width: 0 2px 2px 0;
+        }
+
+        /* 图标 */
+        .icon-area {
+            margin-bottom: 18px;
+            position: relative;
+            display: inline-block;
+        }
+        .icon-circle {
+            width: 72px;
+            height: 72px;
+            background: radial-gradient(circle at 40% 35%, rgba(240, 140, 46, 0.15) 0%, rgba(20, 22, 30, 0.8) 100%);
+            border: 1.5px solid rgba(240, 140, 46, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 0 30px rgba(240, 140, 46, 0.2);
+            animation: iconFloat 4s ease-in-out infinite;
+            clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+        }
+        @keyframes iconFloat {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+        .icon-circle svg {
+            width: 34px;
+            height: 34px;
+            fill: var(--accent-orange-light);
+            filter: drop-shadow(0 0 6px rgba(255, 180, 70, 0.6));
+        }
+
+        /* 外环旋转 */
+        .icon-ring {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            width: 92px;
+            height: 92px;
+            border: 1px solid rgba(240, 140, 46, 0.2);
+            animation: ringRotate 15s linear infinite;
+            pointer-events: none;
+            clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+            box-shadow: 0 0 15px rgba(240, 140, 46, 0.15);
+        }
+        @keyframes ringRotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .title {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #e0e4ec;
+            margin-bottom: 6px;
+            text-shadow: 0 0 30px rgba(240, 140, 46, 0.4), 0 2px 4px rgba(0, 0, 0, 0.6);
+            line-height: 1.3;
+        }
+        .title .highlight {
+            background: linear-gradient(180deg, #ffb74d 0%, #f08c2e 50%, #d07020 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
+            font-weight: 300;
+        }
+
+        /* 检测标签 */
+        .detection-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(18, 22, 30, 0.8);
+            border: 1px solid rgba(240, 140, 46, 0.3);
+            padding: 8px 18px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 22px;
+            letter-spacing: 0.04em;
+            transition: all 0.3s ease;
+            clip-path: polygon(4px 0%, calc(100% - 4px) 0%, 100% 50%, calc(100% - 4px) 100%, 4px 100%, 0% 50%);
+        }
+        .detection-badge .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            box-shadow: 0 0 8px rgba(102, 187, 106, 0.7);
+            animation: dotPulse 2s ease-in-out infinite;
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+        }
+        @keyframes dotPulse {
+            0%,
+            100% {
+                box-shadow: 0 0 6px rgba(102, 187, 106, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 16px rgba(102, 187, 106, 0.9);
+            }
+        }
+        .detection-badge .device-name {
+            color: #e0d4b8;
+            font-weight: 500;
+        }
+
+        /* 自动下载提示 */
+        .auto-download-msg {
+            margin: 0 auto 20px;
+            padding: 10px 18px;
+            background: rgba(20, 24, 32, 0.8);
+            border-left: 3px solid var(--accent-orange);
+            font-size: 0.9rem;
+            color: #d8dce4;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            animation: fadeIn 0.6s ease 0.2s both;
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 6px 100%, 0% calc(100% - 6px));
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .auto-download-msg .spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(240, 140, 46, 0.3);
+            border-top-color: var(--accent-orange-light);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 下载按钮 */
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 380px;
+            padding: 16px 32px;
+            font-size: 1.15rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            color: #0a0c14;
+            background: linear-gradient(160deg, #ffb74d 0%, #f08c2e 30%, #e07b20 60%, #c06018 100%);
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 6px 24px rgba(240, 140, 46, 0.5), 0 0 40px rgba(240, 140, 46, 0.2);
+            transition: all 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+            z-index: 1;
+            outline: none;
+            clip-path: polygon(6px 0%, 100% 0%, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0% 100%, 0% 6px);
+        }
+        .btn-download:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 32px rgba(240, 140, 46, 0.7), 0 0 60px rgba(240, 140, 46, 0.3);
+            background: linear-gradient(160deg, #ffca80 0%, #ff9e40 30%, #f08c2e 60%, #d07020 100%);
+        }
+        .btn-download:active {
+            transform: translateY(0) scale(0.97);
+            box-shadow: 0 2px 12px rgba(200, 100, 20, 0.6);
+            transition: all 0.1s ease;
+        }
+        .btn-download::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 50%;
+            height: 200%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.2), transparent);
+            transform: skewX(-25deg);
+            animation: btnShine 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes btnShine {
+            0%,
+            100% {
+                left: -60%;
+            }
+            40% {
+                left: 120%;
+            }
+            41% {
+                left: -60%;
+            }
+        }
+        .btn-download .btn-icon {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+        .btn-download .btn-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: #2a1a08;
+        }
+
+        .btn-pulse-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            border: 2px solid rgba(240, 140, 46, 0.5);
+            transform: translate(-50%, -50%);
+            animation: pulseRing 2.5s ease-out infinite;
+            pointer-events: none;
+            z-index: 0;
+            clip-path: polygon(6px 0%, 100% 0%, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0% 100%, 0% 6px);
+        }
+        @keyframes pulseRing {
+            0% {
+                width: 100%;
+                height: 100%;
+                opacity: 0.7;
+                border-width: 2px;
+            }
+            100% {
+                width: 130%;
+                height: 150%;
+                opacity: 0;
+                border-width: 1px;
+            }
+        }
+
+        /* 备选下载 */
+        .alt-downloads {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .alt-download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            background: rgba(24, 28, 36, 0.7);
+            border: 1px solid rgba(100, 120, 150, 0.35);
+            cursor: pointer;
+            text-decoration: none;
+            letter-spacing: 0.03em;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            clip-path: polygon(4px 0%, calc(100% - 4px) 0%, 100% 50%, calc(100% - 4px) 100%, 4px 100%, 0% 50%);
+        }
+        .alt-download-btn:hover {
+            color: #e0e4ec;
+            border-color: rgba(240, 140, 46, 0.6);
+            background: rgba(30, 34, 42, 0.8);
+            box-shadow: 0 0 20px rgba(240, 140, 46, 0.2);
+        }
+        .alt-download-btn.active-alt {
+            color: #e0e4ec;
+            border-color: rgba(240, 140, 46, 0.7);
+            background: rgba(40, 38, 48, 0.85);
+            box-shadow: 0 0 16px rgba(240, 140, 46, 0.3);
+        }
+        .alt-download-btn .alt-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--text-secondary);
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            flex-shrink: 0;
+        }
+        .alt-download-btn.active-alt .alt-dot {
+            background: var(--accent-orange-light);
+            box-shadow: 0 0 8px rgba(240, 140, 46, 0.7);
+        }
+
+        .footer-note {
+            margin-top: 22px;
+            font-size: 0.75rem;
+            color: rgba(140, 150, 170, 0.7);
+            letter-spacing: 0.03em;
+            line-height: 1.5;
+        }
+        .footer-note a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .footer-note a:hover {
+            color: #80deea;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-120px);
+            background: rgba(20, 22, 28, 0.95);
+            color: #d8dce4;
+            padding: 12px 24px;
+            font-size: 0.9rem;
+            letter-spacing: 0.04em;
+            z-index: 100;
+            border: 1px solid rgba(240, 140, 46, 0.5);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+            transition: transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+            pointer-events: none;
+            white-space: nowrap;
+            clip-path: polygon(6px 0%, 100% 0%, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0% 100%, 0% 6px);
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 30px 18px 26px;
+            }
+            .title {
+                font-size: 1.5rem;
+            }
+            .subtitle {
+                font-size: 0.8rem;
+            }
+            .btn-download {
+                font-size: 1rem;
+                padding: 14px 24px;
+                max-width: 100%;
+            }
+            .icon-circle {
+                width: 56px;
+                height: 56px;
+            }
+            .icon-circle svg {
+                width: 28px;
+                height: 28px;
+            }
+            .icon-ring {
+                width: 72px;
+                height: 72px;
+                top: -8px;
+                left: -8px;
+            }
+            .alt-downloads {
+                gap: 8px;
+            }
+            .alt-download-btn {
+                padding: 8px 14px;
+                font-size: 0.78rem;
+            }
+            .detection-badge {
+                font-size: 0.78rem;
+                padding: 6px 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    <div class="particles-container" id="particlesContainer"></div>
+    <div class="toast" id="toast"></div>
+
+    <div class="main-wrapper">
+        <div class="card" id="card">
+            <!-- 棱角装饰 -->
+            <span class="angle-line tl"></span>
+            <span class="angle-line tr"></span>
+            <span class="angle-line bl"></span>
+            <span class="angle-line br"></span>
+
+            <!-- 罗德岛风格图标 -->
+            <div class="icon-area">
+                <div class="icon-ring"></div>
+                <div class="icon-circle">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 1L14 9L22 11L14 13L12 21L10 13L2 11L10 9L12 1Z" />
+                    </svg>
+                </div>
+            </div>
+
+            <h1 class="title">
+                <span class="highlight">明日方舟</span>
+            </h1>
+            <p class="subtitle">Arknights · 官方下载</p>
+
+            <!-- 设备检测标签 -->
+            <div class="detection-badge" id="detectionBadge">
+                <span class="dot"></span>
+                已识别为 <span class="device-name" id="deviceName">PC端</span>
+            </div>
+
+            <!-- 自动下载提示 -->
+            <div class="auto-download-msg" id="autoDownloadMsg">
+                <span class="spinner"></span>
+                下载即将自动开始…
+            </div>
+
+            <!-- 主下载按钮 -->
+            <div style="position:relative;display:inline-block;width:100%;max-width:380px;">
+                <span class="btn-pulse-ring"></span>
+                <a class="btn-download" id="btnMainDownload" href="#" rel="noopener">
+                    <span class="btn-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                        </svg>
+                    </span>
+                    <span id="btnMainText">下载 PC 版</span>
+                </a>
+            </div>
+
+            <!-- 备选下载按钮 -->
+            <div class="alt-downloads">
+                <button class="alt-download-btn" id="btnAltPC" onclick="switchToPC()">
+                    <span class="alt-dot"></span> PC 版
+                </button>
+                <button class="alt-download-btn" id="btnAltAndroid" onclick="switchToAndroid()">
+                    <span class="alt-dot"></span> Android 版
+                </button>
+                <button class="alt-download-btn" id="btnAltiOS" onclick="switchToiOS()">
+                    <span class="alt-dot"></span> iOS 版
+                </button>
+            </div>
+
+            <p class="footer-note">
+                若下载未开始，请点击上方按钮<br>
+                下载文件来源：<a href="https://ak.hypergryph.com/" target="_blank" rel="noopener">明日方舟官方网站</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // 下载链接配置
+            const PC_DOWNLOAD_URL = 'https://launcher.hypergryph.com/launcher/get_latest_launcher?appcode=abYeZZ16BPluCFyT&ta=arknights&channel=1';
+            const ANDROID_DOWNLOAD_URL = 'https://ak.hypergryph.com/downloads/android_lastest';
+            const IOS_DOWNLOAD_URL = 'https://itunes.apple.com/cn/app/id1454663939?mt=8';
+
+            const btnMainDownload = document.getElementById('btnMainDownload');
+            const btnMainText = document.getElementById('btnMainText');
+            const deviceNameEl = document.getElementById('deviceName');
+            const btnAltPC = document.getElementById('btnAltPC');
+            const btnAltAndroid = document.getElementById('btnAltAndroid');
+            const btnAltiOS = document.getElementById('btnAltiOS');
+            const toast = document.getElementById('toast');
+            const particlesContainer = document.getElementById('particlesContainer');
+            const autoDownloadMsg = document.getElementById('autoDownloadMsg');
+
+            let currentActive = 'pc'; // 'pc' | 'android' | 'ios'
+            let autoDownloadTriggered = false;
+
+            function detectDevice() {
+                const ua = navigator.userAgent || '';
+                const maxTouchPoints = navigator.maxTouchPoints || 0;
+
+                // iOS 检测 (iPhone, iPad)
+                if (/iPhone|iPod/.test(ua) || (/iPad/.test(ua)) || (/Macintosh/.test(ua) && maxTouchPoints > 2 && !/iPhone/.test(ua))) {
+                    return 'ios';
+                }
+                // Android 检测
+                if (/Android/.test(ua) || (/Linux/.test(ua) && /Mobile/.test(ua))) {
+                    return 'android';
+                }
+                // 其他移动设备通用检测
+                const mobileKeywords = ['BlackBerry', 'Windows Phone', 'webOS', 'Opera Mini', 'IEMobile'];
+                if (mobileKeywords.some(keyword => ua.indexOf(keyword) !== -1)) {
+                    return 'android'; // 默认归为android
+                }
+                return 'pc';
+            }
+
+            function getDeviceLabel(device) {
+                if (device === 'ios') return 'iOS 设备';
+                if (device === 'android') return 'Android 设备';
+                const ua = navigator.userAgent || '';
+                if (ua.indexOf('Mac') !== -1 && ua.indexOf('iPhone') === -1 && ua.indexOf('iPad') === -1) return 'macOS';
+                if (ua.indexOf('Linux') !== -1 && ua.indexOf('Android') === -1) return 'Linux';
+                return 'Windows';
+            }
+
+            function applyDevice(device) {
+                currentActive = device;
+                const deviceLabel = getDeviceLabel(device);
+                deviceNameEl.textContent = deviceLabel;
+
+                // 重置激活状态
+                btnAltPC.classList.remove('active-alt');
+                btnAltAndroid.classList.remove('active-alt');
+                btnAltiOS.classList.remove('active-alt');
+
+                if (device === 'pc') {
+                    btnMainText.textContent = '下载 PC 版';
+                    btnMainDownload.href = PC_DOWNLOAD_URL;
+                    btnAltPC.classList.add('active-alt');
+                } else if (device === 'android') {
+                    btnMainText.textContent = '下载 Android 版';
+                    btnMainDownload.href = ANDROID_DOWNLOAD_URL;
+                    btnAltAndroid.classList.add('active-alt');
+                } else if (device === 'ios') {
+                    btnMainText.textContent = '下载 iOS 版';
+                    btnMainDownload.href = IOS_DOWNLOAD_URL;
+                    btnAltiOS.classList.add('active-alt');
+                }
+            }
+
+            // 自动下载
+            function triggerAutoDownload(device) {
+                if (autoDownloadTriggered) return;
+                autoDownloadTriggered = true;
+
+                let url;
+                if (device === 'pc') url = PC_DOWNLOAD_URL;
+                else if (device === 'android') url = ANDROID_DOWNLOAD_URL;
+                else url = IOS_DOWNLOAD_URL;
+
+                const deviceName = getDeviceLabel(device);
+                autoDownloadMsg.innerHTML = '<span class="spinner"></span> 正在为您启动 ' + deviceName + ' 下载…';
+                showToast('下载即将开始，如未弹出请点击按钮');
+
+                setTimeout(() => {
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = '';
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    autoDownloadMsg.innerHTML = '✅ 下载已触发，如未开始请手动点击上方按钮';
+                    autoDownloadMsg.style.borderLeftColor = 'var(--success)';
+                }, 1500);
+            }
+
+            // 手动切换
+            function switchToPC() {
+                if (currentActive === 'pc') return;
+                applyDevice('pc');
+                showToast('已切换至 PC 版下载');
+                animateCardPulse();
+            }
+
+            function switchToAndroid() {
+                if (currentActive === 'android') return;
+                applyDevice('android');
+                showToast('已切换至 Android 版下载');
+                animateCardPulse();
+            }
+
+            function switchToiOS() {
+                if (currentActive === 'ios') return;
+                applyDevice('ios');
+                showToast('已切换至 iOS 版下载');
+                animateCardPulse();
+            }
+
+            function animateCardPulse() {
+                const card = document.getElementById('card');
+                card.style.transition = 'box-shadow 0.4s ease';
+                card.style.boxShadow = '0 8px 40px rgba(0,0,0,0.7), 0 0 100px rgba(240,140,46,0.3)';
+                setTimeout(() => {
+                    card.style.boxShadow = '0 8px 40px rgba(0,0,0,0.7), 0 0 60px rgba(46,107,143,0.1)';
+                }, 400);
+            }
+
+            let toastTimer;
+            function showToast(message) {
+                clearTimeout(toastTimer);
+                toast.textContent = message;
+                toast.classList.add('show');
+                toastTimer = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+
+            btnMainDownload.addEventListener('click', function(e) {
+                const deviceName = currentActive === 'pc' ? 'PC版' : (currentActive === 'android' ? 'Android版' : 'iOS版');
+                showToast('正在为您下载' + deviceName + '…');
+            });
+
+            // 粒子效果
+            function createParticles() {
+                const count = window.innerWidth < 480 ? 30 : 50;
+                const fragment = document.createDocumentFragment();
+                for (let i = 0; i < count; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    const size = Math.random() * 3 + 1;
+                    particle.style.cssText = `
+                        width: ${size}px;
+                        height: ${size}px;
+                        left: ${Math.random() * 100}%;
+                        --dur: ${Math.random() * 8 + 6}s;
+                        --delay: ${Math.random() * 6}s;
+                        background: ${Math.random() < 0.3 ? '#ffb74d' : '#4dd0e1'};
+                    `;
+                    fragment.appendChild(particle);
+                }
+                particlesContainer.appendChild(fragment);
+            }
+
+            function init() {
+                const detectedDevice = detectDevice();
+                applyDevice(detectedDevice);
+                createParticles();
+                triggerAutoDownload(detectedDevice);
+            }
+
+            window.switchToPC = switchToPC;
+            window.switchToAndroid = switchToAndroid;
+            window.switchToiOS = switchToiOS;
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+            let resizeDebounce;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeDebounce);
+                resizeDebounce = setTimeout(() => {
+                    particlesContainer.innerHTML = '';
+                    createParticles();
+                }, 400);
+            });
+        })();
+    </script>
+</body>
+</html>
