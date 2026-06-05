@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-﻿// 留言存储键名（localStorage）
+// 留言存储键名（localStorage）
 const STORAGE_KEY = 'encrypted_messages';
 
 // 从 localStorage 读取留言列表
