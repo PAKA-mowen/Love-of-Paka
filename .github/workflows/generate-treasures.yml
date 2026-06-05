@@ -1,0 +1,35 @@
+name: Generate Treasures Index
+
+on:
+  push:
+    paths:
+      - 'treasures/**'
+      - '!treasures/treasures.json'   # 忽略索引文件本身的更改，避免循环触发
+  workflow_dispatch:                  # 允许手动触发
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Run generation script
+        run: node scripts/generate-treasures.js
+
+      - name: Commit and push if changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add treasures/treasures.json
+          git diff --staged --quiet || git commit -m "Auto-update treasures.json [skip ci]"
+          git push
