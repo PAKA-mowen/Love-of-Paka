@@ -71,5 +71,28 @@ export async function onRequest(context) {
         });
     }
 
+    // 在 if (request.method === 'POST') { ... } 之后添加
+
+    if (request.method === 'DELETE') {
+        // 验证管理员
+        if (adminKeyFromHeader !== ADMIN_KEY) {
+            return new Response('Unauthorized', { status: 401 });
+        }
+        const id = url.searchParams.get('id');
+        if (!id) {
+            return new Response('Missing id', { status: 400 });
+        }
+        const messages = await env.MESSAGE_STORE.get('messages', { type: 'json' });
+        const list = messages || [];
+        const filtered = list.filter(msg => msg.id !== id);
+        if (filtered.length === list.length) {
+            return new Response('Message not found', { status: 404 });
+        }
+        await env.MESSAGE_STORE.put('messages', JSON.stringify(filtered));
+        return new Response(JSON.stringify({ success: true }), {
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+
     return new Response('Method not allowed', { status: 405 });
 }

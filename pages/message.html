@@ -131,6 +131,125 @@
             .admin-login-box button {
                 margin-bottom: 0;
             }
+
+        /* 标签栏 */
+        .tab-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1.5rem 0 1rem;
+            justify-content: center;
+        }
+
+        .tab {
+            background: #F5F0E0;
+            border: 1px solid #d4cdb8;
+            color: #3a4a4a;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+            .tab.active {
+                background: #3a4a4a;
+                color: #F5F0E0;
+                border-color: #3a4a4a;
+            }
+
+        /* 紧凑留言卡片 */
+        .message-list {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .msg-compact {
+            background: white;
+            border: 1px solid #e6dcc8;
+            border-radius: 10px;
+            padding: 0.7rem 1rem;
+            margin-bottom: 0.6rem;
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+        }
+
+            .msg-compact:hover {
+                box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            }
+
+        .msg-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .msg-nick {
+            font-weight: bold;
+            color: #3a4a4a;
+        }
+
+        .msg-time {
+            font-size: 0.75rem;
+            color: #8b7b6b;
+        }
+
+        .msg-preview {
+            color: #5a5a5a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            margin-top: 0.2rem;
+            font-size: 0.9rem;
+        }
+
+        /* 展开详情 */
+        .msg-detail {
+            margin-top: 0.8rem;
+            padding-top: 0.8rem;
+            border-top: 1px dashed #d4cdb8;
+            display: none; /* 默认隐藏，点击后显示 */
+        }
+
+            .msg-detail.open {
+                display: block;
+            }
+
+        .msg-full-content {
+            background: #faf7ef;
+            padding: 0.6rem;
+            border-radius: 8px;
+            word-break: break-word;
+            margin-bottom: 0.5rem;
+        }
+
+        .decrypt-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+
+            .decrypt-row input {
+                flex: 1;
+                margin-bottom: 0;
+            }
+
+        .delete-btn {
+            background: none;
+            border: 1px solid #c0392b;
+            color: #c0392b;
+            padding: 0.2rem 0.8rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+            .delete-btn:hover {
+                background: #c0392b;
+                color: white;
+            }
     </style>
 </head>
 <body>
@@ -172,23 +291,15 @@
         </div>
 
         <!-- 三栏留言列表 -->
-        <div class="message-grid">
-            <!-- 公开留言 -->
-            <div class="column">
-                <h3>🌐 公开留言</h3>
-                <div id="publicMessages"></div>
-            </div>
-            <!-- 指定留言（需密钥） -->
-            <div class="column">
-                <h3>🔑 指定可见</h3>
-                <div id="restrictedMessages"></div>
-            </div>
-            <!-- 私密留言（仅站长） -->
-            <div class="column">
-                <h3>🔒 私密留言</h3>
-                <div id="privateMessages"></div>
-            </div>
+        <!-- 类型标签切换 -->
+        <div class="tab-bar">
+            <button class="tab active" data-type="public">🌐 公开</button>
+            <button class="tab" data-type="restricted">🔑 指定</button>
+            <button class="tab" data-type="private">🔒 私密</button>
         </div>
+
+        <!-- 留言列表（单列，紧凑卡片） -->
+        <div id="messageContainer" class="message-list"></div>
     </div>
 
     <script src="../js/message-board.js"></script>
