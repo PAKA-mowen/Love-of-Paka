@@ -3,10 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>留言板 · 加密留言</title>
+    <title>留言板 · 墨问羊驼</title>
     <link rel="stylesheet" href="../css/style.css">
-    <!-- 引入 CryptoJS AES 加密库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        .message-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .message-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .column {
+            background: white;
+            border-radius: 16px;
+            padding: 1.2rem;
+            border: 1px solid #e6dcc8;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+            .column h3 {
+                font-family: 'ZCOOL KuaiLe', cursive;
+                color: #3a4a4a;
+                text-align: center;
+                margin-top: 0;
+                padding-bottom: 0.8rem;
+                border-bottom: 2px dashed #d4cdb8;
+            }
+
+        .message-item {
+            background: #F5F0E0;
+            border-radius: 12px;
+            padding: 0.8rem;
+            margin-bottom: 0.8rem;
+            font-size: 0.95rem;
+        }
+
+            .message-item .nick {
+                font-weight: bold;
+                color: #3a4a4a;
+            }
+
+            .message-item .time {
+                font-size: 0.75rem;
+                color: #8b7b6b;
+                float: right;
+            }
+
+            .message-item .content {
+                margin: 0.4rem 0;
+                word-break: break-word;
+            }
+
+        .admin-toggle {
+            text-align: right;
+            margin: 1rem 0;
+        }
+
+            .admin-toggle input {
+                width: auto;
+                display: inline-block;
+            }
+
+            .admin-toggle button {
+                display: inline-block;
+            }
+
+        .private-hint {
+            color: #8b7b6b;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
     <nav>
@@ -18,24 +91,51 @@
 
     <div class="container">
         <div class="card">
-            <h2>✉️ 加密留言板</h2>
-            <p>留言内容会被加密保存。只有输入正确的“查看密钥”才能看到原文。</p>
+            <h2>💬 留下你想说的话</h2>
 
             <!-- 留言表单 -->
             <div>
-                <input type="text" id="nickname" placeholder="你的昵称（可选）" />
-                <textarea id="message" rows="4" placeholder="在这里写下你的留言..."></textarea>
-                <input type="text" id="secretKey" placeholder="设置一个查看密钥（可选，留空则不加密）" />
-                <button onclick="submitMessage()">🔒 提交加密留言</button>
+                <input type="text" id="nickname" placeholder="你的昵称（可以不写哦，不过那样就没人知道你是谁了）" />
+                <textarea id="messageContent" rows="3" placeholder="写下你想说的话叭..."></textarea>
+                <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                    <select id="messageType" style="padding:0.5rem; border-radius:5px; border:1px solid #ccc; background:white;">
+                        <option value="public">🌐 公开（所有人可见）</option>
+                        <option value="restricted">🔑 指定（知道密钥的人可见）</option>
+                        <option value="private">🔒 私密（仅paka可见）</option>
+                    </select>
+                    <input type="text" id="secretKeyInput" placeholder="设置查看密钥（仅指定类型需要）" style="flex:1; display:none;" />
+                    <button onclick="submitMessage()">📨 提交留言</button>
+                </div>
             </div>
 
-            <hr style="margin: 2rem 0; border-color: #d4cdb8;">
+            <!-- 管理员模式（站长查看私密留言） -->
+            <div class="admin-toggle">
+                <input type="text" id="adminKeyInput" placeholder="管理员密钥" style="width:150px;" />
+                <button onclick="toggleAdmin()">🔐 管理员模式</button>
+                <span id="adminStatus" style="margin-left:0.5rem; font-size:0.9rem; color:#3a4a4a;"></span>
+            </div>
+        </div>
 
-            <!-- 留言列表展示区 -->
-            <h3>📋 所有留言</h3>
-            <div id="messageList"></div>
+        <!-- 三栏留言列表 -->
+        <div class="message-grid">
+            <!-- 公开留言 -->
+            <div class="column">
+                <h3>🌐 公开留言</h3>
+                <div id="publicMessages"></div>
+            </div>
+            <!-- 指定留言（需密钥） -->
+            <div class="column">
+                <h3>🔑 指定可见</h3>
+                <div id="restrictedMessages"></div>
+            </div>
+            <!-- 私密留言（仅站长） -->
+            <div class="column">
+                <h3>🔒 私密留言</h3>
+                <div id="privateMessages"></div>
+            </div>
         </div>
     </div>
 
     <script src="../js/message-board.js"></script>
 </body>
+</html>
