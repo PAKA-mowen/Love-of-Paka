@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿<!DOCTYPE html>
 <html lang="zh">
 <head>
@@ -39,4 +40,47 @@
 
     <script src="../js/message-board.js"></script>
 </body>
+=======
+﻿<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留言板 · 加密留言</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- 引入 CryptoJS AES 加密库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+    <nav>
+        <a href="index.html">首页</a>
+        <a href="message.html" class="active">留言</a>
+        <a href="games.html">小游戏</a>
+        <a href="works.html">作品</a>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h2>✉️ 加密留言板</h2>
+            <p>留言内容会被加密保存。只有输入正确的“查看密钥”才能看到原文。</p>
+
+            <!-- 留言表单 -->
+            <div>
+                <input type="text" id="nickname" placeholder="你的昵称（可选）" />
+                <textarea id="message" rows="4" placeholder="在这里写下你的留言..."></textarea>
+                <input type="text" id="secretKey" placeholder="设置一个查看密钥（可选，留空则不加密）" />
+                <button onclick="submitMessage()">🔒 提交加密留言</button>
+            </div>
+
+            <hr style="margin: 2rem 0; border-color: #d4cdb8;">
+
+            <!-- 留言列表展示区 -->
+            <h3>📋 所有留言</h3>
+            <div id="messageList"></div>
+        </div>
+    </div>
+
+    <script src="../js/message-board.js"></script>
+</body>
+>>>>>>> 92046dce1ae7dcaa71c8cba3dc609e7e743a6dd9
 </html>
