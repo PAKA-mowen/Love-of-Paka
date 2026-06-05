@@ -3,8 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>paka's world</title>
+    <title>墨问羊驼 · 个人页</title>
     <link rel="stylesheet" href="../css/style.css">
+    <!-- 引入可爱中文字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet">
+    <style>
+        /* 首页特有样式 */
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 1px solid #e6dcc8;
+            margin-bottom: 2rem;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #3a4a4a;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+            .avatar:hover {
+                transform: scale(1.05);
+            }
+
+        .name-title h1 {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 2.5rem;
+            color: #3a4a4a;
+            margin: 0;
+            line-height: 1.2;
+            letter-spacing: 2px;
+        }
+
+        .name-title .signature {
+            font-family: 'ZCOOL QingKe HuangYou', cursive;
+            font-size: 1.3rem;
+            color: #8b7b6b;
+            margin-top: 0.3rem;
+            border-left: 3px solid #c9b99a;
+            padding-left: 0.8rem;
+        }
+
+        .about-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.8rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #e6dcc8;
+        }
+
+            .about-card h2 {
+                font-family: 'ZCOOL KuaiLe', cursive;
+                color: #3a4a4a;
+                border-bottom: 2px dashed #d4cdb8;
+                padding-bottom: 0.5rem;
+                margin-bottom: 1rem;
+                font-size: 1.8rem;
+            }
+
+        .tag-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-top: 1rem;
+        }
+
+        .tag {
+            background: #F5F0E0;
+            color: #3a4a4a;
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid #d4cdb8;
+            transition: background 0.2s;
+        }
+
+            .tag:hover {
+                background: #e6dcc8;
+            }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #8b7b6b;
+            letter-spacing: 1px;
+        }
+    </style>
 </head>
 <body>
     <nav>
@@ -13,12 +110,35 @@
         <a href="games.html">小游戏</a>
         <a href="works.html">作品</a>
     </nav>
+
     <div class="container">
-        <div class="card">
-            <h1>paka的神秘小世界</h1>
-            <p>爱你哦~</p>
-            <p>(●'◡'●)</p>
-            <p>喵</p>
+        <!-- 头像 + 名字/签名 -->
+        <div class="profile-section">
+            <img src="../assets/images/avatar.png" alt="墨问羊驼的头像" class="avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <!-- 如果头像图片不存在，显示占位圆（纯CSS实现） -->
+            <div style="display:none; width:100px; height:100px; border-radius:50%; background:#e6dcc8; border:3px solid #3a4a4a; align-items:center; justify-content:center; font-family:'ZCOOL KuaiLe'; font-size:2rem; color:#3a4a4a;">羊驼</div>
+            <div class="name-title">
+                <h1>墨问羊驼</h1>
+                <p class="signature">六花喵喵喵~</p>
+            </div>
+        </div>
+
+        <!-- 关于我 -->
+        <div class="about-card">
+            <h2>关于我</h2>
+            <p>这里是我的小窝哦，欢迎欢迎。</p>
+            <p>xixixxixixxiixixixixixixix被你发现啦~~</p>
+            <div class="tag-cloud">
+                <span class="tag"></span>
+                <span class="tag">游戏爱好者</span>
+                <span class="tag">猫系生物</span>
+                <span class="tag">甜品依赖</span>
+                <span class="tag">白日梦想家</span>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            喵哦~
         </div>
     </div>
 </body>
