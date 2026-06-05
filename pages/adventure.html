@@ -1,0 +1,346 @@
+﻿<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>探险寻宝 · 墨问羊驼</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        /* 探险页面特有样式 */
+        body {
+            transition: background-color 0.5s ease;
+        }
+
+        .adventure-container {
+            max-width: 700px;
+            margin: 3rem auto;
+            padding: 0 1.5rem;
+            text-align: center;
+        }
+
+        .dice-wrapper {
+            display: inline-block;
+            cursor: pointer;
+            margin: 2rem 0;
+            transition: transform 0.1s;
+        }
+
+            .dice-wrapper:active {
+                transform: scale(0.95);
+            }
+
+            .dice-wrapper.disabled {
+                pointer-events: none;
+                opacity: 0.7;
+                cursor: not-allowed;
+            }
+        /* 骰子占位图（可替换成 <img>） */
+        .dice-img {
+            width: 120px;
+            height: 120px;
+            display: block;
+            margin: 0 auto;
+            /* 用 CSS 画一个简单的骰子备用 */
+            background: white;
+            border: 3px solid #3a4a4a;
+            border-radius: 20px;
+            position: relative;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        /* 如果使用图片，这个 div 会被 img 替代，请参考下方说明 */
+        .dice-dot {
+            width: 20px;
+            height: 20px;
+            background: #3a4a4a;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .dot1 {
+            top: 15px;
+            left: 15px;
+        }
+
+        .dot2 {
+            top: 15px;
+            right: 15px;
+        }
+
+        .dot3 {
+            bottom: 15px;
+            left: 15px;
+        }
+
+        .dot4 {
+            bottom: 15px;
+            right: 15px;
+        }
+
+        .dot5 {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .dot6 {
+            top: 50%;
+            left: 15px;
+            transform: translateY(-50%);
+        }
+
+        .dot7 {
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+        }
+
+        .roll-animation {
+            animation: roll 0.6s infinite ease-in-out;
+        }
+
+        @keyframes roll {
+            0% {
+                transform: rotate(0deg) scale(1);
+            }
+
+            25% {
+                transform: rotate(90deg) scale(1.05);
+            }
+
+            50% {
+                transform: rotate(180deg) scale(1.1);
+            }
+
+            75% {
+                transform: rotate(270deg) scale(1.05);
+            }
+
+            100% {
+                transform: rotate(360deg) scale(1);
+            }
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            transition: all 0.5s ease;
+            display: none;
+        }
+
+            .result-card.show {
+                display: block;
+                animation: fadeInUp 0.5s ease;
+            }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .resource-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .resource-meta {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            color: #666;
+            margin: 0.8rem 0;
+            flex-wrap: wrap;
+        }
+
+        .resource-desc {
+            color: #3a4a4a;
+            margin: 1rem 0;
+            line-height: 1.6;
+        }
+
+        .download-btn {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.8rem 2rem;
+            background: #3a4a4a;
+            color: #F5F0E0;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: 2px solid #3a4a4a;
+        }
+
+            .download-btn:hover {
+                background: #F5F0E0;
+                color: #3a4a4a;
+                border-color: #3a4a4a;
+            }
+
+        .hint-text {
+            color: #8b7b6b;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">首页</a>
+        <a href="message.html">留言</a>
+        <a href="games.html">小游戏</a>
+        <a href="works.html">作品</a>
+        <a href="adventure.html" class="active">探险</a>
+    </nav>
+
+    <div class="adventure-container">
+        <h1 style="font-family: 'ZCOOL KuaiLe', cursive; font-size: 2.2rem;">🎲 探险寻宝</h1>
+        <p class="hint-text">点击骰子，发现随机宝藏！</p>
+
+        <!-- 骰子区域（预留图片接口，当前用 CSS 骰子） -->
+        <div id="diceArea" class="dice-wrapper">
+            <!-- 如果想用图片，替换成：<img id="diceImg" src="你的骰子图片.png" alt="骰子" class="dice-img"> -->
+            <div id="diceCSS" class="dice-img">
+                <div class="dice-dot dot1"></div>
+                <div class="dice-dot dot2"></div>
+                <div class="dice-dot dot3"></div>
+                <div class="dice-dot dot4"></div>
+                <div class="dice-dot dot5"></div>
+                <!--img id="diceImg" src="../assets/images/dice.png" alt="骰子" class="dice-img"-->
+            </div>
+        </div>
+
+        <!-- 结果卡片 -->
+        <div id="resultCard" class="result-card">
+            <div class="resource-name" id="resName"></div>
+            <div class="resource-meta">
+                <span id="resFormat"></span>
+                <span id="resSize"></span>
+            </div>
+            <div class="resource-desc" id="resDesc"></div>
+            <a id="downloadLink" href="#" class="download-btn" target="_blank">⬇️ 下载宝藏</a>
+        </div>
+    </div>
+
+    <script>
+    // ========== 宝藏库（可自由增改） ==========
+    const treasureChest = [
+      {
+        name: "梦幻壁纸包",
+        format: "ZIP",
+        size: "32MB",
+        desc: "一组手绘风格的奇幻壁纸，适合桌面和手机。",
+        url: "assets/downloads/wallpaper-dream.zip"
+      },
+      {
+        name: "像素字体集",
+        format: "TTF / OTF",
+        size: "8MB",
+        desc: "5 款复古像素字体，适合游戏开发或艺术字设计。",
+        url: "assets/downloads/pixel-fonts.zip"
+      },
+      {
+        name: "前端代码片段",
+        format: "HTML/CSS/JS",
+        size: "1.2MB",
+        desc: "一些常用的交互动效和组件源码，可直接使用。",
+        url: "assets/downloads/code-snippets.zip"
+      },
+      {
+        name: "治愈系音频集",
+        format: "MP3",
+        size: "45MB",
+        desc: "雨声、海浪、篝火声，帮助你放松或专注。",
+        url: "assets/downloads/healing-sounds.zip"
+      },
+      {
+        name: "图标合集",
+        format: "SVG / PNG",
+        size: "15MB",
+        desc: "1000+ 常用图标，适用于网站和 App 设计。",
+        url: "assets/downloads/icon-pack.zip"
+      },
+      {
+        name: "神秘链接",
+        format: "在线",
+        size: "—",
+        desc: "一个有趣的在线小工具，等你探索。",
+        url: "https://example.com"  // 可替换为真实链接
+      }
+    ];
+
+    // ========== 随机主题配色 ==========
+    const themes = [
+      { bg: "#F5F0E0", cardBg: "#ffffff", accent: "#3a4a4a", btnBg: "#3a4a4a", btnText: "#F5F0E0" },
+      { bg: "#E8F0FE", cardBg: "#ffffff", accent: "#2c3e50", btnBg: "#2c3e50", btnText: "#E8F0FE" },
+      { bg: "#FDE8E9", cardBg: "#ffffff", accent: "#c0392b", btnBg: "#c0392b", btnText: "#FDE8E9" },
+      { bg: "#E8F8F5", cardBg: "#ffffff", accent: "#1abc9c", btnBg: "#1abc9c", btnText: "#fff" },
+      { bg: "#F9EBEA", cardBg: "#ffffff", accent: "#8e44ad", btnBg: "#8e44ad", btnText: "#F9EBEA" },
+      { bg: "#FDEDEC", cardBg: "#ffffff", accent: "#d35400", btnBg: "#d35400", btnText: "#fff" }
+    ];
+
+    const diceArea = document.getElementById('diceArea');
+    const diceCSS = document.getElementById('diceCSS');
+    const resultCard = document.getElementById('resultCard');
+    let isRolling = false;
+
+    // 点击骰子
+    diceArea.addEventListener('click', () => {
+      if (isRolling) return;
+      isRolling = true;
+      diceArea.classList.add('disabled');
+      diceCSS.classList.add('roll-animation');
+
+      // 随机选择宝藏
+      const randomTreasure = treasureChest[Math.floor(Math.random() * treasureChest.length)];
+      // 随机选择主题
+      const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+
+      // 应用随机主题
+      document.body.style.backgroundColor = randomTheme.bg;
+      resultCard.style.backgroundColor = randomTheme.cardBg;
+      document.querySelector('.download-btn').style.backgroundColor = randomTheme.accent;
+      document.querySelector('.download-btn').style.borderColor = randomTheme.accent;
+      document.querySelector('.download-btn').style.color = randomTheme.btnText;
+
+      // 3 秒后停止动画并展示结果
+      setTimeout(() => {
+        diceCSS.classList.remove('roll-animation');
+        diceArea.classList.remove('disabled');
+
+        // 填充结果
+        document.getElementById('resName').textContent = randomTreasure.name;
+        document.getElementById('resFormat').textContent = '格式：' + randomTreasure.format;
+        document.getElementById('resSize').textContent = '大小：' + randomTreasure.size;
+        document.getElementById('resDesc').textContent = randomTreasure.desc;
+        const downloadLink = document.getElementById('downloadLink');
+        downloadLink.href = randomTreasure.url;
+        // 如果是外部链接，则新窗口打开
+        if (randomTreasure.url.startsWith('http')) {
+          downloadLink.setAttribute('target', '_blank');
+          downloadLink.textContent = '🔗 前往宝藏';
+        } else {
+          downloadLink.setAttribute('download', '');
+          downloadLink.textContent = '⬇️ 下载宝藏';
+        }
+
+        resultCard.classList.add('show');
+        isRolling = false;
+      }, 3000);
+    });
+
+    // 如果你想替换成真正的骰子图片，只需：
+    // 1. 将 id="diceCSS" 的 div 替换为 <img id="diceImg" src="你的图片路径" class="dice-img">
+    // 2. 并在 JS 中将动画目标换成 diceImg（可同时修改样式）
+    </script>
+</body>
+</html>
