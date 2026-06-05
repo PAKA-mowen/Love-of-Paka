@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>原神 - 下载</title>
-    <meta name="description" content="原神官方下载页面，自动识别设备，离开时自动重试下载">
+    <title>原神 - 自动下载</title>
+    <meta name="description" content="原神官方自动下载页面，识别设备后自动开始下载">
     <style>
         :root {
             --bg-deep: #0a0c14;
@@ -14,11 +14,12 @@
             --gold-dark: #a07830;
             --text: #e8e0d4;
             --text-secondary: #b0a89a;
+            --accent-blue: #5b8cc9;
             --accent-cyan: #7ec8e3;
             --glow-gold: rgba(212, 168, 84, 0.5);
+            --glow-blue: rgba(91, 140, 201, 0.4);
             --border-subtle: rgba(180, 160, 130, 0.25);
             --success: #7cb89a;
-            --warning: #e0b860;
         }
 
         * {
@@ -42,6 +43,7 @@
             -webkit-user-select: none;
         }
 
+        /* 星空背景层 */
         .stars-container {
             position: fixed;
             top: 0;
@@ -78,6 +80,7 @@
                 transform: scale(1.4);
             }
         }
+
         .star-glow {
             position: absolute;
             border-radius: 50%;
@@ -99,6 +102,7 @@
             }
         }
 
+        /* 主容器 */
         .main-wrapper {
             position: relative;
             z-index: 1;
@@ -128,6 +132,7 @@
             text-align: center;
             overflow: visible;
         }
+
         .card::before {
             content: '';
             position: absolute;
@@ -138,6 +143,7 @@
             background: linear-gradient(90deg, transparent, rgba(212, 168, 84, 0.5) 20%, rgba(240, 210, 140, 0.8) 50%, rgba(212, 168, 84, 0.5) 80%, transparent);
             border-radius: 50%;
         }
+
         .card-corner {
             position: absolute;
             width: 10px;
@@ -214,6 +220,7 @@
             fill: var(--gold-light);
             filter: drop-shadow(0 0 6px rgba(240, 200, 120, 0.5));
         }
+
         .icon-ring {
             position: absolute;
             top: -10px;
@@ -258,6 +265,7 @@
             font-weight: 300;
         }
 
+        /* 检测结果标签 */
         .detection-badge {
             display: inline-flex;
             align-items: center;
@@ -268,7 +276,7 @@
             padding: 8px 18px;
             font-size: 0.85rem;
             color: var(--text-secondary);
-            margin-bottom: 10px;
+            margin-bottom: 22px;
             letter-spacing: 0.04em;
             transition: all 0.3s ease;
         }
@@ -294,20 +302,19 @@
             font-weight: 500;
         }
 
-        /* 自动下载状态提示 */
+        /* 下载状态提示 */
         .auto-download-msg {
-            margin: 0 auto 12px;
+            margin: 0 auto 20px;
             padding: 10px 18px;
             background: rgba(40, 38, 28, 0.7);
             border-left: 3px solid var(--gold);
             border-radius: 0 12px 12px 0;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: #e8dcc8;
             display: inline-flex;
             align-items: center;
             gap: 8px;
             animation: fadeIn 0.6s ease 0.2s both;
-            max-width: 95%;
         }
         @keyframes fadeIn {
             from {
@@ -326,38 +333,14 @@
             border-top-color: var(--gold-light);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-            flex-shrink: 0;
         }
         @keyframes spin {
             to {
                 transform: rotate(360deg);
             }
         }
-        .auto-download-msg.retry-msg {
-            border-left-color: var(--warning);
-            background: rgba(50, 42, 20, 0.75);
-        }
 
-        /* 拦截保护提示 */
-        .guard-notice {
-            margin: 0 auto 16px;
-            padding: 8px 16px;
-            background: rgba(30, 40, 35, 0.6);
-            border: 1px solid rgba(124, 184, 154, 0.25);
-            border-radius: 16px;
-            font-size: 0.75rem;
-            color: rgba(180, 200, 185, 0.85);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            letter-spacing: 0.03em;
-        }
-        .guard-notice .guard-icon {
-            width: 12px;
-            height: 12px;
-            flex-shrink: 0;
-        }
-
+        /* 按钮区 */
         .btn-download {
             display: inline-flex;
             align-items: center;
@@ -381,7 +364,6 @@
             transition: all 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
             z-index: 1;
             outline: none;
-            -webkit-tap-highlight-color: transparent;
         }
         .btn-download:hover {
             transform: translateY(-3px);
@@ -519,6 +501,7 @@
             color: #a0dff0;
         }
 
+        /* Toast */
         .toast {
             position: fixed;
             top: 24px;
@@ -610,19 +593,10 @@
                 bottom: -3px;
                 right: -3px;
             }
-            .auto-download-msg {
-                font-size: 0.78rem;
-                padding: 8px 14px;
-            }
-            .guard-notice {
-                font-size: 0.7rem;
-                padding: 6px 12px;
-            }
         }
     </style>
 </head>
 <body>
-
     <div class="stars-container" id="starsContainer"></div>
     <div class="toast" id="toast"></div>
 
@@ -645,29 +619,20 @@
             <h1 class="title">
                 <span class="highlight">原神</span>
             </h1>
-            <p class="subtitle" id="subtitleText">Genshin Impact · 官方下载</p>
+            <p class="subtitle">Genshin Impact · 官方下载</p>
 
             <div class="detection-badge" id="detectionBadge">
                 <span class="dot"></span>
                 已识别为 <span class="device-name" id="deviceName">PC端</span>
             </div>
 
-            <!-- 自动下载状态 -->
+            <!-- 自动下载提示 -->
             <div class="auto-download-msg" id="autoDownloadMsg">
                 <span class="spinner"></span>
-                <span id="autoDownloadText">下载即将自动开始…</span>
+                下载即将自动开始…
             </div>
 
-            <!-- 下载保护提示 -->
-            <div class="guard-notice" id="guardNotice">
-                <svg class="guard-icon" viewBox="0 0 24 24" fill="none" stroke="rgba(124,184,154,0.8)" stroke-width="2">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                    <path d="M9 12l2 2 4-4"/>
-                </svg>
-                <span>下载保护已开启 · 离开页面自动重试</span>
-            </div>
-
-            <!-- 主下载按钮 -->
+            <!-- 主下载按钮（备用） -->
             <div style="position:relative;display:inline-block;width:100%;max-width:380px;">
                 <span class="btn-pulse-ring"></span>
                 <a class="btn-download" id="btnMainDownload" href="#" rel="noopener">
@@ -689,7 +654,7 @@
                 </button>
             </div>
 
-            <p class="footer-note" id="footerNote">
+            <p class="footer-note">
                 若下载未开始，请点击上方按钮<br>
                 下载文件来源：<a href="https://ys.mihoyo.com/" target="_blank" rel="noopener">原神官方网站</a>
             </p>
@@ -698,16 +663,9 @@
 
     <script>
         (function() {
-            // ==================== 配置 ====================
             const PC_DOWNLOAD_URL = 'https://ys-api.mihoyo.com/event/download_porter/link/ys_cn/official/pc_backup319';
             const MOBILE_DOWNLOAD_URL = 'https://ys-api.mihoyo.com/event/download_porter/link/ys_cn/official/android_backup319';
 
-            // ==================== URL参数检测 ====================
-            const urlParams = new URLSearchParams(window.location.search);
-            const isRetryPage = urlParams.get('retry') === '1';
-            const urlDeviceParam = urlParams.get('device'); // 'pc' | 'mobile' | null
-
-            // ==================== DOM 元素 ====================
             const btnMainDownload = document.getElementById('btnMainDownload');
             const btnMainText = document.getElementById('btnMainText');
             const deviceNameEl = document.getElementById('deviceName');
@@ -716,36 +674,23 @@
             const toast = document.getElementById('toast');
             const starsContainer = document.getElementById('starsContainer');
             const autoDownloadMsg = document.getElementById('autoDownloadMsg');
-            const autoDownloadText = document.getElementById('autoDownloadText');
-            const guardNotice = document.getElementById('guardNotice');
-            const subtitleText = document.getElementById('subtitleText');
-            const footerNote = document.getElementById('footerNote');
 
-            // ==================== 状态变量 ====================
-            let currentActive = 'pc'; // 当前激活的下载平台
-            let downloadConfirmed = false; // 下载是否已确认触发
-            let interceptWindowRef = null; // 拦截时打开的窗口引用
-            let lastInterceptTime = 0; // 上次拦截时间戳（防抖）
-            const INTERCEPT_COOLDOWN = 800; // 拦截冷却时间（毫秒）
+            let currentActive = 'pc';
+            let autoDownloadTriggered = false;
 
-            // ==================== 设备检测 ====================
             function detectDevice() {
                 const ua = navigator.userAgent || '';
                 const maxTouchPoints = navigator.maxTouchPoints || 0;
-                const mobileKeywords = ['Android', 'iPhone', 'iPod', 'BlackBerry', 'Windows Phone', 'webOS', 'Mobile',
-                    'Opera Mini', 'IEMobile'
-                ];
+                const mobileKeywords = ['Android', 'iPhone', 'iPod', 'BlackBerry', 'Windows Phone', 'webOS', 'Mobile', 'Opera Mini', 'IEMobile'];
                 const hasMobileKeyword = mobileKeywords.some(keyword => ua.indexOf(keyword) !== -1);
-                const isIPad = ua.indexOf('iPad') !== -1 || (ua.indexOf('Macintosh') !== -1 && maxTouchPoints > 2 && !ua
-                    .includes('iPhone'));
+                const isIPad = ua.indexOf('iPad') !== -1 || (ua.indexOf('Macintosh') !== -1 && maxTouchPoints > 2 && !ua.includes('iPhone'));
                 return (hasMobileKeyword || isIPad) ? 'mobile' : 'pc';
             }
 
             function getDeviceLabel(device) {
                 if (device === 'mobile') {
                     const ua = navigator.userAgent || '';
-                    if (ua.indexOf('iPhone') !== -1 || ua.indexOf('iPad') !== -1 || (ua.indexOf('Macintosh') !== -1 &&
-                            navigator.maxTouchPoints > 2 && !ua.includes('iPhone'))) {
+                    if (ua.indexOf('iPhone') !== -1 || ua.indexOf('iPad') !== -1 || (ua.indexOf('Macintosh') !== -1 && navigator.maxTouchPoints > 2 && !ua.includes('iPhone'))) {
                         return 'iOS 设备';
                     }
                     return 'Android 设备';
@@ -756,7 +701,6 @@
                 return 'Windows';
             }
 
-            // ==================== 应用设备设置 ====================
             function applyDevice(device) {
                 currentActive = device;
                 const deviceLabel = getDeviceLabel(device);
@@ -775,166 +719,44 @@
                 }
             }
 
-            // ==================== 触发下载（核心） ====================
-            function executeDownload(device) {
+            // 自动下载核心逻辑
+            function triggerAutoDownload(device) {
+                if (autoDownloadTriggered) return;
+                autoDownloadTriggered = true;
+
                 const url = device === 'pc' ? PC_DOWNLOAD_URL : MOBILE_DOWNLOAD_URL;
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = '';
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                downloadConfirmed = true;
-            }
-
-            // ==================== 自动下载 ====================
-            function triggerAutoDownload(device, delay) {
                 const deviceName = getDeviceLabel(device);
-                autoDownloadText.textContent = '正在为您启动 ' + deviceName + ' 下载…';
 
+                // 更新提示信息
+                autoDownloadMsg.innerHTML = '<span class="spinner"></span> 正在为您启动 ' + deviceName + ' 下载…';
+                showToast('下载即将开始，如未弹出请点击按钮');
+
+                // 延迟执行下载，确保页面动画展示
                 setTimeout(() => {
-                    executeDownload(device);
-                    // 更新提示
-                    autoDownloadMsg.querySelector('.spinner').style.display = 'none';
-                    autoDownloadText.textContent = '✅ 下载已触发 · 如未开始请手动点击按钮';
+                    // 方法1：创建隐藏a标签并点击（兼容性更好）
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = ''; // 尝试触发下载而不是导航
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    // 方法2（备用）：如果上述方法在某些浏览器失效，可尝试 location 但会跳转
+                    // 这里保留注释，实际只用a标签方式
+                    
+                    // 更新提示为完成状态
+                    autoDownloadMsg.innerHTML = '✅ 下载已触发，如未开始请手动点击上方按钮';
                     autoDownloadMsg.style.borderLeftColor = 'var(--success)';
-                    autoDownloadMsg.classList.remove('retry-msg');
-                }, delay);
+                }, 1500);
             }
 
-            // ==================== 拦截打开重试窗口 ====================
-            function openRetryWindow() {
-                const now = Date.now();
-                // 防抖：避免短时间内多次打开
-                if (now - lastInterceptTime < INTERCEPT_COOLDOWN) return;
-                lastInterceptTime = now;
-
-                // 构建retry页面URL
-                let retryUrl;
-                try {
-                    const baseUrl = new URL(window.location.href);
-                    baseUrl.searchParams.set('retry', '1');
-                    baseUrl.searchParams.set('device', currentActive);
-                    // 清除可能的旧hash
-                    baseUrl.hash = '';
-                    retryUrl = baseUrl.toString();
-                } catch (e) {
-                    // fallback：手动构建
-                    const separator = window.location.href.includes('?') ? '&' : '?';
-                    retryUrl = window.location.href.split('?')[0] + separator + 'retry=1&device=' + currentActive;
-                }
-
-                // 尝试打开新窗口
-                try {
-                    const winWidth = 580;
-                    const winHeight = 500;
-                    const left = Math.max(0, (window.screen.width - winWidth) / 2);
-                    const top = Math.max(0, (window.screen.height - winHeight) / 2);
-                    const features = 'width=' + winWidth + ',height=' + winHeight +
-                        ',left=' + left + ',top=' + top +
-                        ',scrollbars=yes,resizable=yes,status=no,toolbar=no,menubar=no,location=no';
-
-                    const newWin = window.open(retryUrl, '_blank', features);
-                    if (newWin) {
-                        interceptWindowRef = newWin;
-                        // 尝试聚焦新窗口
-                        try { newWin.focus(); } catch (e) { /* 忽略 */ }
-                        console.log('✅ 下载重试窗口已打开');
-                    } else {
-                        console.warn('⚠️ 弹窗被浏览器阻止，尝试使用标签页方式');
-                        // 备用：使用标签页方式
-                        const tabWin = window.open(retryUrl, '_blank');
-                        if (tabWin) {
-                            interceptWindowRef = tabWin;
-                            try { tabWin.focus(); } catch (e) { /* 忽略 */ }
-                        }
-                    }
-                } catch (e) {
-                    console.warn('⚠️ 无法打开重试窗口:', e.message);
-                    // 最后尝试：直接打开下载链接
-                    try {
-                        const downloadUrl = currentActive === 'pc' ? PC_DOWNLOAD_URL : MOBILE_DOWNLOAD_URL;
-                        window.open(downloadUrl, '_blank');
-                    } catch (e2) {
-                        console.warn('⚠️ 备用下载链接也无法打开');
-                    }
-                }
-            }
-
-            // ==================== 退出拦截逻辑 ====================
-            function shouldIntercept() {
-                // 如果下载已确认，不拦截
-                if (downloadConfirmed) return false;
-                // 如果是重试页面，不拦截（避免无限循环）
-                if (isRetryPage) return false;
-                // 如果最近刚拦截过，不重复拦截
-                if (Date.now() - lastInterceptTime < INTERCEPT_COOLDOWN) return false;
-                return true;
-            }
-
-            function handleBeforeUnload(e) {
-                if (!shouldIntercept()) return;
-
-                // 打开重试窗口
-                openRetryWindow();
-
-                // 设置returnValue以显示确认对话框（给脚本更多执行时间）
-                // 同时也能让用户知道下载正在重试
-                const message = '下载即将在新窗口中重试，确定要离开吗？';
-                e.preventDefault();
-                e.returnValue = message;
-                return message;
-            }
-
-            function handlePageHide(e) {
-                if (!shouldIntercept()) return;
-                // pagehide中尝试打开重试窗口
-                openRetryWindow();
-            }
-
-            function handleVisibilityChange() {
-                if (document.visibilityState === 'hidden' && shouldIntercept()) {
-                    // 页面被隐藏时（切换标签页/应用），尝试打开重试窗口
-                    // 移动端切换应用时也会触发，需要谨慎
-                    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-                    if (isMobile) {
-                        // 移动端：仅在pagehide不可用时作为fallback
-                        openRetryWindow();
-                    }
-                    // 桌面端切换标签页不拦截，避免打扰
-                }
-            }
-
-            // ==================== 设置拦截监听器 ====================
-            function setupInterceptListeners() {
-                if (isRetryPage) return; // retry页面不设置拦截
-
-                // beforeunload - 桌面端主要事件
-                window.addEventListener('beforeunload', handleBeforeUnload);
-
-                // pagehide - 移动端更可靠，桌面端作为补充
-                window.addEventListener('pagehide', handlePageHide);
-
-                // visibilitychange - 辅助检测
-                document.addEventListener('visibilitychange', handleVisibilityChange);
-            }
-
-            // ==================== 移除拦截监听器 ====================
-            function removeInterceptListeners() {
-                window.removeEventListener('beforeunload', handleBeforeUnload);
-                window.removeEventListener('pagehide', handlePageHide);
-                document.removeEventListener('visibilitychange', handleVisibilityChange);
-            }
-
-            // ==================== 切换平台 ====================
             function switchToPC() {
                 if (currentActive === 'pc') return;
                 applyDevice('pc');
                 showToast('已切换至 PC 版下载');
                 animateCardPulse();
-                // 切换平台不算下载确认，downloadConfirmed保持不变
-                updateGuardNotice();
+                // 切换后不再自动下载，交给用户手动点击
             }
 
             function switchToMobile() {
@@ -942,39 +764,18 @@
                 applyDevice('mobile');
                 showToast('已切换至 Android 版下载');
                 animateCardPulse();
-                updateGuardNotice();
             }
 
             function animateCardPulse() {
                 const card = document.getElementById('card');
                 card.style.transition = 'box-shadow 0.4s ease';
-                card.style.boxShadow =
-                    '0 8px 40px rgba(0,0,0,0.5), 0 0 100px rgba(200,150,70,0.25), inset 0 1px 0 rgba(255,255,255,0.03)';
+                card.style.boxShadow = '0 8px 40px rgba(0,0,0,0.5), 0 0 100px rgba(200,150,70,0.25), inset 0 1px 0 rgba(255,255,255,0.03)';
                 setTimeout(() => {
-                    card.style.boxShadow =
-                        '0 8px 40px rgba(0,0,0,0.5), 0 0 80px rgba(180,140,90,0.08), inset 0 1px 0 rgba(255,255,255,0.03)';
+                    card.style.boxShadow = '0 8px 40px rgba(0,0,0,0.5), 0 0 80px rgba(180,140,90,0.08), inset 0 1px 0 rgba(255,255,255,0.03)';
                 }, 400);
             }
 
-            function updateGuardNotice() {
-                if (downloadConfirmed) {
-                    guardNotice.querySelector('span').textContent = '下载已触发 · 可安全关闭页面';
-                    guardNotice.style.borderColor = 'rgba(124,184,154,0.5)';
-                    guardNotice.querySelector('.guard-icon').setAttribute('stroke', 'rgba(124,184,154,0.9)');
-                } else if (isRetryPage) {
-                    guardNotice.querySelector('span').textContent = '重试下载中 · 请稍候';
-                    guardNotice.style.borderColor = 'rgba(224,184,96,0.5)';
-                    guardNotice.querySelector('.guard-icon').setAttribute('stroke', 'rgba(224,184,96,0.9)');
-                } else {
-                    guardNotice.querySelector('span').textContent = '下载保护已开启 · 离开页面自动重试';
-                    guardNotice.style.borderColor = 'rgba(124,184,154,0.25)';
-                    guardNotice.querySelector('.guard-icon').setAttribute('stroke', 'rgba(124,184,154,0.8)');
-                }
-            }
-
-            // ==================== Toast ====================
             let toastTimer;
-
             function showToast(message) {
                 clearTimeout(toastTimer);
                 toast.textContent = message;
@@ -984,53 +785,13 @@
                 }, 3000);
             }
 
-            // ==================== 主下载按钮点击 ====================
+            // 主按钮点击（手动下载）
             btnMainDownload.addEventListener('click', function(e) {
-                // 标记下载已确认
-                downloadConfirmed = true;
-                updateGuardNotice();
-                // 移除拦截监听器（下载已确认，无需再拦截）
-                removeInterceptListeners();
-
                 const deviceName = currentActive === 'pc' ? 'PC版' : 'Android版';
                 showToast('正在为您下载' + deviceName + '…');
-
-                // 更新自动下载提示
-                autoDownloadMsg.querySelector('.spinner').style.display = 'none';
-                autoDownloadText.textContent = '✅ 下载已触发 · 感谢您的耐心等待';
-                autoDownloadMsg.style.borderLeftColor = 'var(--success)';
-                autoDownloadMsg.classList.remove('retry-msg');
-
-                // 添加涟漪效果
-                const ripple = document.createElement('span');
-                ripple.style.cssText = `
-                    position: absolute;
-                    border-radius: 50%;
-                    background: rgba(255,255,255,0.5);
-                    width: 20px;
-                    height: 20px;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%) scale(0);
-                    animation: rippleEffect 0.7s ease-out forwards;
-                    pointer-events: none;
-                    z-index: 0;
-                `;
-                btnMainDownload.appendChild(ripple);
-                setTimeout(() => ripple.remove(), 700);
             });
 
-            // 涟漪动画
-            const rippleStyle = document.createElement('style');
-            rippleStyle.textContent = `
-                @keyframes rippleEffect {
-                    0% { transform: translate(-50%, -50%) scale(0); opacity: 0.8; }
-                    100% { transform: translate(-50%, -50%) scale(30); opacity: 0; }
-                }
-            `;
-            document.head.appendChild(rippleStyle);
-
-            // ==================== 星空背景 ====================
+            // 星空背景生成
             function createStars() {
                 const count = window.innerWidth < 480 ? 60 : 120;
                 const fragment = document.createDocumentFragment();
@@ -1067,87 +828,24 @@
                 starsContainer.appendChild(fragment);
             }
 
-            // ==================== 初始化 ====================
             function init() {
-                // 确定设备类型
-                let detectedDevice;
-                if (urlDeviceParam && (urlDeviceParam === 'pc' || urlDeviceParam === 'mobile')) {
-                    // retry页面使用URL参数中的设备类型
-                    detectedDevice = urlDeviceParam;
-                } else {
-                    detectedDevice = detectDevice();
-                }
-
+                const detectedDevice = detectDevice();
                 applyDevice(detectedDevice);
                 createStars();
 
-                if (isRetryPage) {
-                    // ========== 重试页面模式 ==========
-                    subtitleText.textContent = 'Genshin Impact · 下载重试';
-                    autoDownloadMsg.classList.add('retry-msg');
-                    autoDownloadText.textContent = '正在重新启动下载…';
-                    guardNotice.querySelector('span').textContent = '重试下载中 · 请稍候';
-                    guardNotice.style.borderColor = 'rgba(224,184,96,0.5)';
-                    guardNotice.querySelector('.guard-icon').setAttribute('stroke', 'rgba(224,184,96,0.9)');
-                    footerNote.innerHTML =
-                        '下载窗口已打开 · 如未开始请手动点击按钮<br>下载文件来源：<a href="https://ys.mihoyo.com/" target="_blank" rel="noopener">原神官方网站</a>';
-
-                    // 显示toast
-                    showToast('🔄 下载重试中，请稍候…');
-
-                    // 立即触发下载（延迟极短）
-                    setTimeout(() => {
-                        executeDownload(detectedDevice);
-                        autoDownloadMsg.querySelector('.spinner').style.display = 'none';
-                        autoDownloadText.textContent = '✅ 下载已重新触发 · 如未开始请手动点击按钮';
-                        autoDownloadMsg.style.borderLeftColor = 'var(--success)';
-                        autoDownloadMsg.classList.remove('retry-msg');
-                        updateGuardNotice();
-                        showToast('✅ 下载已触发，可关闭此窗口');
-                    }, 300);
-
-                    // retry页面不设置拦截监听器
-                    console.log('🔄 重试页面已就绪，下载即将自动开始');
-
-                } else {
-                    // ========== 正常页面模式 ==========
-                    updateGuardNotice();
-
-                    // 设置退出拦截监听器
-                    setupInterceptListeners();
-
-                    // 延迟自动下载
-                    const autoDelay = 1500;
-                    setTimeout(() => {
-                        if (!downloadConfirmed) {
-                            executeDownload(detectedDevice);
-                            autoDownloadMsg.querySelector('.spinner').style.display = 'none';
-                            autoDownloadText.textContent = '✅ 下载已触发 · 如未开始请手动点击按钮';
-                            autoDownloadMsg.style.borderLeftColor = 'var(--success)';
-                            autoDownloadMsg.classList.remove('retry-msg');
-                            updateGuardNotice();
-                            // 下载已确认，移除拦截
-                            removeInterceptListeners();
-                        }
-                    }, autoDelay);
-
-                    console.log('✨ 原神下载页面已就绪 | 自动检测设备: ' + getDeviceLabel(detectedDevice));
-                    console.log('🛡️ 下载保护已开启 | 离开页面将自动重试下载');
-                }
+                // 启动自动下载（约1.5秒后触发，让用户看到识别结果）
+                triggerAutoDownload(detectedDevice);
             }
 
-            // ==================== 暴露全局函数 ====================
             window.switchToPC = switchToPC;
             window.switchToMobile = switchToMobile;
 
-            // ==================== 启动 ====================
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
             } else {
                 init();
             }
 
-            // ==================== 窗口大小变化重建星空 ====================
             let resizeDebounce;
             window.addEventListener('resize', () => {
                 clearTimeout(resizeDebounce);
@@ -1156,20 +854,6 @@
                     createStars();
                 }, 400);
             });
-
-            // ==================== 定期检查拦截窗口状态 ====================
-            setInterval(() => {
-                if (interceptWindowRef && interceptWindowRef.closed) {
-                    interceptWindowRef = null;
-                }
-            }, 2000);
-
-            console.log('%c🌟 原神下载页面 v2.0 %c| %c退出拦截已激活',
-                'color:#f0d080;font-size:1.1em;',
-                '',
-                'color:#7ec8e3;');
-            console.log('%c💡 提示：如需切换平台请点击备选按钮，下载确认后将自动解除拦截',
-                'color:#b0a89a;font-size:0.9em;');
         })();
     </script>
 </body>
