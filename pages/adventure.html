@@ -175,6 +175,25 @@
     let recentIds = [];                // 存储最近 10 次抽中的宝藏 ID
     const MAX_RECENT = 10;
 
+      // 强制下载文件（绕过浏览器 MIME 解析）
+    async function forceDownload(url, filename) {
+          try {
+              const response = await fetch(url);
+              if (!response.ok) throw new Error('下载失败');
+              const blob = await response.blob();
+              const blobUrl = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = blobUrl;
+              a.download = filename;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              window.URL.revokeObjectURL(blobUrl);
+          } catch (err) {
+              alert('下载失败，请稍后再试');
+              console.error(err);
+          }
+    }
     // 随机主题配色
     const themes = [
       { bg: "#F5F0E0", cardBg: "#ffffff", accent: "#3a4a4a", btnBg: "#3a4a4a", btnText: "#F5F0E0" },
@@ -210,67 +229,77 @@
     loadTreasures();
 
     // 点击骰子
-    diceArea.addEventListener('click', () => {
-      if (isRolling) return;
-      if (!treasuresLoaded) {
-        alert('宝藏还在准备中，请稍后再点~');
-        return;
-      }
-      if (treasures.length === 0) {
-        alert('目前还没有宝藏，请联系站长添加资源！');
-        return;
-      }
+      diceArea.addEventListener('click', () => {
+          if (isRolling) return;
+          if (!treasuresLoaded) {
+              alert('宝藏还在准备中，请稍后再点~');
+              return;
+          }
+          if (treasures.length === 0) {
+              alert('目前还没有宝藏，请联系站长添加资源！');
+              return;
+          }
 
-      isRolling = true;
-      diceArea.classList.add('disabled');
-      diceCSS.classList.add('roll-animation');
+          isRolling = true;
+          diceArea.classList.add('disabled');
+          diceCSS.classList.add('roll-animation');
 
-      // ======= 10轮不重复随机逻辑 =======
-      let candidates = treasures.filter(t => !recentIds.includes(t.id));
-      if (candidates.length === 0) {
-        recentIds = [];               // 资源太少，重置记录
-        candidates = treasures;
-      }
-      const randomTreasure = candidates[Math.floor(Math.random() * candidates.length)];
-      recentIds.push(randomTreasure.id);
-      while (recentIds.length > MAX_RECENT) {
-        recentIds.shift();
-      }
-      // ==================================
+          // ======= 10轮不重复随机逻辑 =======
+          let candidates = treasures.filter(t => !recentIds.includes(t.id));
+          if (candidates.length === 0) {
+              recentIds = [];               // 资源太少，重置记录
+              candidates = treasures;
+          }
+          const randomTreasure = candidates[Math.floor(Math.random() * candidates.length)];
+          recentIds.push(randomTreasure.id);
+          while (recentIds.length > MAX_RECENT) {
+              recentIds.shift();
+          }
+          // ==================================
 
-      const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+          const randomTheme = themes[Math.floor(Math.random() * themes.length)];
 
-      // 应用随机主题
-      document.body.style.backgroundColor = randomTheme.bg;
-      resultCard.style.backgroundColor = randomTheme.cardBg;
-      const downloadBtn = document.getElementById('downloadLink');
-      downloadBtn.style.backgroundColor = randomTheme.accent;
-      downloadBtn.style.borderColor = randomTheme.accent;
-      downloadBtn.style.color = randomTheme.btnText;
+          // 应用随机主题
+          document.body.style.backgroundColor = randomTheme.bg;
+          resultCard.style.backgroundColor = randomTheme.cardBg;
+          const downloadBtn = document.getElementById('downloadLink');
+          downloadBtn.style.backgroundColor = randomTheme.accent;
+          downloadBtn.style.borderColor = randomTheme.accent;
+          downloadBtn.style.color = randomTheme.btnText;
 
-      // 3 秒后展示结果
-      setTimeout(() => {
-        diceCSS.classList.remove('roll-animation');
-        diceArea.classList.remove('disabled');
+          // 3 秒后展示结果
+          setTimeout(() => {
+              diceCSS.classList.remove('roll-animation');
+              diceArea.classList.remove('disabled');
 
-        document.getElementById('resName').textContent = randomTreasure.name;
-        document.getElementById('resFormat').textContent = '格式：' + randomTreasure.format;
-        document.getElementById('resSize').textContent = '大小：' + randomTreasure.size;
-        document.getElementById('resDesc').textContent = randomTreasure.desc;
-        
-        downloadBtn.href = randomTreasure.url;
-        if (randomTreasure.url.startsWith('http')) {
-          downloadBtn.setAttribute('target', '_blank');
-          downloadBtn.textContent = '🔗 前往宝藏';
-        } else {
-          downloadBtn.setAttribute('download', '');
-          downloadBtn.textContent = '⬇️ 下载宝藏';
-        }
+              document.getElementById('resName').textContent = randomTreasure.name;
+              document.getElementById('resFormat').textContent = '格式：' + randomTreasure.format;
+              document.getElementById('resSize').textContent = '大小：' + randomTreasure.size;
+              document.getElementById('resDesc').textContent = randomTreasure.desc;
 
-        resultCard.classList.add('show');
-        isRolling = false;
-      }, 3000);
-    });
+              // 移除旧的事件（如果绑定过）
+              downloadBtn.onclick = null;
+              downloadBtn.href = '#';
+
+              if (randomTreasure.url.startsWith('http')) {
+                  // 外链仍直接打开
+                  downloadBtn.setAttribute('target', '_blank');
+                  downloadBtn.textContent = '🔗 前往宝藏';
+                  downloadBtn.onclick = () => window.open(randomTreasure.url, '_blank');
+              } else {
+                  // 本地文件强制 Blob 下载
+                  downloadBtn.textContent = '⬇️ 下载宝藏';
+                  downloadBtn.onclick = (e) => {
+                      e.preventDefault();
+                      const filename = randomTreasure.name + '.' + randomTreasure.format.toLowerCase();
+                      forceDownload('../' + randomTreasure.url, filename); // 注意路径调整
+                  };
+              }
+
+              resultCard.classList.add('show');
+              isRolling = false;
+          }, 3000);
+      });
   </script>
 </body>
 </html>
