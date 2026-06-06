@@ -14,7 +14,7 @@ body {
     background-color: var(--bg);
     color: var(--text);
     line-height: 1.6;
-    cursor: url('../assets/cursors/default.cur'), auto;
+    /*cursor: url('../assets/cursors/default.cur'), auto; */
 }
 
 /* 导航栏 */
@@ -89,14 +89,17 @@ input, textarea {
     background: white;
 }
 
+
 /* --- 全局光标应用 --- */
 /* 1. 默认光标已由 body 设置 */
 /* 2. 帮助选择（问号）：用于链接、按钮、可点击角色 */
+/*
 a, button, .btn, [role="button"], [onclick]:not(:disabled) {
     cursor: url('../assets/cursors/help.cur'), pointer;
 }
-
+*/
 /* 3. 文本选择：用于输入框、文本区域、可编辑元素 */
+/*
 input[type="text"],
 input[type="search"],
 input[type="password"],
@@ -109,20 +112,25 @@ textarea,
     cursor: url('../assets/cursors/text.cur'), text;
 }
 
+*/
+
 /* 4. 不可用状态 */
+/*
 :disabled,
 .disabled,
 [aria-disabled="true"] {
     cursor: url('../assets/cursors/not-allowed.cur'), not-allowed;
 }
-
+    */
 /* 5. 移动光标 */
+/*
 [draggable="true"],
 .cursor-move {
     cursor: url('../assets/cursors/move.cur'), move;
 }
-
+    */
 /* 6. 等待/忙 */
+/*
 .waiting,
 .loading,
 .cursor-wait {
@@ -130,6 +138,8 @@ textarea,
 }
 
 /* 7. 调整大小方向（保持原有的类，可手动添加到元素） */
+*/
+/*
 .resize-h {
     cursor: url('../assets/cursors/horizontal-resize.cur'), ew-resize;
 }
@@ -149,3 +159,4 @@ textarea,
 .cursor-progress {
     cursor: url('../assets/cursors/progress.cur'), progress;
 }
+*/
