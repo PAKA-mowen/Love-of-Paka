@@ -1,33 +1,134 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的作品</title>
-    <link rel="stylesheet" href="../css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>百宝箱 · 墨问羊驼</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+    .tool-card {
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem 0.8rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid #e6dcc8;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 120px;
+    }
+    .tool-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      border-color: #c9b99a;
+    }
+    .tool-icon {
+      font-size: 2.8rem;
+      margin-bottom: 0.5rem;
+      line-height: 1;
+    }
+    .tool-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #3a4a4a;
+      margin-top: 0.3rem;
+    }
+    /* 占位提示 */
+    .tool-card.coming-soon {
+      opacity: 0.6;
+      cursor: default;
+      pointer-events: none;
+    }
+    .tool-card.coming-soon:hover {
+      transform: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    .coming-badge {
+      font-size: 0.75rem;
+      background: #e6dcc8;
+      color: #8b7b6b;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      margin-top: 0.4rem;
+    }
+
+    /* 响应式：平板 3 列 */
+    @media (max-width: 900px) {
+      .tool-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    /* 手机 2 列 */
+    @media (max-width: 600px) {
+      .tool-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+      .tool-card {
+        padding: 1.2rem 0.5rem;
+        min-height: 100px;
+      }
+      .tool-icon {
+        font-size: 2.2rem;
+      }
+    }
+  </style>
 </head>
 <body>
-    <nav>
-        <a href="index.html">首页</a>
-        <a href="message.html">留言</a>
-        <a href="games.html">小游戏</a>
-        <a href="works.html" class="active">作品</a>
-        <a href="adventure.html">探险</a>
-    </nav>
-    <div class="container">
-        <h2>📁 作品集</h2>
+  <nav>
+    <a href="index.html">首页</a>
+    <a href="message.html">留言</a>
+    <a href="games.html">小游戏</a>
+    <a href="works.html" class="active">百宝箱</a>
+    <a href="adventure.html">探险</a>
+  </nav>
 
-        <div class="card">
-            <h3>这部分明天再写叭~</h3>
-            <p>我要去吃饭啦</p>
-            <a href="../assets/downloads/sample.pdf" download class="btn">⬇️ 下载 PDF（假的）</a>
-            <a href="../assets/downloads/sample.zip" download class="btn">⬇️ 下载源代码</a>
-        </div>
+  <div class="container">
+    <h2 style="font-family: 'ZCOOL KuaiLe', cursive; font-size: 2rem; margin-bottom: 0.5rem;">🧰 百宝箱</h2>
+    <p style="color: #8b7b6b; margin-bottom: 1.5rem;">实用小工具，随手可用 ✨</p>
 
-        <div class="card">
-            <h3>困倦</h3>
-            <p>嘻嘻</p>
-            <a href="#" class="btn">有无好吃的推荐一下</a>
-        </div>
+    <div class="tool-grid">
+      <!-- 转盘工具 -->
+      <a href="../works/wheel/wheel.html" class="tool-card">
+        <div class="tool-icon">🎡</div>
+        <div class="tool-name">幸运转盘</div>
+      </a>
+
+      <!-- 骰子工具 -->
+      <a href="../works/dice/dice.html" class="tool-card">
+        <div class="tool-icon">🎲</div>
+        <div class="tool-name">掷骰子</div>
+      </a>
+
+      <!-- 石头剪刀布 -->
+      <a href="../works/rps/rps.html" class="tool-card">
+        <div class="tool-icon">✊✌️✋</div>
+        <div class="tool-name">猜拳</div>
+      </a>
+
+      <!-- 更多工具 -->
+      <div class="tool-card coming-soon">
+        <div class="tool-icon">⏳</div>
+        <div class="tool-name">更多工具</div>
+        <span class="coming-badge">即将推出</span>
+      </div>
     </div>
+
+    <div class="footer-note" style="margin-top: 2rem;">
+       更多实用工具即将上线 
+    </div>
+  </div>
 </body>
+</html>

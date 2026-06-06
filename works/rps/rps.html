@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>环形对决·动态拳 | 剪刀石头布 2-8人</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none; /* 避免移动端长按菜单，提升交互清爽度 */
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #1a2a3a 0%, #0f1a24 100%);
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, 'Roboto', 'Helvetica Neue', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* 主游戏面板 */
+        .game-container {
+            width: 100%;
+            max-width: 1300px;
+            background: rgba(22, 34, 48, 0.65);
+            backdrop-filter: blur(8px);
+            border-radius: 4rem;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+            padding: 1.2rem 1rem 2rem 1rem;
+            transition: all 0.2s ease;
+        }
+
+        /* 顶部控制栏 */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 0.8rem 1.2rem;
+            background: rgba(10, 20, 28, 0.6);
+            border-radius: 100px;
+            backdrop-filter: blur(4px);
+        }
+
+        .ctrl-group {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.4rem 1.2rem;
+            border-radius: 60px;
+            backdrop-filter: blur(2px);
+        }
+
+        .ctrl-group label {
+            font-weight: 600;
+            color: #ffecb3;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .number-value {
+            background: #ffd966;
+            color: #2d2b26;
+            font-weight: bold;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-size: 1.2rem;
+            min-width: 60px;
+            text-align: center;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1), 0 1px 2px white;
+        }
+
+        button {
+            background: linear-gradient(135deg, #ffcf4a, #ffb347);
+            border: none;
+            font-weight: bold;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            color: #2c2c2c;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        button:active {
+            transform: scale(0.96);
+            box-shadow: 0 1px 3px black;
+        }
+
+        button:disabled {
+            opacity: 0.55;
+            transform: scale(0.98);
+            cursor: not-allowed;
+            filter: grayscale(0.1);
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            color: #fff3cf;
+            border: 1px solid rgba(255, 200, 100, 0.6);
+            box-shadow: none;
+        }
+
+        .btn-outline:active {
+            background: rgba(255, 200, 100, 0.3);
+        }
+
+        /* 环形竞技场 */
+        .arena {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;  /* 保持正方形区域，利于环形计算 */
+            margin: 0.5rem auto;
+            background: radial-gradient(circle at 30% 20%, rgba(50, 80, 100, 0.4), rgba(0, 0, 0, 0.2));
+            border-radius: 50%;
+            box-shadow: 0 0 0 3px rgba(255, 220, 120, 0.2), 0 20px 35px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(3px);
+        }
+
+        /* 玩家卡片 - 环形绝对定位 */
+        .player-card {
+            position: absolute;
+            width: 100px;
+            height: 120px;
+            background: rgba(30, 40, 55, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,240,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            cursor: default;
+            border: 2px solid rgba(255, 210, 100, 0.5);
+            transform: translate(-50%, -50%);
+            text-align: center;
+            padding: 0.6rem 0.2rem;
+        }
+
+        /* 胜者高亮特效 */
+        .player-card.winner {
+            border: 4px solid #ffd966;
+            box-shadow: 0 0 0 4px rgba(255, 217, 0, 0.6), 0 0 20px gold;
+            background: rgba(75, 65, 35, 0.9);
+            transition: 0.1s;
+        }
+
+        .player-name {
+            font-weight: bold;
+            font-size: 0.85rem;
+            background: #ffda88;
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            color: #2e241f;
+            margin-bottom: 8px;
+            box-shadow: inset 0 1px 1px white, 0 1px 2px black;
+        }
+
+        .gesture-area {
+            font-size: 3.3rem;
+            line-height: 1;
+            margin: 5px 0;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.4));
+            transition: transform 0.1s ease;
+            cursor: pointer;
+        }
+
+        .gesture-area:active {
+            transform: scale(0.92);
+        }
+
+        /* 动画期间手势禁用光标提示 */
+        .disable-gesture .gesture-area {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .gesture-text {
+            font-size: 0.7rem;
+            background: #00000066;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            color: #ffe6b3;
+            letter-spacing: 1px;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        /* 中央信息区 */
+        .center-stage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 38%;
+            max-width: 180px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 60px;
+            padding: 0.6rem 0.8rem;
+            text-align: center;
+            z-index: 20;
+            pointer-events: none;
+            border: 1px solid rgba(255, 215, 120, 0.8);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .victory-text {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #ffeaac;
+            text-shadow: 0 2px 4px black;
+            word-break: break-word;
+        }
+
+        .vs-icon {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 680px) {
+            .player-card {
+                width: 75px;
+                height: 92px;
+                border-radius: 1.5rem;
+            }
+            .gesture-area {
+                font-size: 2.5rem;
+            }
+            .player-name {
+                font-size: 0.7rem;
+                padding: 0.15rem 0.4rem;
+            }
+            .gesture-text {
+                font-size: 0.6rem;
+            }
+            .ctrl-group {
+                padding: 0.2rem 0.8rem;
+            }
+            button {
+                padding: 0.3rem 1rem;
+                font-size: 0.8rem;
+            }
+            .number-value {
+                font-size: 1rem;
+                min-width: 45px;
+            }
+            .center-stage {
+                width: 45%;
+                padding: 0.4rem 0.5rem;
+            }
+            .victory-text {
+                font-size: 0.7rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .player-card {
+                width: 68px;
+                height: 85px;
+            }
+            .gesture-area {
+                font-size: 2.2rem;
+            }
+            .controls {
+                gap: 0.6rem;
+            }
+        }
+
+        /* 小动画 */
+        @keyframes pulseWin {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            100% { transform: translate(-50%, -50%) scale(1.02); }
+        }
+        .player-card.winner {
+            animation: pulseWin 0.3s ease-in-out 2;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.7rem;
+            color: #bba87a;
+            opacity: 0.7;
+        }
+
+        /* 动态随机中闪烁光效 */
+        .arena.dynamic-shake {
+            animation: arenaPulse 0.4s ease-in-out infinite;
+        }
+        @keyframes arenaPulse {
+            0% { box-shadow: 0 0 0 3px rgba(255, 220, 120, 0.2), 0 20px 35px rgba(0, 0, 0, 0.4);}
+            100% { box-shadow: 0 0 0 8px rgba(255, 200, 80, 0.5), 0 20px 35px rgba(0, 0, 0, 0.5);}
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="controls">
+        <div class="ctrl-group">
+            <label>👥 战士人数</label>
+            <button id="decrementCount" class="btn-outline">-</button>
+            <span id="playerCountDisplay" class="number-value">2</span>
+            <button id="incrementCount" class="btn-outline">+</button>
+        </div>
+        <div class="ctrl-group">
+            <button id="randomAllBtn">🎲 随机出拳 · 动态</button>
+            <button id="fightBtn">⚔️ 决出胜负</button>
+        </div>
+    </div>
+
+    <div class="arena" id="arena">
+        <!-- 动态生成的玩家卡片会环形分布在此 -->
+        <div class="center-stage" id="centerStage">
+            <div class="vs-icon">🔄</div>
+            <div class="victory-text" id="winnerMessage">点击手势切换 ✊✌️✋ | 2~8人环形对决</div>
+        </div>
+    </div>
+    <footer>✨ 点击玩家手势图标切换 | 「动态随机」2秒炫动乱拳，自动决胜 ✨</footer>
+</div>
+
+<script>
+    // ---------- 游戏核心逻辑 ----------
+    const gestures = ['rock', 'paper', 'scissors'];
+    const gestureMap = {
+        rock: { emoji: '✊', name: '石头', beats: 'scissors' },
+        paper: { emoji: '✋', name: '布', beats: 'rock' },
+        scissors: { emoji: '✌️', name: '剪刀', beats: 'paper' }
+    };
+
+    let players = [];         // 存储每个玩家的手势 { gesture: 'rock' }
+    let playerCount = 2;      // 当前人数 2~8 (最低2人)
+    let playerElements = [];   // 存储每个卡片的DOM元素引用
+    let currentWinnerIndices = [];
+
+    // 动画与交互锁
+    let isAnimating = false;      // 随机动画中
+    let animationTimer = null;    // 主计时器 (2秒结束)
+    let animationInterval = null; // 高频刷新定时器
+    let disableGestures = false;  // 动画期间禁止手势切换
+
+    const arenaDiv = document.getElementById('arena');
+    const playerCountDisplay = document.getElementById('playerCountDisplay');
+    const winnerMessageDiv = document.getElementById('winnerMessage');
+    const randomBtn = document.getElementById('randomAllBtn');
+    const fightBtn = document.getElementById('fightBtn');
+
+    // 辅助函数: 获取手势对应信息
+    function getGestureInfo(gesture) {
+        return gestureMap[gesture];
+    }
+
+    // 随机手势
+    function randomGesture() {
+        return gestures[Math.floor(Math.random() * gestures.length)];
+    }
+
+    // 初始化 / 重置玩家数据 (人数改变时调用)
+    function initPlayers(count) {
+        const newPlayers = [];
+        for (let i = 0; i < count; i++) {
+            newPlayers.push({ gesture: 'rock' });   // 默认石头
+        }
+        return newPlayers;
+    }
+
+    // 清除所有高亮class
+    function clearHighlights() {
+        if (playerElements.length) {
+            playerElements.forEach(card => {
+                if (card) card.classList.remove('winner');
+            });
+        }
+    }
+
+    // 显示胜者消息 (支持多人胜者列表)
+    function displayWinners(winnerIndices) {
+        if (!winnerIndices.length) {
+            winnerMessageDiv.innerHTML = '🤝 平局！ 无人获胜 🤝';
+            return;
+        }
+        if (winnerIndices.length === players.length) {
+            winnerMessageDiv.innerHTML = '🏆 全体战平？ 全员胜利！ 🏆';
+            return;
+        }
+        const winnerNames = winnerIndices.map(idx => `玩家${idx + 1}`).join(', ');
+        winnerMessageDiv.innerHTML = `🏅 胜利者：${winnerNames} 🏅`;
+    }
+
+    // 核心判定算法: 基于当前所有玩家的手势，返回获胜者的索引数组
+    function computeWinners() {
+        if (!players.length) return [];
+        const gestureSet = new Set();
+        players.forEach(p => gestureSet.add(p.gesture));
+        const uniqueGestures = Array.from(gestureSet);
+        
+        if (uniqueGestures.length === 1) {
+            return [];   // 平局
+        }
+        if (uniqueGestures.length === 3) {
+            return [];
+        }
+        let winningGesture = null;
+        const [g1, g2] = uniqueGestures;
+        if (gestureMap[g1].beats === g2) {
+            winningGesture = g1;
+        } else if (gestureMap[g2].beats === g1) {
+            winningGesture = g2;
+        } else {
+            return [];
+        }
+        const winners = [];
+        players.forEach((p, idx) => {
+            if (p.gesture === winningGesture) winners.push(idx);
+        });
+        return winners;
+    }
+
+    // 高亮胜者并更新消息
+    function highlightAndAnnounce() {
+        clearHighlights();
+        const winners = computeWinners();
+        currentWinnerIndices = winners;
+        winners.forEach(idx => {
+            if (playerElements[idx]) {
+                playerElements[idx].classList.add('winner');
+            }
+        });
+        displayWinners(winners);
+    }
+
+    // 更新所有卡片UI
+    function updateAllCardsUI() {
+        for (let i = 0; i < players.length; i++) {
+            updateSingleCardUI(i);
+        }
+    }
+
+    // 更新单个卡片显示
+    function updateSingleCardUI(index) {
+        const card = playerElements[index];
+        if (!card) return;
+        const player = players[index];
+        const info = getGestureInfo(player.gesture);
+        const gestureEmojiSpan = card.querySelector('.gesture-area');
+        const gestureTextSpan = card.querySelector('.gesture-text');
+        if (gestureEmojiSpan) gestureEmojiSpan.textContent = info.emoji;
+        if (gestureTextSpan) gestureTextSpan.textContent = info.name;
+    }
+
+    // 切换手势 (循环)
+    function cycleGesture(current) {
+        const idx = gestures.indexOf(current);
+        const nextIdx = (idx + 1) % gestures.length;
+        return gestures[nextIdx];
+    }
+
+    // 单个玩家手势切换 (受禁锁控制)
+    function changePlayerGesture(index) {
+        if (disableGestures || isAnimating) {
+            // 动画期间轻柔反馈
+            winnerMessageDiv.innerHTML = '⚡ 动态随机中，稍后再换拳 ⚡';
+            setTimeout(() => {
+                if (!isAnimating && !disableGestures) {
+                    if (winnerMessageDiv.innerHTML.includes('动态随机中')) 
+                        winnerMessageDiv.innerHTML = '✨ 点击手势切换，或使用随机出拳 ✨';
+                }
+            }, 800);
+            return;
+        }
+        const oldGesture = players[index].gesture;
+        const newGesture = cycleGesture(oldGesture);
+        players[index].gesture = newGesture;
+        updateSingleCardUI(index);
+        // 手动切换后清除胜负显示 (因为战局改变)
+        clearHighlights();
+        winnerMessageDiv.innerHTML = '✨ 手势已变，点击「决出胜负」或「动态随机」✨';
+        currentWinnerIndices = [];
+    }
+
+    // ---------- 动态随机动画 (2秒乱拳) ----------
+    function stopCurrentAnimation(resetLock = true) {
+        if (animationTimer) {
+            clearTimeout(animationTimer);
+            animationTimer = null;
+        }
+        if (animationInterval) {
+            clearInterval(animationInterval);
+            animationInterval = null;
+        }
+        if (resetLock) {
+            isAnimating = false;
+            disableGestures = false;
+        }
+        // 移除竞技场动态特效class
+        arenaDiv.classList.remove('dynamic-shake');
+        // 恢复所有卡片手势点击区样式 (通过父级class)
+        document.querySelectorAll('.player-card').forEach(card => {
+            card.style.opacity = '';
+        });
+        if (arenaDiv.classList.contains('disable-gesture')) {
+            arenaDiv.classList.remove('disable-gesture');
+        }
+        // 恢复按钮可用状态
+        randomBtn.disabled = false;
+        fightBtn.disabled = false;
+        document.getElementById('incrementCount').disabled = false;
+        document.getElementById('decrementCount').disabled = false;
+    }
+
+    // 随机化所有玩家手势并更新UI (被高频调用)
+    function randomizeAllPlayersAndUpdate() {
+        for (let i = 0; i < players.length; i++) {
+            players[i].gesture = randomGesture();
+        }
+        updateAllCardsUI();
+    }
+
+    // 最终稳定手势后调用判定
+    function finalizeAndJudge() {
+        // 停止所有动画相关定时器
+        if (animationInterval) {
+            clearInterval(animationInterval);
+            animationInterval = null;
+        }
+        if (animationTimer) {
+            clearTimeout(animationTimer);
+            animationTimer = null;
+        }
+        // 确保最后一次刷新后，基于最终手势进行胜负判定
+        // 注意: 最后一次 randomizeAllPlayersAndUpdate 已经在最后一次interval执行完毕，此时players已是最新随机结果
+        // 但是为了确保100%最终手势稳定 (避免最后半拍没刷新), 再次刷新一次UI并加稳
+        updateAllCardsUI();
+        // 判定胜负并高亮
+        highlightAndAnnounce();
+        
+        // 解锁交互
+        isAnimating = false;
+        disableGestures = false;
+        arenaDiv.classList.remove('dynamic-shake');
+        if (arenaDiv.classList.contains('disable-gesture')) {
+            arenaDiv.classList.remove('disable-gesture');
+        }
+        // 恢复人数调整按钮
+        randomBtn.disabled = false;
+        fightBtn.disabled = false;
+        document.getElementById('incrementCount').disabled = false;
+        document.getElementById('decrementCount').disabled = false;
+        
+        // 中央消息保留胜者信息，2秒后温柔还原提示（但不清除胜者信息也没关系）
+        // 可选: 让消息保留胜者即可
+    }
+
+    // 开始动态随机 (持续2秒高频变化)
+    function startDynamicRandom() {
+        // 如果已有动画，先停止并清理 (重新开始)
+        if (isAnimating) {
+            stopCurrentAnimation(true);
+        }
+        
+        // 清空先前高亮和胜者提示
+        clearHighlights();
+        winnerMessageDiv.innerHTML = '🌀 乱拳风暴中 ... 两秒后揭晓 🌀';
+        
+        // 加锁: 禁止手势修改，禁止其他按钮操作(随机按钮本身会disabled)
+        isAnimating = true;
+        disableGestures = true;
+        randomBtn.disabled = true;
+        fightBtn.disabled = true;
+        document.getElementById('incrementCount').disabled = true;
+        document.getElementById('decrementCount').disabled = true;
+        
+        // 给竞技场增加动态闪烁效果
+        arenaDiv.classList.add('dynamic-shake');
+        arenaDiv.classList.add('disable-gesture'); // 附加禁用样式
+        
+        // 先立即随机一次，制造起始变化
+        randomizeAllPlayersAndUpdate();
+        
+        // 高频刷新: 每70ms变化一次手势，持续2000ms (动感十足)
+        const intervalMs = 70;
+        const duration = 2000;
+        let startTime = Date.now();
+        
+        animationInterval = setInterval(() => {
+            // 随机所有玩家手势并刷新UI
+            for (let i = 0; i < players.length; i++) {
+                players[i].gesture = randomGesture();
+            }
+            updateAllCardsUI();
+        }, intervalMs);
+        
+        // 主计时器: 到达duration后清除interval并最终确定手势，判定胜负
+        animationTimer = setTimeout(() => {
+            // 清除高频定时器
+            if (animationInterval) {
+                clearInterval(animationInterval);
+                animationInterval = null;
+            }
+            // 最后一次随机手势 (保证完全随机结局)
+            for (let i = 0; i < players.length; i++) {
+                players[i].gesture = randomGesture();
+            }
+            updateAllCardsUI();
+            // 判定胜负 + 解锁
+            finalizeAndJudge();
+        }, duration);
+    }
+
+    // 普通决斗 (无动画)
+    function fightDirectly() {
+        if (isAnimating) {
+            winnerMessageDiv.innerHTML = '⏳ 动画进行中，稍后手动决斗 ⏳';
+            return;
+        }
+        clearHighlights();
+        highlightAndAnnounce();
+    }
+
+    // 改变人数 (最低2人)
+    function setPlayerCount(newCount) {
+        if (isAnimating) {
+            winnerMessageDiv.innerHTML = '🎬 动态进行中，请稍后调整人数 🎬';
+            return;
+        }
+        newCount = Math.min(8, Math.max(2, newCount));
+        if (newCount === playerCount) return;
+        playerCount = newCount;
+        playerCountDisplay.innerText = playerCount;
+        // 停止任何残留动画
+        stopCurrentAnimation(true);
+        // 重置玩家数据
+        players = initPlayers(playerCount);
+        // 重绘环形布局
+        renderRing();
+        // 清除胜者信息
+        clearHighlights();
+        winnerMessageDiv.innerHTML = `👥 ${playerCount} 人环形对战 | 点击手势切换 ✊✌️✋`;
+        currentWinnerIndices = [];
+    }
+
+    function changeCount(delta) {
+        let newVal = playerCount + delta;
+        if (newVal < 2) newVal = 2;
+        if (newVal > 8) newVal = 8;
+        setPlayerCount(newVal);
+    }
+
+    // 环形定位逻辑 (动态布局)
+    function positionCards() {
+        if (!playerElements.length) return;
+        const arenaRect = arenaDiv.getBoundingClientRect();
+        const centerX = arenaRect.width / 2;
+        const centerY = arenaRect.height / 2;
+        const firstCard = playerElements[0];
+        if (!firstCard) return;
+        const cardWidth = firstCard.offsetWidth;
+        const cardHeight = firstCard.offsetHeight;
+        let radius = Math.min(arenaRect.width, arenaRect.height) * 0.38;
+        // 人数优化半径: 2人时半径小一点更美观，避免贴边
+        if (playerCount === 2) radius *= 0.68;
+        else if (playerCount >= 7) radius *= 0.86;
+        else if (playerCount >= 5) radius *= 0.94;
+        
+        const maxRadiusX = (arenaRect.width / 2) - cardWidth / 2 - 8;
+        const maxRadiusY = (arenaRect.height / 2) - cardHeight / 2 - 8;
+        radius = Math.min(radius, maxRadiusX, maxRadiusY, 170); // 封顶避免溢出
+        
+        const angleStep = (Math.PI * 2) / playerElements.length;
+        let startAngle = -Math.PI / 2; // 从顶部开始
+        
+        playerElements.forEach((card, idx) => {
+            const angle = startAngle + idx * angleStep;
+            const x = centerX + radius * Math.cos(angle);
+            const y = centerY + radius * Math.sin(angle);
+            card.style.left = `${x}px`;
+            card.style.top = `${y}px`;
+        });
+    }
+
+    let resizeTimer;
+    function handleResize() {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            if (playerElements.length) positionCards();
+        }, 120);
+    }
+
+    // 渲染环形卡片
+    function renderRing() {
+        const centerDiv = document.getElementById('centerStage');
+        while (arenaDiv.firstChild) {
+            arenaDiv.removeChild(arenaDiv.firstChild);
+        }
+        arenaDiv.appendChild(centerDiv);
+        playerElements = [];
+        
+        for (let i = 0; i < players.length; i++) {
+            const player = players[i];
+            const info = getGestureInfo(player.gesture);
+            const card = document.createElement('div');
+            card.className = 'player-card';
+            card.setAttribute('data-idx', i);
+            card.innerHTML = `
+                <div class="player-name">👤 玩家${i+1}</div>
+                <div class="gesture-area">${info.emoji}</div>
+                <div class="gesture-text">${info.name}</div>
+            `;
+            arenaDiv.appendChild(card);
+            playerElements.push(card);
+            
+            const gestureArea = card.querySelector('.gesture-area');
+            gestureArea.addEventListener('click', (e) => {
+                e.stopPropagation();
+                changePlayerGesture(i);
+            });
+        }
+        positionCards();
+        clearHighlights();
+        // 确保没有动画锁残余样式
+        if (arenaDiv.classList.contains('disable-gesture')) arenaDiv.classList.remove('disable-gesture');
+    }
+
+    // 初始化 最低2人
+    function initGame() {
+        players = initPlayers(2);
+        playerCount = 2;
+        playerCountDisplay.innerText = '2';
+        renderRing();
+        
+        // 绑定全局按钮事件
+        document.getElementById('incrementCount').addEventListener('click', () => changeCount(1));
+        document.getElementById('decrementCount').addEventListener('click', () => changeCount(-1));
+        randomBtn.addEventListener('click', () => startDynamicRandom());
+        fightBtn.addEventListener('click', () => fightDirectly());
+        
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', () => setTimeout(() => positionCards(), 80));
+    }
+
+    initGame();
+</script>
+</body>
+</html>

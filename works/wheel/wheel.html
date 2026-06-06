@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>梦幻幸运大转盘 | 自定义抽奖神器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none; /* 避免移动端拖动文字 */
+        }
+
+        body {
+            background: linear-gradient(145deg, #1e2b3c 0%, #0f1a24 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Poppins', 'Roboto', 'Noto Sans', system-ui, -apple-system, 'Microsoft YaHei', sans-serif;
+            padding: 24px 16px;
+        }
+
+        /* 主容器 */
+        .wheel-container {
+            max-width: 620px;
+            width: 100%;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            border-radius: 72px 72px 56px 56px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.15);
+            padding: 20px 20px 28px;
+            transition: all 0.3s ease;
+        }
+
+        /* 实时结果栏 */
+        .result-area {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(12px);
+            border-radius: 100px;
+            margin-bottom: 24px;
+            padding: 12px 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 215, 150, 0.5);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        .result-label {
+            font-size: 14px;
+            letter-spacing: 2px;
+            color: #ffecb3;
+            text-transform: uppercase;
+            font-weight: 400;
+            text-shadow: 0 1px 1px black;
+        }
+        .result-name {
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffe6a3;
+            text-shadow: 0 2px 5px #aa6f20;
+            margin-top: 4px;
+            word-break: break-word;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #fff0c0, #ffd966);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: none;
+        }
+        @media (max-width: 550px) {
+            .result-name { font-size: 22px; }
+        }
+
+        /* canvas 转盘区域 */
+        .wheel-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+        canvas {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            background: #f9e5c1;
+            border-radius: 50%;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.4), 0 0 0 8px #f7cf8c, 0 0 0 12px #bf8f50;
+            transition: box-shadow 0.2s;
+            cursor: pointer;
+        }
+        canvas:active {
+            transform: scale(0.99);
+        }
+
+        /* 旋转按钮 */
+        .spin-btn {
+            display: block;
+            width: 140px;
+            margin: 10px auto 20px;
+            background: linear-gradient(120deg, #ffb347, #ff6e3a);
+            border: none;
+            padding: 14px 0;
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff3e0;
+            text-shadow: 0 2px 3px #b53b00;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 0 #963d1a;
+            letter-spacing: 4px;
+            font-family: inherit;
+        }
+        .spin-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #963d1a;
+        }
+        .spin-btn.disabled {
+            opacity: 0.6;
+            transform: translateY(0);
+            pointer-events: none;
+            filter: grayscale(0.1);
+        }
+
+        /* 选项管理面板 - 艺术卡片 */
+        .options-panel {
+            background: rgba(30, 40, 50, 0.7);
+            backdrop-filter: blur(16px);
+            border-radius: 48px;
+            padding: 16px 12px 20px;
+            margin-top: 12px;
+            border: 1px solid rgba(255, 210, 140, 0.5);
+            box-shadow: inset 0 0 6px rgba(0,0,0,0.2), 0 8px 18px rgba(0,0,0,0.2);
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffdeae;
+            padding-left: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .panel-title i {
+            font-style: normal;
+            font-size: 20px;
+        }
+
+        /* 条目列表区域，可滚动 */
+        .options-list {
+            max-height: 240px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 4px 8px;
+            margin-bottom: 20px;
+        }
+        .options-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        .options-list::-webkit-scrollbar-track {
+            background: #2a3b44;
+            border-radius: 10px;
+        }
+        .options-list::-webkit-scrollbar-thumb {
+            background: #ffb85e;
+            border-radius: 10px;
+        }
+
+        /* 每个选项卡片 */
+        .option-item {
+            background: rgba(10, 20, 28, 0.7);
+            border-radius: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 12px 6px 20px;
+            gap: 10px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 190, 100, 0.4);
+            transition: all 0.2s;
+        }
+        .option-name {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 500;
+            color: #f7e5c2;
+            word-break: break-word;
+            padding-right: 6px;
+            text-shadow: 0 1px 0 #1e2a32;
+        }
+        .option-actions {
+            display: flex;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+        .action-btn {
+            background: rgba(255, 215, 150, 0.2);
+            border: none;
+            font-size: 18px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.15s;
+            color: #ffd98c;
+            backdrop-filter: blur(4px);
+        }
+        .action-btn.edit-btn:hover {
+            background: #3d7ca3;
+            color: white;
+            transform: scale(1.05);
+        }
+        .action-btn.del-btn:hover {
+            background: #b13e3e;
+            color: white;
+            transform: scale(1.05);
+        }
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 添加区域 */
+        .add-section {
+            display: flex;
+            gap: 12px;
+            padding: 8px 12px;
+            margin-top: 6px;
+        }
+        .add-input {
+            flex: 1;
+            background: #17242e;
+            border: 1px solid #ffcd8a;
+            border-radius: 60px;
+            padding: 12px 18px;
+            font-size: 16px;
+            color: #ffefcf;
+            outline: none;
+            font-weight: 500;
+        }
+        .add-input::placeholder {
+            color: #9aaeb9;
+            font-weight: normal;
+        }
+        .add-btn {
+            background: #ffaa44;
+            border: none;
+            border-radius: 60px;
+            padding: 0 28px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #2e241f;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 3px 0 #a45d1a;
+        }
+        .add-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #a45d1a;
+        }
+
+        /* 小提示 */
+        .info-tip {
+            font-size: 12px;
+            text-align: center;
+            margin-top: 18px;
+            color: #bcb08b;
+            letter-spacing: 0.5px;
+        }
+
+        /* 移动端优化 */
+        @media (max-width: 560px) {
+            .wheel-container {
+                padding: 12px 16px 24px;
+            }
+            .option-name {
+                font-size: 15px;
+            }
+            .action-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 16px;
+            }
+            .add-input {
+                padding: 10px 14px;
+            }
+            .add-btn {
+                padding: 0 20px;
+            }
+            .spin-btn {
+                width: 120px;
+                font-size: 20px;
+                padding: 12px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="wheel-container">
+    <!-- 实时抽中显示区域 -->
+    <div class="result-area">
+        <div class="result-label">✨ 当前指针所指 ✨</div>
+        <div class="result-name" id="currentPickName">等待转动</div>
+    </div>
+
+    <!-- 转盘canvas -->
+    <div class="wheel-wrapper">
+        <canvas id="wheelCanvas" width="600" height="600"></canvas>
+    </div>
+
+    <!-- 旋转按钮 -->
+    <button class="spin-btn" id="spinButton">🎡 旋转</button>
+
+    <!-- 下方编辑区 -->
+    <div class="options-panel">
+        <div class="panel-title">
+            <i>🎨</i> 自定义转盘列表
+        </div>
+        <div class="options-list" id="optionsList"></div>
+        <div class="add-section">
+            <input type="text" id="newOptionName" class="add-input" placeholder="输入新选项, 例如: 一等奖" maxlength="20">
+            <button id="addOptionBtn" class="add-btn">＋ 添加</button>
+        </div>
+        <div class="info-tip">✏️ 点击编辑/删除 |喵喵喵~</div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- 配置参数 ----------
+        let options = [
+            { name: "🌟 自选餐", color: "" },
+            { name: "🍕 大盘子饭", color: "" },
+            { name: "🎬 鸡丝拌面", color: "" }
+        ];  // 默认3项，三种艺术风格颜色稍后动态生成
+        
+        // 转盘当前累计旋转弧度 (逆时针或顺时针我们统一顺时针为正)
+        let currentRotation = 0;          // 总旋转弧度
+        let animating = false;
+        let animationId = null;
+        let spinStartTime = 0;
+        let spinDuration = 1800;           // 1.8s 先快后慢效果明显
+        let startRotation = 0;
+        let targetRotation = 0;
+        
+        // DOM 元素
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const spinBtn = document.getElementById('spinButton');
+        const optionsListDiv = document.getElementById('optionsList');
+        const newOptionInput = document.getElementById('newOptionName');
+        const addBtn = document.getElementById('addOptionBtn');
+        const currentPickSpan = document.getElementById('currentPickName');
+        
+        let canvasSize = 600;      // 固定逻辑分辨率，通过css缩放完美适配
+        let centerX = 300, centerY = 300;
+        let radius = 280;          // 半径留出边缘
+        
+        // 指针固定方向: 向上 ( -PI/2 )
+        const POINTER_ANGLE = -Math.PI / 2;
+        
+        // ---------- 辅助函数: 生成艺术颜色 (高饱和高明度 基于色相环跳跃) ----------
+        function generateColorPalette(count) {
+            const colors = [];
+            // 使用黄金角为基础，每个颜色不同，饱和65% 亮度70% 美观
+            for (let i = 0; i < count; i++) {
+                const hue = (i * 137.5) % 360;   // 黄金分割色相
+                colors.push(`hsl(${hue}, 70%, 65%)`);
+            }
+            return colors;
+        }
+        
+        // 更新所有选项的颜色 (根据当前数量艺术配色)
+        function refreshColors() {
+            const palette = generateColorPalette(options.length);
+            for (let i = 0; i < options.length; i++) {
+                options[i].color = palette[i];
+            }
+        }
+        
+        // 初始化默认颜色 (若新增/删除等都会调用)
+        function initColors() {
+            refreshColors();
+            drawWheel();
+            updateCurrentPickName();
+        }
+        
+        // 根据当前旋转角度计算指针指向哪个选项 (索引)
+        function getCurrentIndex(rotationRad) {
+            if (options.length === 0) return -1;
+            const anglePerSector = (Math.PI * 2) / options.length;
+            // 指针绝对方向 POINTER_ANGLE，转盘旋转了 rotationRad，实际每个扇区的边界都偏移了 rotationRad
+            // 我们需要找指针落在旋转后的哪个扇区内
+            for (let i = 0; i < options.length; i++) {
+                let start = i * anglePerSector;
+                let end = (i + 1) * anglePerSector;
+                // 扇区实际边界 = 原始边界 + rotationRad
+                let realStart = start + rotationRad;
+                let realEnd = end + rotationRad;
+                // 归一化指针角度到 [0, 2PI)
+                let normPointer = POINTER_ANGLE;
+                while (normPointer < 0) normPointer += Math.PI * 2;
+                while (normPointer >= Math.PI * 2) normPointer -= Math.PI * 2;
+                // 归一化 realStart, realEnd
+                let rStart = realStart % (Math.PI * 2);
+                let rEnd = realEnd % (Math.PI * 2);
+                if (rStart < 0) rStart += Math.PI * 2;
+                if (rEnd < 0) rEnd += Math.PI * 2;
+                
+                if (rStart < rEnd) {
+                    if (normPointer >= rStart && normPointer < rEnd) return i;
+                } else {
+                    // 跨越0弧度的情况
+                    if (normPointer >= rStart || normPointer < rEnd) return i;
+                }
+            }
+            // fallback: 理论上精确命中, 找不到返回0
+            return 0;
+        }
+        
+        // 更新上方实时显示的名字
+        function updateCurrentPickName() {
+            if (options.length === 0) {
+                currentPickSpan.innerText = "无选项";
+                return;
+            }
+            const idx = getCurrentIndex(currentRotation);
+            if (idx !== -1 && options[idx]) {
+                currentPickSpan.innerText = options[idx].name;
+            } else {
+                currentPickSpan.innerText = "✨ 幸运 ✨";
+            }
+        }
+        
+        // 绘制转盘 (核心视觉)
+        function drawWheel() {
+            if (!ctx) return;
+            const len = options.length;
+            if (len === 0) {
+                // 没选项时绘制灰色盘面
+                ctx.clearRect(0, 0, canvasSize, canvasSize);
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                ctx.fillStyle = "#2c3e44";
+                ctx.fill();
+                ctx.fillStyle = "#ffd58c";
+                ctx.font = "bold 20px 'Segoe UI'";
+                ctx.fillText("请添加选项", centerX-70, centerY);
+                return;
+            }
+            
+            const angleStep = (Math.PI * 2) / len;
+            ctx.clearRect(0, 0, canvasSize, canvasSize);
+            
+            // 绘制扇形
+            for (let i = 0; i < len; i++) {
+                const start = i * angleStep + currentRotation;
+                const end = (i + 1) * angleStep + currentRotation;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, start, end);
+                ctx.closePath();
+                // 填充色
+                ctx.fillStyle = options[i].color;
+                ctx.fill();
+                // 白色边线精致感
+                ctx.save();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = "rgba(255,245,200,0.7)";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                // 绘制分割亮线
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, start, end);
+                ctx.lineTo(centerX, centerY);
+                ctx.stroke();
+                
+                // 绘制文字 (在每个扇区中央)
+                const midAngle = start + angleStep / 2;
+                const textRadius = radius * 0.68;
+                const x = centerX + Math.cos(midAngle) * textRadius;
+                const y = centerY + Math.sin(midAngle) * textRadius;
+                let text = options[i].name;
+                // 文字换行处理（最多8个汉字适配）
+                let fontSize = 20;
+                if (text.length > 8) fontSize = 16;
+                if (text.length > 12) fontSize = 13;
+                ctx.font = `500 ${fontSize}px "Segoe UI", "Poppins", system-ui`;
+                ctx.fillStyle = "#1f2c30";
+                ctx.shadowBlur = 0;
+                ctx.shadowColor = "rgba(0,0,0,0)";
+                // 背景圆衬底增加可读性
+                ctx.save();
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = "rgba(255,245,210,0.85)";
+                const metrics = ctx.measureText(text);
+                const textWidth = metrics.width;
+                const padding = 8;
+                ctx.beginPath();
+                ctx.roundRect(x - textWidth/2 - 4, y - fontSize/2 - 2, textWidth + 8, fontSize + 6, 12);
+                ctx.fill();
+                ctx.fillStyle = "#1f2933";
+                ctx.font = `500 ${fontSize}px "Segoe UI", "Poppins", system-ui`;
+                ctx.fillText(text, x - textWidth/2, y + fontSize/2 - 2);
+                ctx.restore();
+            }
+            
+            // 绘制中心小圆装饰 + 指针固定金属感
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 32, 0, 2 * Math.PI);
+            ctx.fillStyle = "#f9d976";
+            ctx.shadowBlur = 6;
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 22, 0, 2 * Math.PI);
+            ctx.fillStyle = "#dcb570";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 12, 0, 2 * Math.PI);
+            ctx.fillStyle = "#f9e0a0";
+            ctx.fill();
+            
+            // 绘制固定指针(外饰 + 三角) 在canvas上层不旋转
+            drawFixedPointer();
+        }
+        
+        // 画固定指针，华丽风格
+        function drawFixedPointer() {
+            const tipX = centerX;
+            const tipY = centerY - radius - 6;
+            const baseW = 28;
+            const baseH = 22;
+            ctx.save();
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = "rgba(0,0,0,0.4)";
+            ctx.beginPath();
+            ctx.moveTo(tipX, tipY);
+            ctx.lineTo(tipX - baseW/2, tipY + baseH);
+            ctx.lineTo(tipX + baseW/2, tipY + baseH);
+            ctx.fillStyle = "#ffd966";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(tipX, tipY);
+            ctx.lineTo(tipX - baseW/3, tipY + baseH-4);
+            ctx.lineTo(tipX + baseW/3, tipY + baseH-4);
+            ctx.fillStyle = "#ffb347";
+            ctx.fill();
+            // 小圆球装饰
+            ctx.beginPath();
+            ctx.arc(tipX, tipY + 6, 8, 0, 2*Math.PI);
+            ctx.fillStyle = "#ffbc6e";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(tipX, tipY + 4, 4, 0, 2*Math.PI);
+            ctx.fillStyle = "#ffebc2";
+            ctx.fill();
+            ctx.restore();
+        }
+        
+        // 圆角矩形辅助
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+                if (w < 2 * r) r = w / 2;
+                if (h < 2 * r) r = h / 2;
+                this.moveTo(x+r, y);
+                this.lineTo(x+w-r, y);
+                this.quadraticCurveTo(x+w, y, x+w, y+r);
+                this.lineTo(x+w, y+h-r);
+                this.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+                this.lineTo(x+r, y+h);
+                this.quadraticCurveTo(x, y+h, x, y+h-r);
+                this.lineTo(x, y+r);
+                this.quadraticCurveTo(x, y, x+r, y);
+                return this;
+            };
+        }
+        
+        // 重置canvas尺寸和适配高DPI
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const maxSize = Math.min(container.clientWidth, 480);
+            canvas.style.width = `${maxSize}px`;
+            canvas.style.height = `${maxSize}px`;
+            // 逻辑分辨率保持600x600
+            canvas.width = 600;
+            canvas.height = 600;
+            centerX = 300, centerY = 300;
+            radius = 272;
+            drawWheel();
+        }
+        window.addEventListener('resize', () => { resizeCanvas(); drawWheel(); });
+        
+        // 刷新列表UI (渲染下方选项菜单 + 同步数组)
+        function renderOptionsList() {
+            optionsListDiv.innerHTML = '';
+            for (let i = 0; i < options.length; i++) {
+                const item = options[i];
+                const div = document.createElement('div');
+                div.className = 'option-item';
+                div.innerHTML = `
+                    <span class="option-name">${escapeHtml(item.name)}</span>
+                    <div class="option-actions">
+                        <button class="action-btn edit-btn" data-index="${i}">✏️</button>
+                        <button class="action-btn del-btn" data-index="${i}">🗑️</button>
+                    </div>
+                `;
+                optionsListDiv.appendChild(div);
+            }
+            // 绑定编辑删除事件
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (animating) return;
+                    const idx = parseInt(btn.dataset.index);
+                    const newName = prompt("修改选项名称", options[idx].name);
+                    if (newName && newName.trim() !== "") {
+                        options[idx].name = newName.trim().slice(0, 22);
+                        // 颜色保留已有艺术色
+                        drawWheel();
+                        updateCurrentPickName();
+                        renderOptionsList();  // 刷新列表文字
+                    }
+                });
+            });
+            document.querySelectorAll('.del-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (animating) return;
+                    if (options.length <= 1) {
+                        alert("至少保留一个选项，无法删除");
+                        return;
+                    }
+                    const idx = parseInt(btn.dataset.index);
+                    options.splice(idx, 1);
+                    refreshColors();     // 重新分配颜色
+                    // 修正当前旋转角度避免索引失效 (不需要改变旋转，重新绘制)
+                    drawWheel();
+                    updateCurrentPickName();
+                    renderOptionsList();
+                });
+            });
+        }
+        
+        // 简易防XSS
+        function escapeHtml(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        // 添加新选项
+        function addNewOption() {
+            if (animating) return;
+            let newName = newOptionInput.value.trim();
+            if (!newName) {
+                alert("请输入选项名称");
+                return;
+            }
+            if (newName.length > 20) newName = newName.slice(0,20);
+            options.push({ name: newName, color: "" });
+            refreshColors();  // 刷新全盘颜色
+            drawWheel();
+            updateCurrentPickName();
+            renderOptionsList();
+            newOptionInput.value = "";
+            newOptionInput.focus();
+        }
+        
+        // ---------- 动画缓动（先快后慢 easeOutCubic） ----------
+        function easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
+        }
+        
+        // 计算最终停止时的旋转弧度，使指针落在选中的目标选项上，并附加多圈华丽效果
+        function computeTargetRotationForIndex(targetIdx, currRot, extraCircles) {
+            if (options.length === 0) return currRot;
+            const anglePer = (Math.PI * 2) / options.length;
+            // 获取目标扇区边界（原始）
+            let startRaw = targetIdx * anglePer;
+            let endRaw = (targetIdx + 1) * anglePer;
+            // 我们要让指针POINTER_ANGLE落在旋转后扇区内 : 需要满足 startRaw + finalRot <= POINTER_ANGLE + 2kπ <= endRaw + finalRot
+            // 改写: finalRot ∈ [POINTER_ANGLE - endRaw, POINTER_ANGLE - startRaw] (mod 2π)
+            let low = POINTER_ANGLE - endRaw;
+            let high = POINTER_ANGLE - startRaw;
+            // 归一化到 [0, 2π)
+            const twoPi = Math.PI * 2;
+            let normLow = ((low % twoPi) + twoPi) % twoPi;
+            let normHigh = ((high % twoPi) + twoPi) % twoPi;
+            let finalBase;
+            if (normLow <= normHigh) {
+                finalBase = (normLow + normHigh) / 2;
+            } else {
+                // 区间跨越0，取中点技巧
+                let mid = (normLow + normHigh + twoPi) / 2;
+                finalBase = mid % twoPi;
+            }
+            // 保证 finalBase 相对于 currRot 是正向旋转且加上多圈
+            let delta = finalBase - (currRot % twoPi);
+            if (delta < 0) delta += twoPi;
+            // 额外增加多圈 (6~12圈)
+            const extraFull = extraCircles * twoPi;
+            const targetRot = currRot + delta + extraFull;
+            return targetRot;
+        }
+        
+        // 开始旋转 (先快后慢，随机目标)
+        function startSpin() {
+            if (animating) return;
+            if (options.length === 0) {
+                alert("请先添加选项再旋转!");
+                return;
+            }
+            // 随机抽取最终选项索引（概率均等）
+            const randIndex = Math.floor(Math.random() * options.length);
+            // 动态随机额外圈数 (6~12圈) 保证转动华丽
+            const extraCircles = 6 + Math.floor(Math.random() * 7);
+            const newTargetRot = computeTargetRotationForIndex(randIndex, currentRotation, extraCircles);
+            
+            startRotation = currentRotation;
+            targetRotation = newTargetRot;
+            spinStartTime = performance.now();
+            animating = true;
+            spinBtn.classList.add('disabled');
+            
+            function step(now) {
+                const elapsed = now - spinStartTime;
+                let t = Math.min(1, elapsed / spinDuration);
+                const easeT = easeOutCubic(t);   // 先快后慢
+                // 插值
+                const newRot = startRotation + (targetRotation - startRotation) * easeT;
+                currentRotation = newRot;
+                drawWheel();
+                updateCurrentPickName();
+                if (t < 1) {
+                    animationId = requestAnimationFrame(step);
+                } else {
+                    // 动画完成，精确归位到目标旋转值
+                    currentRotation = targetRotation;
+                    drawWheel();
+                    updateCurrentPickName();
+                    animating = false;
+                    spinBtn.classList.remove('disabled');
+                    if (animationId) cancelAnimationFrame(animationId);
+                    animationId = null;
+                    // 显示弹幕感小惊喜 (视觉提示)
+                    const finalName = options[randIndex]?.name || "幸运儿";
+                    currentPickSpan.style.transform = "scale(1.08)";
+                    setTimeout(() => { currentPickSpan.style.transform = ""; }, 200);
+                }
+            }
+            if (animationId) cancelAnimationFrame(animationId);
+            animationId = requestAnimationFrame(step);
+        }
+        
+        // 绑定UI事件
+        function bindEvents() {
+            spinBtn.addEventListener('click', startSpin);
+            addBtn.addEventListener('click', addNewOption);
+            newOptionInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addNewOption();
+            });
+        }
+        
+        // 初始化全盘
+        function init() {
+            resizeCanvas();
+            initColors();      // 生成艺术颜色
+            renderOptionsList();
+            bindEvents();
+            updateCurrentPickName();
+            drawWheel();
+        }
+        
+        // 监听选项变化触发重绘 (外部修改尺寸后)
+        window.addEventListener('load', () => {
+            init();
+        });
+    })();
+</script>
+</body>
+</html>
