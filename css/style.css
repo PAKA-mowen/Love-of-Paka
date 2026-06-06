@@ -99,3 +99,51 @@ input, textarea {
 .cursor-horizontal-resize { cursor: url('../assets/cursors/horizontal-resize.cur'), ew-resize; }
 .cursor-text          { cursor: url('../assets/cursors/text.cur'), text; }
 .cursor-move          { cursor: url('../assets/cursors/move.cur'), move; }
+
+/* 全局默认光标（可选） */
+body {
+    cursor: url('../assets/cursors/default.cur'), auto;
+}
+
+/* 链接、按钮使用帮助选择光标 */
+a, button, .btn, [role="button"] {
+    cursor: url('../assets/cursors/help.cur'), pointer;
+}
+
+/* 输入框、文本域使用文本选择光标 */
+input[type="text"], input[type="search"], input[type="password"],
+textarea, [contenteditable="true"] {
+    cursor: url('../assets/cursors/text.cur'), text;
+}
+
+/* 禁用状态 */
+:disabled, .disabled, [aria-disabled="true"] {
+    cursor: url('../assets/cursors/not-allowed.cur'), not-allowed;
+}
+
+/* 拖拽相关 */
+[draggable="true"], .cursor-move {
+    cursor: url('../assets/cursors/move.cur'), move;
+}
+
+/* 等待状态 */
+.waiting, .loading, .cursor-wait {
+    cursor: url('../assets/cursors/wait.cur'), wait;
+}
+
+/* 调整大小（示例：给特定元素手动加类） */
+.resize-h {
+    cursor: url('../assets/cursors/horizontal-resize.cur'), ew-resize;
+}
+
+.resize-v {
+    cursor: url('../assets/cursors/vertical-resize.cur'), ns-resize;
+}
+
+.resize-d1 {
+    cursor: url('../assets/cursors/diagonal1.cur'), nwse-resize;
+}
+
+.resize-d2 {
+    cursor: url('../assets/cursors/diagonal2.cur'), nesw-resize;
+}
