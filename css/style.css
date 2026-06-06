@@ -14,6 +14,7 @@ body {
     background-color: var(--bg);
     color: var(--text);
     line-height: 1.6;
+    cursor: url('../assets/cursors/default.cur'), auto;
 }
 
 /* 导航栏 */
@@ -85,3 +86,16 @@ input, textarea {
     margin-bottom: 0.8rem;
     background: white;
 }
+
+/* 自定义光标类 */
+.cursor-default       { cursor: url('../assets/cursors/default.cur'), auto; }
+.cursor-help          { cursor: url('../assets/cursors/help.cur'), help; }
+.cursor-not-allowed   { cursor: url('../assets/cursors/not-allowed.cur'), not-allowed; }
+.cursor-vertical-resize { cursor: url('../assets/cursors/vertical-resize.cur'), ns-resize; }
+.cursor-diagonal1     { cursor: url('../assets/cursors/diagonal1.cur'), nwse-resize; }
+.cursor-diagonal2     { cursor: url('../assets/cursors/diagonal2.cur'), nesw-resize; }
+.cursor-progress      { cursor: url('../assets/cursors/progress.cur'), progress; }
+.cursor-wait          { cursor: url('../assets/cursors/wait.cur'), wait; }
+.cursor-horizontal-resize { cursor: url('../assets/cursors/horizontal-resize.cur'), ew-resize; }
+.cursor-text          { cursor: url('../assets/cursors/text.cur'), text; }
+.cursor-move          { cursor: url('../assets/cursors/move.cur'), move; }
