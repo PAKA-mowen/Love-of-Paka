@@ -61,13 +61,14 @@ nav {
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
+/* 基础按钮样式 */
 button, .btn {
     background: var(--accent);
     color: var(--nav-text);
     border: none;
     padding: 0.5rem 1.2rem;
     border-radius: 5px;
-    cursor: pointer;
+    cursor: url('../assets/cursors/help.cur'), pointer;
     font-size: 1rem;
     transition: opacity 0.2s;
 }
@@ -76,6 +77,7 @@ button, .btn {
         opacity: 0.9;
     }
 
+/* 输入框、文本域 */
 input, textarea {
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -87,51 +89,47 @@ input, textarea {
     background: white;
 }
 
-/* 自定义光标类 */
-.cursor-default       { cursor: url('../assets/cursors/default.cur'), auto; }
-.cursor-help          { cursor: url('../assets/cursors/help.cur'), help; }
-.cursor-not-allowed   { cursor: url('../assets/cursors/not-allowed.cur'), not-allowed; }
-.cursor-vertical-resize { cursor: url('../assets/cursors/vertical-resize.cur'), ns-resize; }
-.cursor-diagonal1     { cursor: url('../assets/cursors/diagonal1.cur'), nwse-resize; }
-.cursor-diagonal2     { cursor: url('../assets/cursors/diagonal2.cur'), nesw-resize; }
-.cursor-progress      { cursor: url('../assets/cursors/progress.cur'), progress; }
-.cursor-wait          { cursor: url('../assets/cursors/wait.cur'), wait; }
-.cursor-horizontal-resize { cursor: url('../assets/cursors/horizontal-resize.cur'), ew-resize; }
-.cursor-text          { cursor: url('../assets/cursors/text.cur'), text; }
-.cursor-move          { cursor: url('../assets/cursors/move.cur'), move; }
-
-/* 全局默认光标（可选） */
-body {
-    cursor: url('../assets/cursors/default.cur'), auto;
-}
-
-/* 链接、按钮使用帮助选择光标 */
-a, button, .btn, [role="button"] {
+/* --- 全局光标应用 --- */
+/* 1. 默认光标已由 body 设置 */
+/* 2. 帮助选择（问号）：用于链接、按钮、可点击角色 */
+a, button, .btn, [role="button"], [onclick]:not(:disabled) {
     cursor: url('../assets/cursors/help.cur'), pointer;
 }
 
-/* 输入框、文本域使用文本选择光标 */
-input[type="text"], input[type="search"], input[type="password"],
-textarea, [contenteditable="true"] {
+/* 3. 文本选择：用于输入框、文本区域、可编辑元素 */
+input[type="text"],
+input[type="search"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+textarea,
+[contenteditable="true"] {
     cursor: url('../assets/cursors/text.cur'), text;
 }
 
-/* 禁用状态 */
-:disabled, .disabled, [aria-disabled="true"] {
+/* 4. 不可用状态 */
+:disabled,
+.disabled,
+[aria-disabled="true"] {
     cursor: url('../assets/cursors/not-allowed.cur'), not-allowed;
 }
 
-/* 拖拽相关 */
-[draggable="true"], .cursor-move {
+/* 5. 移动光标 */
+[draggable="true"],
+.cursor-move {
     cursor: url('../assets/cursors/move.cur'), move;
 }
 
-/* 等待状态 */
-.waiting, .loading, .cursor-wait {
+/* 6. 等待/忙 */
+.waiting,
+.loading,
+.cursor-wait {
     cursor: url('../assets/cursors/wait.cur'), wait;
 }
 
-/* 调整大小（示例：给特定元素手动加类） */
+/* 7. 调整大小方向（保持原有的类，可手动添加到元素） */
 .resize-h {
     cursor: url('../assets/cursors/horizontal-resize.cur'), ew-resize;
 }
@@ -146,4 +144,8 @@ textarea, [contenteditable="true"] {
 
 .resize-d2 {
     cursor: url('../assets/cursors/diagonal2.cur'), nesw-resize;
+}
+
+.cursor-progress {
+    cursor: url('../assets/cursors/progress.cur'), progress;
 }
