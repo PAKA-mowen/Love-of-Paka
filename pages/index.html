@@ -1,147 +1,367 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>墨问羊驼 · 个人页</title>
-    <link rel="stylesheet" href="../css/style.css">
-    <!-- 引入可爱中文字体 -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet">
-    <style>
-        /* 首页特有样式 */
-        .profile-section {
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-            flex-wrap: wrap;
-            background: white;
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            border: 1px solid #e6dcc8;
-            margin-bottom: 2rem;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>墨问羊驼 · 个人页</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <!-- 基础可爱字体（简约风保留） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet">
+  <!-- 梦幻风格所需资源（按需加载，不阻塞渲染） -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" media="print" onload="this.media='all'">
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Comfortaa:wght@300;400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <style>
+    /* 首页原有简约风格样式（不变） */
+    .profile-section {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      background: white;
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 1px solid #e6dcc8;
+      margin-bottom: 2rem;
+    }
 
-        .avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #3a4a4a;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-        }
+    .avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #3a4a4a;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+    }
+    .avatar:hover { transform: scale(1.05); }
 
-            .avatar:hover {
-                transform: scale(1.05);
-            }
+    .name-title h1 {
+      font-family: 'ZCOOL KuaiLe', cursive;
+      font-size: 2.5rem;
+      color: #3a4a4a;
+      margin: 0;
+      line-height: 1.2;
+      letter-spacing: 2px;
+    }
+    .name-title .signature {
+      font-family: 'ZCOOL QingKe HuangYou', cursive;
+      font-size: 1.3rem;
+      color: #8b7b6b;
+      margin-top: 0.3rem;
+      border-left: 3px solid #c9b99a;
+      padding-left: 0.8rem;
+    }
 
-        .name-title h1 {
-            font-family: 'ZCOOL KuaiLe', cursive;
-            font-size: 2.5rem;
-            color: #3a4a4a;
-            margin: 0;
-            line-height: 1.2;
-            letter-spacing: 2px;
-        }
+    .about-card {
+      background: white;
+      border-radius: 20px;
+      padding: 1.8rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border: 1px solid #e6dcc8;
+    }
 
-        .name-title .signature {
-            font-family: 'ZCOOL QingKe HuangYou', cursive;
-            font-size: 1.3rem;
-            color: #8b7b6b;
-            margin-top: 0.3rem;
-            border-left: 3px solid #c9b99a;
-            padding-left: 0.8rem;
-        }
+    .about-card h2 {
+      font-family: 'ZCOOL KuaiLe', cursive;
+      color: #3a4a4a;
+      border-bottom: 2px dashed #d4cdb8;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 1.8rem;
+    }
 
-        .about-card {
-            background: white;
-            border-radius: 20px;
-            padding: 1.8rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border: 1px solid #e6dcc8;
-        }
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 1rem;
+    }
+    .tag {
+      background: #F5F0E0;
+      color: #3a4a4a;
+      padding: 0.3rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      border: 1px solid #d4cdb8;
+      transition: background 0.2s;
+    }
+    .tag:hover { background: #e6dcc8; }
 
-            .about-card h2 {
-                font-family: 'ZCOOL KuaiLe', cursive;
-                color: #3a4a4a;
-                border-bottom: 2px dashed #d4cdb8;
-                padding-bottom: 0.5rem;
-                margin-bottom: 1rem;
-                font-size: 1.8rem;
-            }
+    .footer-note {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      color: #8b7b6b;
+      letter-spacing: 1px;
+    }
 
-        .tag-cloud {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.6rem;
-            margin-top: 1rem;
-        }
+    /* 新世界按钮（简约模式下可见） */
+    .theme-switch-btn {
+      background: transparent;
+      border: 1px dashed #c9b99a;
+      color: #8b7b6b;
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      margin-top: 0.5rem;
+      transition: all 0.2s;
+      font-family: 'ZCOOL KuaiLe', cursive;
+    }
+    .theme-switch-btn:hover {
+      background: #e6dcc8;
+      border-style: solid;
+    }
 
-        .tag {
-            background: #F5F0E0;
-            color: #3a4a4a;
-            padding: 0.3rem 1rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            border: 1px solid #d4cdb8;
-            transition: background 0.2s;
-        }
-
-            .tag:hover {
-                background: #e6dcc8;
-            }
-
-        .footer-note {
-            text-align: center;
-            margin-top: 2rem;
-            font-size: 0.9rem;
-            color: #8b7b6b;
-            letter-spacing: 1px;
-        }
-    </style>
+    /* ========== 梦幻模式专属样式 ========== */
+    body.dream-mode {
+      background: linear-gradient(145deg, #ffefef 0%, #ffe7f0 40%, #ffe0f5 100%);
+      font-family: 'Quicksand', 'Comfortaa', sans-serif;
+      color: #5b3a4a;
+      cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="27" viewBox="0 0 24 27"><circle cx="12" cy="12" r="10" fill="%23ffb7c5" stroke="%23ffffff" stroke-width="1.5" /><path fill="%23ff6f91" d="M12 6 L13.5 10 L18 10 L14.5 12.5 L16 17 L12 14 L8 17 L9.5 12.5 L6 10 L10.5 10z" /></svg>') 12 5, auto;
+    }
+    body.dream-mode .container {
+      backdrop-filter: blur(4px);
+    }
+    /* 导航栏梦幻化 */
+    body.dream-mode nav {
+      background: rgba(255, 245, 245, 0.65);
+      backdrop-filter: blur(10px);
+      border-radius: 50px;
+      padding: 12px 28px;
+      box-shadow: 0 8px 20px rgba(255, 180, 180, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+    body.dream-mode nav a {
+      color: #ab6d82;
+      font-weight: 600;
+    }
+    body.dream-mode nav a:hover {
+      color: #ff5e86;
+    }
+    body.dream-mode nav a.active {
+      border-bottom-color: #ff8aa8;
+    }
+    body.dream-mode .profile-section,
+    body.dream-mode .about-card {
+      background: rgba(255, 250, 245, 0.75);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: 0 15px 25px rgba(245, 165, 180, 0.25);
+      border-radius: 40px;
+    }
+    body.dream-mode .name-title h1 {
+      background: linear-gradient(125deg, #ff7f9f, #ffb347, #ff9eb5);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      font-family: 'Quicksand', 'Comfortaa', sans-serif;
+    }
+    body.dream-mode .name-title .signature {
+      color: #c28297;
+      border-left-color: #ffb3c6;
+    }
+    body.dream-mode .about-card h2 {
+      color: #de6e8f;
+      border-bottom-color: #ffc0d0;
+    }
+    body.dream-mode .tag {
+      background: rgba(255, 235, 240, 0.8);
+      border-color: #ffc0d0;
+      color: #a34a5c;
+    }
+    body.dream-mode .tag:hover {
+      background: #ffe0e8;
+    }
+    body.dream-mode .theme-switch-btn {
+      border-color: #ffb3c6;
+      color: #ff7099;
+      background: rgba(255,255,255,0.6);
+    }
+    body.dream-mode .theme-switch-btn:hover {
+      background: #ffe0e8;
+    }
+    /* 梦幻气泡、星星等由 JS 动态生成，此处仅定义基础 */
+    .dream-bubble {
+      position: fixed;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 220, 230, 0.6), rgba(255, 190, 210, 0.3));
+      border-radius: 50%;
+      pointer-events: none;
+      box-shadow: 0 4px 15px rgba(255, 140, 160, 0.2);
+      animation: floatBubble linear infinite;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    @keyframes floatBubble {
+      0% { transform: translateY(100vh) scale(0.4); opacity: 0; }
+      20% { opacity: 0.8; }
+      80% { opacity: 0.9; }
+      100% { transform: translateY(-20vh) scale(1.1); opacity: 0; }
+    }
+    .star-bling {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      animation: starFloat 0.7s ease-out forwards;
+    }
+    @keyframes starFloat {
+      0% { opacity: 1; transform: translate(0, 0) scale(0.5); }
+      100% { opacity: 0; transform: translate(var(--dx, 20px), var(--dy, -40px)) scale(1.5); }
+    }
+    .click-heart {
+      position: fixed;
+      pointer-events: none;
+      z-index: 10000;
+      animation: heartPop 0.6s ease-out forwards;
+    }
+    @keyframes heartPop {
+      0% { opacity: 0.9; transform: scale(0.3) translateY(0); }
+      50% { opacity: 1; transform: scale(1.2) translateY(-15px); }
+      100% { opacity: 0; transform: scale(1.5) translateY(-35px); }
+    }
+  </style>
 </head>
 <body>
-    <nav>
-        <a href="index.html" class="active">首页</a>
-        <a href="message.html">留言</a>
-        <a href="games.html">小游戏</a>
-        <a href="works.html">作品</a>
-        <a href="adventure.html">探险</a>
-    </nav>
+  <nav>
+    <a href="index.html" class="active">首页</a>
+    <a href="message.html">留言</a>
+    <a href="games.html">小游戏</a>
+    <a href="works.html">作品</a>
+    <a href="adventure.html">探险</a>
+  </nav>
 
-    <div class="container">
-        <!-- 头像 + 名字/签名 -->
-        <div class="profile-section">
-            <img src="../assets/images/avatar.png" alt="墨问羊驼的头像" class="avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-            <!-- 如果头像图片不存在，显示占位圆（纯CSS实现） -->
-            <div style="display:none; width:100px; height:100px; border-radius:50%; background:#e6dcc8; border:3px solid #3a4a4a; align-items:center; justify-content:center; font-family:'ZCOOL KuaiLe'; font-size:2rem; color:#3a4a4a;">羊驼</div>
-            <div class="name-title">
-                <h1>墨问羊驼</h1>
-                <p class="signature">六花喵喵喵~</p>
-            </div>
-        </div>
-
-        <!-- 关于我 -->
-        <div class="about-card">
-            <h2>关于我</h2>
-            <p>这里是我的小窝哦，欢迎欢迎。</p>
-            <p>xixixxixixxiixixixixixixix被你发现啦~~</p>
-            <p>这是我的个人邮箱：mowenyangtuo@qq.com<p>
-            <div class="tag-cloud">
-                <span class="tag"></span>
-                <span class="tag">游戏爱好者</span>
-                <span class="tag">猫系生物</span>
-                <span class="tag">甜品依赖</span>
-                <span class="tag">白日梦想家</span>
-            </div>
-        </div>
-
-        <div class="footer-note">
-            喵哦~
-        </div>
+  <div class="container">
+    <!-- 头像 + 名字/签名 + 新世界按钮 -->
+    <div class="profile-section">
+      <img src="../assets/images/avatar.png" alt="墨问羊驼的头像" class="avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div style="display:none; width:100px; height:100px; border-radius:50%; background:#e6dcc8; border:3px solid #3a4a4a; align-items:center; justify-content:center; font-family:'ZCOOL KuaiLe'; font-size:2rem; color:#3a4a4a;">羊驼</div>
+      <div class="name-title">
+        <h1>墨问羊驼</h1>
+        <p class="signature">六花喵喵喵~</p>
+        <button class="theme-switch-btn" id="themeToggle"> 奇怪的按钮</button>
+      </div>
     </div>
+
+    <!-- 关于我 -->
+    <div class="about-card">
+      <h2>关于我</h2>
+      <p>这是我的个人邮箱，可以跟我发邮件哦</p>
+      <p>2165230365@qq.com<p>
+      <p>我要学高数了(悲)</p>
+      <div class="tag-cloud">
+        <span class="tag"></span>
+        <span class="tag">游戏爱好者</span>
+        <span class="tag">猫系生物</span>
+        <span class="tag">甜品依赖</span>
+        <span class="tag">白日梦想家</span>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      ⚡ 由 Cloudflare Pages 驱动 ⚡
+    </div>
+  </div>
+
+  <script>
+    // ========== 梦幻模式切换逻辑 ==========
+    const toggleBtn = document.getElementById('themeToggle');
+    const body = document.body;
+    let dreamMode = false; // 默认简约风
+    let bubbleContainer, starListener, clickListener;
+
+    // 清理梦幻特效
+    function removeDreamEffects() {
+      if (bubbleContainer) {
+        bubbleContainer.remove();
+        bubbleContainer = null;
+      }
+      if (starListener) {
+        document.removeEventListener('mousemove', starListener);
+        starListener = null;
+      }
+      if (clickListener) {
+        document.body.removeEventListener('click', clickListener);
+        clickListener = null;
+      }
+      // 移除所有漂浮元素
+      document.querySelectorAll('.dream-bubble, .star-bling, .click-heart').forEach(el => el.remove());
+    }
+
+    // 创建梦幻特效
+    function createDreamEffects() {
+      // 气泡容器
+      bubbleContainer = document.createElement('div');
+      bubbleContainer.style.position = 'fixed';
+      bubbleContainer.style.top = '0';
+      bubbleContainer.style.left = '0';
+      bubbleContainer.style.width = '100%';
+      bubbleContainer.style.height = '100%';
+      bubbleContainer.style.pointerEvents = 'none';
+      bubbleContainer.style.zIndex = '1';
+      document.body.appendChild(bubbleContainer);
+
+      // 生成气泡
+      for (let i = 0; i < 28; i++) {
+        const bubble = document.createElement('div');
+        bubble.className = 'dream-bubble';
+        const size = Math.random() * 70 + 25;
+        bubble.style.width = size + 'px';
+        bubble.style.height = size + 'px';
+        bubble.style.left = Math.random() * 100 + '%';
+        bubble.style.animationDuration = (Math.random() * 12 + 8) + 's';
+        bubble.style.animationDelay = (Math.random() * 12) + 's';
+        bubbleContainer.appendChild(bubble);
+      }
+
+      // 鼠标星星特效（节流）
+      let starCooldown = false;
+      starListener = function(e) {
+        if (starCooldown) return;
+        starCooldown = true;
+        setTimeout(() => { starCooldown = false; }, 70);
+        const star = document.createElement('div');
+        star.className = 'star-bling';
+        const icons = ['✨', '⭐', '🌟', '💖', '🌸', '🍬', '🍰', '🐣'];
+        star.textContent = icons[Math.floor(Math.random() * icons.length)];
+        star.style.left = (e.clientX - 8) + 'px';
+        star.style.top = (e.clientY - 12) + 'px';
+        star.style.setProperty('--dx', (Math.random() - 0.5) * 40 + 'px');
+        star.style.setProperty('--dy', -Math.random() * 45 - 15 + 'px');
+        document.body.appendChild(star);
+        setTimeout(() => star.remove(), 700);
+      };
+      document.addEventListener('mousemove', starListener);
+
+      // 点击爱心特效
+      clickListener = function(e) {
+        const heart = document.createElement('div');
+        heart.className = 'click-heart';
+        const love = ['❤️', '💗', '🧡', '💖', '🌸', '✨'];
+        heart.textContent = love[Math.floor(Math.random() * love.length)];
+        heart.style.left = (e.clientX - 10) + 'px';
+        heart.style.top = (e.clientY - 15) + 'px';
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 600);
+      };
+      document.body.addEventListener('click', clickListener);
+    }
+
+    // 切换按钮点击
+    toggleBtn.addEventListener('click', () => {
+      dreamMode = !dreamMode;
+      if (dreamMode) {
+        body.classList.add('dream-mode');
+        toggleBtn.textContent = '🍃 返回简约';
+        createDreamEffects();
+      } else {
+        body.classList.remove('dream-mode');
+        toggleBtn.textContent = '🌈 新世界';
+        removeDreamEffects();
+      }
+    });
+
+    // 初始状态：简约模式，无需特效
+  </script>
 </body>
 </html>
