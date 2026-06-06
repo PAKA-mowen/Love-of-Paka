@@ -1,0 +1,88 @@
+/* ============ 默认光标（全局基础） ============ */
+html, body {
+  cursor: url('../cursors/pointer.ani'), auto;
+}
+
+/* ============ 超链接（手型） ============ */
+a:hover,
+button:hover,
+.btn:hover,
+[role="button"]:hover {
+  cursor: url('../cursors/link.ani'), pointer;
+}
+
+/* ============ 文本选择（I 型） ============ */
+input[type="text"],
+input[type="search"],
+input[type="password"],
+textarea,
+[contenteditable="true"] {
+  cursor: url('../cursors/text.ani'), text;
+}
+
+/* ============ 等待 / 忙碌 ============ */
+.waiting,
+.loading {
+  cursor: url('../cursors/busy.ani'), wait;
+}
+/* 你也可以给全局添加一个等待类，用 JS 动态添加 */
+
+/* ============ 帮助 ============ */
+[title],
+abbr[title] {
+  cursor: url('../cursors/help.ani'), help;
+}
+
+/* ============ 十字准星 ============ */
+.crosshair {
+  cursor: url('../cursors/cross.ani'), crosshair;
+}
+
+/* ============ 移动（拖动） ============ */
+[draggable="true"],
+.draggable {
+  cursor: url('../cursors/move.ani'), move;
+}
+
+/* ============ 不可用 / 禁止 ============ */
+:disabled,
+[disabled],
+.disabled,
+.unavailable {
+  cursor: url('../cursors/unavailable.ani'), not-allowed;
+}
+
+/* ============ 大小调整光标 ============ */
+/* 水平调整 */
+.resize-h {
+  cursor: url('../cursors/horz.ani'), ew-resize;
+}
+/* 垂直调整 */
+.resize-v {
+  cursor: url('../cursors/vert.ani'), ns-resize;
+}
+/* 对角线调整（两个方向） */
+.resize-nwse {
+  cursor: url('../cursors/dgn1.ani'), nwse-resize;
+}
+.resize-nesw {
+  cursor: url('../cursors/dgn2.ani'), nesw-resize;
+}
+
+/* ============ 定位光标 ============ */
+.location {
+  cursor: url('../cursors/loc.ani'), crosshair;
+}
+
+/* ============ 人物光标（比如用户头像悬停） ============ */
+.person {
+  cursor: url('../cursors/person.ani'), default;
+}
+
+/* ============ 手写笔 ============ */
+.handwriting {
+  cursor: url('../cursors/handwriting.ani'), crosshair;
+}
+
+/* ============ 备用光标 ============ */
+/* 你可以根据需要把 alternate.ani 用在特殊地方 */
