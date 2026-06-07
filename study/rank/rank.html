@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>积分排行榜 · 墨问羊驼</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .rank-container {
+            max-width: 700px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+        .rank-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .rank-table th {
+            background: #3a4a4a;
+            color: #F5F0E0;
+            padding: 1rem;
+            text-align: left;
+        }
+        .rank-table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #e6dcc8;
+        }
+        .rank-table tr:last-child td { border-bottom: none; }
+        .highlight {
+            font-weight: bold;
+            color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="../pages/index.html">首页</a>
+        <a href="../pages/message.html">留言</a>
+        <a href="../pages/games.html">小游戏</a>
+        <a href="../pages/works.html">百宝箱</a>
+        <a href="../pages/adventure.html">探险</a>
+        <a href="../study/study.html">每日练习</a>
+    </nav>
+    <div class="rank-container">
+        <h2 style="font-family: 'ZCOOL KuaiLe', cursive;">🏆 积分排行榜</h2>
+        <div id="rankList">加载中...</div>
+    </div>
+    <script>
+        async function loadRank() {
+            try {
+                const res = await fetch('/api/rank');
+                const data = await res.json();
+                if (!data.rankings || data.rankings.length === 0) {
+                    document.getElementById('rankList').innerHTML = '<p style="text-align:center;color:#8b7b6b;">暂无排行数据，快去答题打卡吧！</p>';
+                    return;
+                }
+                let html = '<table class="rank-table"><tr><th>排名</th><th>用户名</th><th>总积分</th></tr>';
+                data.rankings.forEach((item, index) => {
+                    html += `<tr${index === 0 ? ' class="highlight"' : ''}>
+                        <td>${index + 1}</td>
+                        <td>${escapeHtml(item.username)}</td>
+                        <td>${item.score}</td>
+                    </tr>`;
+                });
+                html += '</table>';
+                document.getElementById('rankList').innerHTML = html;
+            } catch (e) {
+                document.getElementById('rankList').innerHTML = '<p style="color:red;">加载失败</p>';
+            }
+        }
+        function escapeHtml(text) {
+            return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+        loadRank();
+    </script>
+</body>
+</html>
