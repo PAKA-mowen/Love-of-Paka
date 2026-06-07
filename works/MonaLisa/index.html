@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最优答题策略助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        /* Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-color: #3b82f6; }
+            50% { border-color: #60a5fa; }
+        }
+        
+        .animate-slide-in { animation: slideIn 0.5s ease-out; }
+        .animate-glow { animation: glow 2s infinite; }
+        .animate-pulse-border { animation: pulse-border 2s infinite; }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .option-btn {
+            transition: all 0.2s;
+        }
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .option-btn.selected {
+            background: #3b82f6;
+            border-color: #60a5fa;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+
+        .history-item {
+            transition: all 0.3s;
+        }
+        .history-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        /* Matrix grid for possible answers */
+        .possibility-cell {
+            transition: all 0.3s;
+        }
+        .possibility-cell:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-slate-700/50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center animate-glow">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white tracking-tight">最优答题策略助手</h1>
+                    <p class="text-xs text-slate-400">基于信息论的最小尝试次数算法</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden sm:block">
+                    <div class="text-sm text-slate-400">当前状态</div>
+                    <div id="status-badge" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+                        等待初始化
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8 space-y-6">
+
+        <!-- Phase 1: Setup -->
+        <section id="setup-panel" class="glass-panel rounded-2xl p-6 animate-slide-in">
+            <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                初始化参数
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="space-y-2">
+                    <label class="text-sm font-medium text-slate-300">题目数量 (m)</label>
+                    <input type="number" id="question-count" min="1" max="20" value="5" 
+                        class="w-full bg-slate-800/50 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                        placeholder="输入题目数">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-medium text-slate-300">选项数量 (n)</label>
+                    <input type="number" id="option-count" min="2" max="10" value="4" 
+                        class="w-full bg-slate-800/50 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                        placeholder="输入选项数">
+                </div>
+                <div class="flex items-end">
+                    <button onclick="initializeQuiz()" 
+                        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-600/25">
+                        开始答题
+                    </button>
+                </div>
+            </div>
+            <div class="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <p class="text-sm text-blue-300 flex items-start gap-2">
+                    <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>系统只会告诉你答对的数量，不会显示具体题号。我们将使用最优策略帮你找出所有正确答案。</span>
+                </p>
+            </div>
+        </section>
+
+        <!-- Phase 2: Active Quiz -->
+        <section id="quiz-panel" class="hidden space-y-6">
+            
+            <!-- Strategy Info -->
+            <div class="glass-panel rounded-2xl p-6">
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <!-- Left: Current Attempt -->
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <span class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm" id="attempt-number">1</span>
+                                第 <span id="attempt-display">1</span> 次尝试
+                            </h3>
+                            <span class="text-sm text-slate-400 mono">理论最少次数: <span id="theoretical-min" class="text-blue-400 font-bold">--</span></span>
+                        </div>
+
+                        <div class="mb-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                            <p class="text-sm text-slate-300 mb-1">推荐答题策略：</p>
+                            <p id="strategy-hint" class="text-sm text-blue-300 font-medium">正在计算最优策略...</p>
+                        </div>
+
+                        <!-- Answer Input Grid -->
+                        <div id="answer-grid" class="grid grid-cols-5 sm:grid-cols-10 gap-2 mb-4">
+                            <!-- Generated by JS -->
+                        </div>
+
+                        <div class="flex items-center gap-4">
+                            <div class="flex-1">
+                                <label class="text-sm text-slate-400 mb-1 block">本次答对数量</label>
+                                <input type="number" id="correct-count" min="0" 
+                                    class="w-full bg-slate-800/50 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                                    placeholder="输入答对题数">
+                            </div>
+                            <button onclick="submitAttempt()" 
+                                class="mt-6 bg-green-600 hover:bg-green-500 text-white font-medium py-2 px-6 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-green-600/25 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                提交结果
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Possibilities Analysis -->
+                    <div class="lg:w-96 space-y-4">
+                        <div class="p-4 bg-slate-800/30 rounded-xl border border-slate-700">
+                            <h4 class="text-sm font-bold text-slate-300 mb-2 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                                可能性分析
+                            </h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">剩余可能组合</span>
+                                    <span id="possibility-count" class="text-purple-400 font-bold mono">--</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">信息熵</span>
+                                    <span id="entropy-display" class="text-blue-400 font-bold mono">-- bits</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">已排除组合</span>
+                                    <span id="excluded-count" class="text-red-400 font-bold mono">--</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Possible Answers Preview -->
+                        <div class="p-4 bg-slate-800/30 rounded-xl border border-slate-700 max-h-64 overflow-y-auto">
+                            <h4 class="text-sm font-bold text-slate-300 mb-2">可能的答案序列 (前20个)</h4>
+                            <div id="possibilities-list" class="space-y-1">
+                                <div class="text-slate-500 text-sm italic">等待数据...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History -->
+            <div class="glass-panel rounded-2xl p-6">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    尝试历史
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-slate-400 text-sm border-b border-slate-700">
+                                <th class="pb-2 font-medium">次数</th>
+                                <th class="pb-2 font-medium">答案序列</th>
+                                <th class="pb-2 font-medium">答对数量</th>
+                                <th class="pb-2 font-medium">信息增益</th>
+                                <th class="pb-2 font-medium">状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table" class="text-sm">
+                            <!-- Generated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Success Modal -->
+        <div id="success-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div class="glass-panel rounded-2xl p-8 max-w-md w-full text-center animate-slide-in border-2 border-green-500/50">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center animate-glow">
+                    <svg class="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-2">答案已确定！</h2>
+                <p class="text-slate-300 mb-6">通过 <span id="final-attempts" class="text-green-400 font-bold"></span> 次尝试找到了唯一解</p>
+                
+                <div class="bg-slate-800/50 rounded-xl p-4 mb-6 border border-slate-700">
+                    <p class="text-sm text-slate-400 mb-2">正确答案序列</p>
+                    <div id="final-answer" class="text-2xl font-bold text-white mono tracking-wider"></div>
+                </div>
+
+                <button onclick="resetQuiz()" 
+                    class="bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 px-8 rounded-lg transition-all transform hover:scale-[1.02]">
+                    开始新题目
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // State management
+        let state = {
+            m: 5,           // Number of questions
+            n: 4,           // Number of options
+            attempts: [],   // Array of {answers: [], correct: number}
+            possibilities: [], // Array of possible answer combinations
+            currentAttempt: 1,
+            solved: false
+        };
+
+        // Generate all possible combinations
+        function generatePossibilities(m, n) {
+            const results = [];
+            const current = new Array(m).fill(0);
+            
+            function backtrack(pos) {
+                if (pos === m) {
+                    results.push([...current]);
+                    return;
+                }
+                for (let i = 0; i < n; i++) {
+                    current[pos] = i;
+                    backtrack(pos + 1);
+                }
+            }
+            
+            backtrack(0);
+            return results;
+        }
+
+        // Calculate Hamming-like distance (number of matching positions)
+        function countMatches(a, b) {
+            return a.reduce((acc, val, idx) => acc + (val === b[idx] ? 1 : 0), 0);
+        }
+
+        // Filter possibilities based on attempt history
+        function filterPossibilities() {
+            return state.possibilities.filter(poss => {
+                return state.attempts.every(attempt => {
+                    return countMatches(poss, attempt.answers) === attempt.correct;
+                });
+            });
+        }
+
+        // Calculate information entropy
+        function calculateEntropy(count) {
+            if (count <= 0) return 0;
+            const total = Math.pow(state.n, state.m);
+            const p = count / total;
+            return -Math.log2(p);
+        }
+
+        // Generate next optimal attempt using information gain heuristic
+        function generateNextAttempt() {
+            const remaining = state.possibilities;
+            
+            // Strategy: Try to maximally split the possibility space
+            // For small spaces, use a greedy approach
+            
+            if (remaining.length === 0) return null;
+            
+            // If only one possibility left, return it
+            if (remaining.length === 1) {
+                return remaining[0];
+            }
+            
+            // For the first few attempts, use systematic exploration
+            if (state.attempts.length === 0) {
+                // First attempt: all zeros
+                return new Array(state.m).fill(0);
+            }
+            
+            if (state.attempts.length === 1) {
+                // Second attempt: all ones (if n > 1)
+                if (state.n > 1) return new Array(state.m).fill(1);
+            }
+            
+            // Greedy: Find the answer pattern that maximizes information gain
+            // Sample from remaining possibilities to find best split
+            let bestAttempt = null;
+            let bestScore = -1;
+            
+            // Sample size limit for performance
+            const sampleSize = Math.min(remaining.length, 1000);
+            const samples = [];
+            for (let i = 0; i < sampleSize; i++) {
+                samples.push(remaining[Math.floor(Math.random() * remaining.length)]);
+            }
+            
+            for (const candidate of samples) {
+                // Simulate what would happen if we tried this candidate
+                const distribution = new Map();
+                for (const poss of remaining) {
+                    const matches = countMatches(candidate, poss);
+                    distribution.set(matches, (distribution.get(matches) || 0) + 1);
+                }
+                
+                // Calculate entropy of this distribution (information gain)
+                let entropy = 0;
+                for (const count of distribution.values()) {
+                    const p = count / remaining.length;
+                    entropy -= p * Math.log2(p);
+                }
+                
+                if (entropy > bestScore) {
+                    bestScore = entropy;
+                    bestAttempt = candidate;
+                }
+            }
+            
+            return bestAttempt || remaining[0];
+        }
+
+        // Convert number to letter (0->A, 1->B, etc.)
+        function toLetter(num) {
+            return String.fromCharCode(65 + num);
+        }
+
+        function fromLetter(letter) {
+            return letter.toUpperCase().charCodeAt(0) - 65;
+        }
+
+        // Initialize quiz
+        function initializeQuiz() {
+            const m = parseInt(document.getElementById('question-count').value);
+            const n = parseInt(document.getElementById('option-count').value);
+            
+            if (m < 1 || m > 20 || n < 2 || n > 10) {
+                alert('请输入有效的参数：题目数1-20，选项数2-10');
+                return;
+            }
+            
+            state = {
+                m, n,
+                attempts: [],
+                possibilities: generatePossibilities(m, n),
+                currentAttempt: 1,
+                solved: false
+            };
+            
+            document.getElementById('setup-panel').classList.add('hidden');
+            document.getElementById('quiz-panel').classList.remove('hidden');
+            
+            // Calculate theoretical minimum (information theory lower bound)
+            const totalBits = m * Math.log2(n);
+            const bitsPerAttempt = Math.log2(m + 1); // 0 to m correct
+            const theoreticalMin = Math.ceil(totalBits / bitsPerAttempt);
+            document.getElementById('theoretical-min').textContent = theoreticalMin;
+            
+            updateUI();
+        }
+
+        // Create answer input grid
+        function createAnswerGrid() {
+            const grid = document.getElementById('answer-grid');
+            grid.innerHTML = '';
+            
+            const nextAttempt = generateNextAttempt();
+            const strategyHint = document.getElementById('strategy-hint');
+            
+            if (state.possibilities.length === 1) {
+                strategyHint.textContent = '已确定唯一解！请提交最终答案。';
+                strategyHint.className = 'text-sm text-green-400 font-medium';
+            } else if (state.attempts.length === 0) {
+                strategyHint.textContent = '首次尝试：全部选择选项 A (0)，建立基准线';
+                strategyHint.className = 'text-sm text-blue-300 font-medium';
+            } else {
+                strategyHint.textContent = `基于信息熵最大化策略生成，预计可将可能性降低至约 ${Math.ceil(state.possibilities.length / (state.m + 1))} 种`;
+                strategyHint.className = 'text-sm text-blue-300 font-medium';
+            }
+            
+            for (let i = 0; i < state.m; i++) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'flex flex-col items-center gap-1';
+                
+                const label = document.createElement('span');
+                label.className = 'text-xs text-slate-500 font-medium';
+                label.textContent = `Q${i + 1}`;
+                
+                const select = document.createElement('select');
+                select.className = 'w-full bg-slate-800 border border-slate-600 rounded-lg px-2 py-2 text-white text-center focus:ring-2 focus:ring-blue-500 outline-none mono';
+                select.id = `q-${i}`;
+                
+                for (let j = 0; j < state.n; j++) {
+                    const option = document.createElement('option');
+                    option.value = j;
+                    option.textContent = toLetter(j);
+                    if (nextAttempt && nextAttempt[i] === j) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                }
+                
+                wrapper.appendChild(label);
+                wrapper.appendChild(select);
+                grid.appendChild(wrapper);
+            }
+        }
+
+        // Submit attempt
+        function submitAttempt() {
+            if (state.solved) return;
+            
+            const answers = [];
+            for (let i = 0; i < state.m; i++) {
+                const val = parseInt(document.getElementById(`q-${i}`).value);
+                answers.push(val);
+            }
+            
+            const correctInput = document.getElementById('correct-count');
+            const correct = parseInt(correctInput.value);
+            
+            if (isNaN(correct) || correct < 0 || correct > state.m) {
+                alert(`请输入有效的答对数量 (0-${state.m})`);
+                return;
+            }
+            
+            // Validate: check if this is consistent with previous attempts
+            for (const attempt of state.attempts) {
+                const expectedMatches = countMatches(answers, attempt.answers);
+                // This is just a sanity check - the user might have made a mistake
+            }
+            
+            state.attempts.push({
+                answers: answers,
+                correct: correct,
+                timestamp: new Date()
+            });
+            
+            // Filter possibilities
+            state.possibilities = filterPossibilities();
+            
+            // Check if solved
+            if (state.possibilities.length === 1) {
+                state.solved = true;
+                showSuccess();
+            } else if (state.possibilities.length === 0) {
+                alert('无解！请检查输入的答对数量是否有误。');
+                state.attempts.pop();
+                state.possibilities = filterPossibilities();
+            } else {
+                state.currentAttempt++;
+                updateUI();
+            }
+            
+            correctInput.value = '';
+        }
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('attempt-number').textContent = state.currentAttempt;
+            document.getElementById('attempt-display').textContent = state.currentAttempt;
+            
+            // Update possibilities count
+            document.getElementById('possibility-count').textContent = state.possibilities.length.toLocaleString();
+            document.getElementById('entropy-display').textContent = calculateEntropy(state.possibilities.length).toFixed(2) + ' bits';
+            document.getElementById('excluded-count').textContent = (Math.pow(state.n, state.m) - state.possibilities.length).toLocaleString();
+            
+            // Update status
+            const statusBadge = document.getElementById('status-badge');
+            if (state.possibilities.length === 1) {
+                statusBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30';
+                statusBadge.textContent = '已确定答案';
+            } else {
+                statusBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30';
+                statusBadge.textContent = `进行中 (${state.possibilities.length} 种可能)`;
+            }
+            
+            createAnswerGrid();
+            updateHistory();
+            updatePossibilitiesList();
+        }
+
+        // Update history table
+        function updateHistory() {
+            const tbody = document.getElementById('history-table');
+            tbody.innerHTML = '';
+            
+            state.attempts.forEach((attempt, idx) => {
+                const row = document.createElement('tr');
+                row.className = 'history-item border-b border-slate-800';
+                
+                const answerStr = attempt.answers.map(a => toLetter(a)).join('');
+                const prevCount = idx === 0 ? Math.pow(state.n, state.m) : state.attempts.slice(0, idx).reduce((acc, _, i) => {
+                    // This is approximate
+                    return acc;
+                }, Math.pow(state.n, state.m));
+                
+                // Calculate actual remaining after this attempt
+                let tempPossibilities = generatePossibilities(state.m, state.n);
+                for (let i = 0; i <= idx; i++) {
+                    tempPossibilities = tempPossibilities.filter(p => {
+                        return countMatches(p, state.attempts[i].answers) === state.attempts[i].correct;
+                    });
+                }
+                
+                const infoGain = idx === 0 ? 
+                    Math.log2(Math.pow(state.n, state.m) / tempPossibilities.length) :
+                    Math.log2(prevCount / tempPossibilities.length);
+                
+                row.innerHTML = `
+                    <td class="py-3 text-slate-400 mono">#${idx + 1}</td>
+                    <td class="py-3 text-white mono font-medium">${answerStr}</td>
+                    <td class="py-3">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-500/20 text-blue-400">
+                            ${attempt.correct} / ${state.m}
+                        </span>
+                    </td>
+                    <td class="py-3 text-purple-400 mono">${infoGain.toFixed(2)} bits</td>
+                    <td class="py-3">
+                        <span class="text-xs ${tempPossibilities.length === 1 ? 'text-green-400' : 'text-slate-400'}">
+                            ${tempPossibilities.length === 1 ? '✓ 确定' : '筛选中'}
+                        </span>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // Update possibilities list
+        function updatePossibilitiesList() {
+            const list = document.getElementById('possibilities-list');
+            list.innerHTML = '';
+            
+            const displayCount = Math.min(state.possibilities.length, 20);
+            
+            if (displayCount === 0) {
+                list.innerHTML = '<div class="text-red-400 text-sm">无可能的答案（请检查输入）</div>';
+                return;
+            }
+            
+            for (let i = 0; i < displayCount; i++) {
+                const poss = state.possibilities[i];
+                const div = document.createElement('div');
+                div.className = 'flex items-center gap-2 p-2 rounded bg-slate-800/30 border border-slate-700/50';
+                
+                const index = document.createElement('span');
+                index.className = 'text-xs text-slate-500 w-8';
+                index.textContent = `#${i + 1}`;
+                
+                const answer = document.createElement('span');
+                answer.className = 'text-sm text-white mono font-medium';
+                answer.textContent = poss.map(a => toLetter(a)).join('');
+                
+                div.appendChild(index);
+                div.appendChild(answer);
+                list.appendChild(div);
+            }
+            
+            if (state.possibilities.length > 20) {
+                const more = document.createElement('div');
+                more.className = 'text-center text-xs text-slate-500 py-2';
+                more.textContent = `... 还有 ${state.possibilities.length - 20} 种可能 ...`;
+                list.appendChild(more);
+            }
+        }
+
+        // Show success modal
+        function showSuccess() {
+            const modal = document.getElementById('success-modal');
+            const answer = state.possibilities[0].map(a => toLetter(a)).join('');
+            
+            document.getElementById('final-attempts').textContent = state.attempts.length;
+            document.getElementById('final-answer').textContent = answer;
+            
+            modal.classList.remove('hidden');
+        }
+
+        // Reset quiz
+        function resetQuiz() {
+            document.getElementById('success-modal').classList.add('hidden');
+            document.getElementById('quiz-panel').classList.add('hidden');
+            document.getElementById('setup-panel').classList.remove('hidden');
+            
+            state = {
+                m: 5,
+                n: 4,
+                attempts: [],
+                possibilities: [],
+                currentAttempt: 1,
+                solved: false
+            };
+            
+            document.getElementById('correct-count').value = '';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Allow Enter key to submit
+            document.getElementById('correct-count').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') submitAttempt();
+            });
+        });
+    </script>
+</body>
+</html>
