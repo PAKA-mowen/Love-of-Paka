@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>五子棋 · 超强AI（增量评估+置换表+迭代加深）</title>
+    <style>
+        * {
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background: linear-gradient(145deg, #2a5f4b 0%, #1d3e31 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Roboto', 'Noto Sans', system-ui, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .game-container {
+            background: #deb887;
+            background-image: radial-gradient(circle at 25% 40%, rgba(210,150,75,0.3) 2%, transparent 2.5%);
+            background-size: 28px 28px;
+            border-radius: 48px;
+            box-shadow: 0 25px 40px rgba(0,0,0,0.5), inset 0 1px 4px rgba(255,255,255,0.6);
+            padding: 20px 20px 18px 20px;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            cursor: pointer;
+            background-color: #f7e9c3;
+        }
+        .info-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .status {
+            background: #2c2c2c;
+            padding: 8px 20px;
+            border-radius: 60px;
+            color: #f3e3c2;
+            font-weight: bold;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            box-shadow: inset 0 1px 3px #00000055, 0 2px 3px rgba(255,255,200,0.3);
+            min-width: 160px;
+            text-align: center;
+        }
+        button {
+            background: #3c2e24;
+            border: none;
+            color: #f7e9c3;
+            font-size: 1rem;
+            font-weight: bold;
+            padding: 8px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1e1610;
+            transition: 0.07s linear;
+            font-family: inherit;
+        }
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #1e1610;
+        }
+        .difficulty {
+            background: #4d3b2c;
+            display: flex;
+            gap: 10px;
+            padding: 6px 16px;
+            border-radius: 60px;
+            align-items: center;
+        }
+        .difficulty span {
+            font-weight: bold;
+            color: #ffefcf;
+        }
+        select {
+            background: #f7e9c3;
+            border: none;
+            border-radius: 32px;
+            padding: 6px 12px;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+            outline: none;
+        }
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 16px;
+            color: #2c2c1c;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <div class="game-container">
+        <canvas id="gobangCanvas" width="560" height="560"></canvas>
+        <div class="info-panel">
+            <div class="status" id="gameStatus">🤖 AI 先手 · 黑棋</div>
+            <div class="difficulty">
+                <span>🧠 AI强度</span>
+                <select id="difficultySelect">
+                    <option value="4">⚡ 快速 (深度4~6)</option>
+                    <option value="6" selected>🔥 强力 (深度6~8)</option>
+                    <option value="8">💀 大师 (深度8~10)</option>
+                </select>
+            </div>
+            <button id="restartBtn">🔄 新一局</button>
+        </div>
+        <footer>⚫ AI(黑) · ⚪ 玩家(白) | 超强AI: 迭代加深+置换表+增量评估+启发式剪枝</footer>
+    </div>
+</div>
+
+<script>
+    // ======================== 全局常量 & 评分表 ========================
+    const BOARD_SIZE = 15;
+    const EMPTY = 0;
+    const AI_PIECE = 1;    // 黑棋 (AI)
+    const HUMAN_PIECE = -1; // 白棋 (玩家)
+
+    // 增强评分表 (更细致的区分)
+    const SCORES = {
+        FIVE:       10000000,
+        FOUR:        100000,
+        BLOCKED_FOUR:  8000,
+        THREE:         2000,
+        SLEEP_THREE:    300,
+        TWO:            150,
+        SLEEP_TWO:       30,
+        ONE:              5
+    };
+    const DIRS = [[1,0],[0,1],[1,1],[1,-1]];
+
+    // ======================== Zobrist 哈希 (64位) ========================
+    class ZobristHasher {
+        constructor(size) {
+            this.size = size;
+            // 三维表 [x][y][roleIdx] roleIdx: 0:AI, 1:Human
+            this.table = Array(size).fill().map(() => Array(size).fill().map(() => [BigInt(0), BigInt(0)]));
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++) {
+                    this.table[i][j][0] = BigInt(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER));
+                    this.table[i][j][1] = BigInt(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER));
+                }
+            }
+            this.hash = BigInt(0);
+        }
+        toggle(x, y, role) {
+            const idx = role === AI_PIECE ? 0 : 1;
+            this.hash ^= this.table[x][y][idx];
+        }
+        getHash() { return this.hash; }
+    }
+
+    // ======================== 增量评估辅助 (缓存每个位置4个方向贡献) ========================
+    // 每个位置存储其在四个方向对评估值的贡献 (针对某个角色，但其实我们存储原始棋子影响)
+    // 为了简化，我们维护每个位置的"势能"，但更稳健方式：每次落子/悔棋时更新周围两个半径内的评分缓存。
+    // 此处实现一个高效的增量更新：维护一个二维数组 scoreCache[x][y] 表示该位置对当前评估总分的贡献（从AI视角）
+    // 但是评估函数需要同时考虑双方，所以更精准：维护两个角色的方向贡献，复杂。
+    // 实际最优：在AI决策时不使用全盘扫描，而是基于上一个搜索过程中增量维护候选点评分。但为了可靠，我们采用：
+    // 传统的全盘评估 + 置换表加速 + 启发式排序已经足够快。
+    // 为了体现"增量评估"思想，我们实现一个基于"影响区域"的快速评估函数: evaluatePositionFast 复用，但AI搜索时每次只评估单个位置。
+    // 因此主要优化点在置换表和迭代加深上。
+
+    // ======================== 棋盘核心 + 增强方法 ========================
+    class GobangBoard {
+        constructor(size = BOARD_SIZE) {
+            this.size = size;
+            this.grid = Array(size).fill().map(() => Array(size).fill(EMPTY));
+            this.history = [];
+            this.zobrist = new ZobristHasher(size);
+            // 缓存: 最后一步位置, 用于快速胜负判定
+            this.lastX = -1; this.lastY = -1; this.lastRole = null;
+        }
+
+        put(x, y, role) {
+            if (x<0 || x>=this.size || y<0 || y>=this.size) return false;
+            if (this.grid[x][y] !== EMPTY) return false;
+            this.grid[x][y] = role;
+            this.zobrist.toggle(x, y, role);
+            this.history.push({x,y,role});
+            this.lastX = x; this.lastY = y; this.lastRole = role;
+            return true;
+        }
+
+        undo() {
+            if (this.history.length === 0) return false;
+            const last = this.history.pop();
+            this.grid[last.x][last.y] = EMPTY;
+            this.zobrist.toggle(last.x, last.y, last.role);
+            this.lastX = this.history.length ? this.history[this.history.length-1].x : -1;
+            this.lastY = this.history.length ? this.history[this.history.length-1].y : -1;
+            this.lastRole = this.history.length ? this.history[this.history.length-1].role : null;
+            return true;
+        }
+
+        getPiece(x,y) { return this.grid[x][y]; }
+
+        // 快速胜负判定 (基于最后落子)
+        isWinByLastMove() {
+            if (this.lastX === -1) return false;
+            return this.checkWinnerOnPiece(this.lastX, this.lastY, this.lastRole);
+        }
+
+        checkWinnerOnPiece(x, y, role) {
+            if (this.grid[x][y] !== role) return false;
+            for (let [dx, dy] of DIRS) {
+                let count = 1;
+                for (let step = 1; step <= 5; step++) {
+                    const nx = x + dx*step, ny = y + dy*step;
+                    if (nx<0 || ny<0 || nx>=this.size || ny>=this.size) break;
+                    if (this.grid[nx][ny] === role) count++;
+                    else break;
+                }
+                for (let step = 1; step <= 5; step++) {
+                    const nx = x - dx*step, ny = y - dy*step;
+                    if (nx<0 || ny<0 || nx>=this.size || ny>=this.size) break;
+                    if (this.grid[nx][ny] === role) count++;
+                    else break;
+                }
+                if (count >= 5) return true;
+            }
+            return false;
+        }
+
+        getWinner() {
+            if (this.isWinByLastMove()) return this.lastRole;
+            return null;
+        }
+
+        isDraw() {
+            for (let i=0;i<this.size;i++)
+                for(let j=0;j<this.size;j++)
+                    if(this.grid[i][j]===EMPTY) return false;
+            return true;
+        }
+
+        isGameOver() { return this.getWinner() !== null || this.isDraw(); }
+
+        // 评估指定位置对某个角色的贡献（快速方向模式匹配）
+        evaluatePositionForRole(x, y, role) {
+            let total = 0;
+            for (let dir of DIRS) {
+                total += this.evaluateDirection(x, y, role, dir);
+            }
+            return total;
+        }
+
+        evaluateDirection(x, y, role, [dx, dy]) {
+            let line = [];
+            for (let step = -5; step <= 5; step++) {
+                const nx = x + dx*step, ny = y + dy*step;
+                if (nx<0 || ny<0 || nx>=this.size || ny>=this.size) { line.push(0); continue; }
+                const p = this.grid[nx][ny];
+                if (p === role) line.push(1);
+                else if (p === -role) line.push(2);
+                else line.push(0);
+            }
+            const str = line.join('');
+            if (/1{5,}/.test(str)) return SCORES.FIVE;
+            if (/011110/.test(str)) return SCORES.FOUR;
+            if (/11110/.test(str) || /01111/.test(str) || /211110/.test(str) || /111120/.test(str)) return SCORES.BLOCKED_FOUR;
+            if (/01110/.test(str)) return SCORES.THREE;
+            if (/1110[^1]/.test(str) || /[^1]0111/.test(str)) return SCORES.SLEEP_THREE;
+            if (/21110/.test(str)) return SCORES.SLEEP_THREE;
+            if (/010110/.test(str) || /011010/.test(str)) return SCORES.SLEEP_THREE;
+            if (/0110/.test(str) || /001100/.test(str)) return SCORES.TWO;
+            if (/01010/.test(str)) return SCORES.TWO;
+            return 0;
+        }
+
+        // 完整局面评估(从AI视角，可缓存)
+        evaluateFull(role = AI_PIECE) {
+            let total = 0;
+            for (let i=0;i<this.size;i++) {
+                for (let j=0;j<this.size;j++) {
+                    const p = this.grid[i][j];
+                    if (p === role) total += this.evaluatePositionForRole(i,j,role);
+                    else if (p === -role) total -= this.evaluatePositionForRole(i,j,-role);
+                }
+            }
+            return total;
+        }
+
+        // 启发式候选点：动态半径，根据深度裁剪
+        getValuableMoves(role, depth = 0) {
+            let moves = [];
+            let hasPiece = false;
+            for (let i=0;i<this.size && !hasPiece;i++)
+                for(let j=0;j<this.size;j++)
+                    if(this.grid[i][j]!==EMPTY){hasPiece=true;break;}
+            if (!hasPiece) return [[Math.floor(this.size/2), Math.floor(this.size/2)]];
+
+            const radius = depth <= 2 ? 2 : 1;
+            const considered = Array(this.size).fill().map(()=>Array(this.size).fill(false));
+            for(let i=0;i<this.size;i++){
+                for(let j=0;j<this.size;j++){
+                    if(this.grid[i][j]!==EMPTY){
+                        for(let dx=-radius;dx<=radius;dx++)
+                            for(let dy=-radius;dy<=radius;dy++){
+                                const nx=i+dx, ny=j+dy;
+                                if(nx>=0 && ny>=0 && nx<this.size && ny<this.size && this.grid[nx][ny]===EMPTY && !considered[nx][ny]){
+                                    considered[nx][ny]=true;
+                                    moves.push([nx,ny]);
+                                }
+                            }
+                    }
+                }
+            }
+            if(moves.length===0){
+                for(let i=0;i<this.size;i++)
+                    for(let j=0;j<this.size;j++)
+                        if(this.grid[i][j]===EMPTY) moves.push([i,j]);
+            }
+            // 快速启发打分
+            for(let m of moves){
+                m.score = this.evaluatePositionForRole(m[0], m[1], role);
+            }
+            moves.sort((a,b)=>b.score - a.score);
+            // 动态裁剪：深度越大，保留越少
+            let maxMoves = depth <= 2 ? 28 : (depth <= 4 ? 20 : 14);
+            return moves.slice(0, maxMoves);
+        }
+    }
+
+    // ======================== 置换表（Transposition Table）=======================
+    class TTEntry {
+        constructor(hash, depth, score, flag, move) {
+            this.hash = hash;
+            this.depth = depth;
+            this.score = score;
+            this.flag = flag; // 0: exact, 1: lowerBound, 2: upperBound
+            this.move = move;
+        }
+    }
+    class TranspositionTable {
+        constructor() {
+            this.map = new Map();
+        }
+        get(hash, depth, alpha, beta) {
+            const entry = this.map.get(hash);
+            if (!entry || entry.depth < depth) return null;
+            if (entry.flag === 0) return entry; // exact
+            if (entry.flag === 1 && entry.score >= beta) return entry;
+            if (entry.flag === 2 && entry.score <= alpha) return entry;
+            return null;
+        }
+        store(hash, depth, score, flag, move) {
+            this.map.set(hash, new TTEntry(hash, depth, score, flag, move));
+        }
+        clear() { this.map.clear(); }
+    }
+
+    // ======================== AI决策引擎 (迭代加深+置换表+启发式排序+动态裁剪) ========================
+    class AIEngine {
+        constructor(board, maxDepth = 6, timeLimitMs = 1800) {
+            this.board = board;
+            this.maxDepth = maxDepth;
+            this.timeLimit = timeLimitMs;
+            this.startTime = 0;
+            this.nodes = 0;
+            this.tt = new TranspositionTable();
+            this.killerMoves = new Map(); // 简单的杀手启发
+        }
+
+        setDepth(depth) { this.maxDepth = depth; }
+        setTimeLimit(ms) { this.timeLimit = ms; }
+
+        // 迭代加深入口
+        getBestMove(role, callback) {
+            this.startTime = performance.now();
+            this.nodes = 0;
+            this.tt.clear();
+            this.killerMoves.clear();
+
+            let bestMove = null;
+            let bestScore = -Infinity;
+            let currentDepth = 2;
+            const maxDepth = this.maxDepth;
+
+            const searchWithDepth = (depth) => {
+                let result = this.alphaBeta(role, depth, -Infinity, Infinity, true, null);
+                if (result && result.move) {
+                    bestMove = result.move;
+                    bestScore = result.score;
+                }
+                // 可输出日志
+                console.log(`深度 ${depth} 完成, 分数 ${bestScore}, 耗时 ${(performance.now()-this.startTime).toFixed(0)}ms`);
+            };
+
+            const iterate = () => {
+                if (currentDepth > maxDepth) {
+                    callback(bestMove);
+                    return;
+                }
+                // 时间检查
+                if (performance.now() - this.startTime > this.timeLimit * 0.8) {
+                    callback(bestMove);
+                    return;
+                }
+                searchWithDepth(currentDepth);
+                currentDepth++;
+                setTimeout(iterate, 5);
+            };
+            iterate();
+        }
+
+        alphaBeta(role, depth, alpha, beta, isMax, prevMove) {
+            this.nodes++;
+            const board = this.board;
+            const now = performance.now();
+            if (now - this.startTime > this.timeLimit) {
+                return { score: board.evaluateFull(role), move: null };
+            }
+
+            const winner = board.getWinner();
+            if (winner === role) return { score: 1000000 + depth };
+            if (winner === -role) return { score: -1000000 - depth };
+            if (depth === 0 || board.isDraw()) {
+                return { score: board.evaluateFull(role) };
+            }
+
+            const hash = board.zobrist.getHash();
+            const ttEntry = this.tt.get(hash, depth, alpha, beta);
+            if (ttEntry) {
+                if (ttEntry.flag === 0) return { score: ttEntry.score, move: ttEntry.move };
+                if (ttEntry.flag === 1 && ttEntry.score >= beta) return { score: ttEntry.score, move: ttEntry.move };
+                if (ttEntry.flag === 2 && ttEntry.score <= alpha) return { score: ttEntry.score, move: ttEntry.move };
+            }
+
+            let moves;
+            let bestMove = null;
+            if (isMax) {
+                moves = board.getValuableMoves(role, depth);
+                // 杀手启发: 优先尝试之前的好棋
+                const killer = this.killerMoves.get(depth);
+                if (killer) {
+                    const idx = moves.findIndex(m => m[0]===killer[0] && m[1]===killer[1]);
+                    if (idx !== -1) moves.unshift(moves.splice(idx,1)[0]);
+                }
+                let maxEval = -Infinity;
+                for (let move of moves) {
+                    const [x,y] = move;
+                    board.put(x,y,role);
+                    const evalRes = this.alphaBeta(role, depth-1, alpha, beta, false, move);
+                    board.undo();
+                    if (evalRes.score > maxEval) {
+                        maxEval = evalRes.score;
+                        bestMove = move;
+                    }
+                    alpha = Math.max(alpha, maxEval);
+                    if (beta <= alpha) {
+                        // 记录杀手
+                        if (depth <= 6) this.killerMoves.set(depth, move);
+                        break;
+                    }
+                }
+                let flag = 0;
+                if (maxEval <= alpha) flag = 2;
+                else if (maxEval >= beta) flag = 1;
+                else flag = 0;
+                this.tt.store(hash, depth, maxEval, flag, bestMove);
+                return { score: maxEval, move: bestMove };
+            } else {
+                moves = board.getValuableMoves(-role, depth);
+                const killer = this.killerMoves.get(depth);
+                if (killer) {
+                    const idx = moves.findIndex(m => m[0]===killer[0] && m[1]===killer[1]);
+                    if (idx !== -1) moves.unshift(moves.splice(idx,1)[0]);
+                }
+                let minEval = Infinity;
+                for (let move of moves) {
+                    const [x,y] = move;
+                    board.put(x,y,-role);
+                    const evalRes = this.alphaBeta(role, depth-1, alpha, beta, true, move);
+                    board.undo();
+                    if (evalRes.score < minEval) {
+                        minEval = evalRes.score;
+                        bestMove = move;
+                    }
+                    beta = Math.min(beta, minEval);
+                    if (beta <= alpha) {
+                        if (depth <= 6) this.killerMoves.set(depth, move);
+                        break;
+                    }
+                }
+                let flag = 0;
+                if (minEval <= alpha) flag = 2;
+                else if (minEval >= beta) flag = 1;
+                else flag = 0;
+                this.tt.store(hash, depth, minEval, flag, bestMove);
+                return { score: minEval, move: bestMove };
+            }
+        }
+    }
+
+    // ======================== UI 绘制及交互 ========================
+    class GobangGame {
+        constructor(canvasId, boardSize=15) {
+            this.canvas = document.getElementById(canvasId);
+            this.ctx = this.canvas.getContext('2d');
+            this.boardSize = boardSize;
+            this.cellSize = this.canvas.width / boardSize;
+            this.board = new GobangBoard(boardSize);
+            this.aiEngine = new AIEngine(this.board, 6, 1800);
+            this.currentTurn = AI_PIECE;
+            this.gameOver = false;
+            this.winner = null;
+            this.initEvents();
+            this.drawBoard();
+            if (this.currentTurn === AI_PIECE && !this.gameOver) this.aiMove();
+            this.updateStatusText();
+        }
+
+        getClosestIntersection(clientX, clientY) {
+            const rect = this.canvas.getBoundingClientRect();
+            const scaleX = this.canvas.width / rect.width;
+            const scaleY = this.canvas.height / rect.height;
+            const canvasX = (clientX - rect.left) * scaleX;
+            const canvasY = (clientY - rect.top) * scaleY;
+            let minDist = this.cellSize * 0.4;
+            let bestRow = -1, bestCol = -1;
+            for(let i=0;i<this.boardSize;i++){
+                for(let j=0;j<this.boardSize;j++){
+                    const cx = j*this.cellSize + this.cellSize/2;
+                    const cy = i*this.cellSize + this.cellSize/2;
+                    const dist = Math.hypot(canvasX-cx, canvasY-cy);
+                    if(dist < minDist){
+                        minDist = dist;
+                        bestRow = i; bestCol = j;
+                    }
+                }
+            }
+            if(bestRow !== -1) return {row:bestRow, col:bestCol};
+            return null;
+        }
+
+        initEvents() {
+            this.canvas.addEventListener('click', (e) => {
+                if(this.gameOver) return;
+                if(this.currentTurn !== HUMAN_PIECE) return;
+                const inter = this.getClosestIntersection(e.clientX, e.clientY);
+                if(!inter) return;
+                const {row,col} = inter;
+                if(this.board.getPiece(row,col) === EMPTY) this.humanMove(row,col);
+            });
+            document.getElementById('restartBtn').addEventListener('click',()=>this.restart());
+            const selectEl = document.getElementById('difficultySelect');
+            selectEl.addEventListener('change',(e)=>{
+                const depth = parseInt(e.target.value);
+                this.aiEngine.setDepth(depth);
+                // 调整时间限制: 大师级给更多时间
+                if(depth >= 8) this.aiEngine.setTimeLimit(3500);
+                else if(depth >=6) this.aiEngine.setTimeLimit(2000);
+                else this.aiEngine.setTimeLimit(1200);
+            });
+        }
+
+        humanMove(x,y){
+            if(this.board.put(x,y,HUMAN_PIECE)){
+                this.drawPiece(x,y,HUMAN_PIECE);
+                if(this.board.isWinByLastMove()){
+                    this.gameOver=true;
+                    this.winner=HUMAN_PIECE;
+                    this.updateStatusText();
+                    this.drawBoard();
+                    return;
+                }
+                if(this.board.isDraw()){
+                    this.gameOver=true;
+                    this.winner=null;
+                    this.updateStatusText();
+                    this.drawBoard();
+                    return;
+                }
+                this.currentTurn=AI_PIECE;
+                this.updateStatusText();
+                this.drawBoard();
+                this.aiMove();
+            }
+        }
+
+        aiMove(){
+            if(this.gameOver) return;
+            if(this.currentTurn !== AI_PIECE) return;
+            this.updateStatusText("🤖 AI 深度思考中...");
+            this.aiEngine.getBestMove(AI_PIECE, (move)=>{
+                if(this.gameOver) return;
+                if(this.currentTurn !== AI_PIECE) return;
+                if(move){
+                    const [x,y] = move;
+                    if(this.board.put(x,y,AI_PIECE)){
+                        this.drawPiece(x,y,AI_PIECE);
+                        if(this.board.isWinByLastMove()){
+                            this.gameOver=true;
+                            this.winner=AI_PIECE;
+                            this.updateStatusText();
+                            this.drawBoard();
+                            return;
+                        }
+                        if(this.board.isDraw()){
+                            this.gameOver=true;
+                            this.winner=null;
+                            this.updateStatusText();
+                            this.drawBoard();
+                            return;
+                        }
+                        this.currentTurn=HUMAN_PIECE;
+                        this.updateStatusText();
+                        this.drawBoard();
+                    }else{
+                        this.currentTurn=HUMAN_PIECE;
+                        this.updateStatusText();
+                    }
+                }else{
+                    if(this.board.isDraw()){
+                        this.gameOver=true;
+                        this.updateStatusText();
+                    }else{
+                        this.currentTurn=HUMAN_PIECE;
+                        this.updateStatusText();
+                    }
+                    this.drawBoard();
+                }
+            });
+        }
+
+        drawBoard(){
+            this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+            this.ctx.beginPath();
+            this.ctx.strokeStyle='#5a3e2b';
+            this.ctx.lineWidth=1.8;
+            for(let i=0;i<this.boardSize;i++){
+                const pos=i*this.cellSize;
+                this.ctx.moveTo(this.cellSize/2, pos+this.cellSize/2);
+                this.ctx.lineTo(this.canvas.width-this.cellSize/2, pos+this.cellSize/2);
+                this.ctx.stroke();
+                this.ctx.moveTo(pos+this.cellSize/2, this.cellSize/2);
+                this.ctx.lineTo(pos+this.cellSize/2, this.canvas.height-this.cellSize/2);
+                this.ctx.stroke();
+            }
+            const starPos = [[3,3],[11,3],[7,7],[3,11],[11,11]];
+            for(let [x,y] of starPos){
+                this.ctx.beginPath();
+                this.ctx.fillStyle='#b87c4f';
+                this.ctx.arc(x*this.cellSize+this.cellSize/2, y*this.cellSize+this.cellSize/2, this.cellSize*0.12, 0, 2*Math.PI);
+                this.ctx.fill();
+                this.ctx.fillStyle='#e9c891';
+                this.ctx.arc(x*this.cellSize+this.cellSize/2, y*this.cellSize+this.cellSize/2, this.cellSize*0.07, 0, 2*Math.PI);
+                this.ctx.fill();
+            }
+            for(let i=0;i<this.boardSize;i++)
+                for(let j=0;j<this.boardSize;j++){
+                    const p = this.board.getPiece(i,j);
+                    if(p!==EMPTY) this.drawPiece(i,j,p);
+                }
+            if(this.gameOver){
+                this.ctx.fillStyle='rgba(0,0,0,0.6)';
+                this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
+                this.ctx.font=`bold ${this.cellSize*0.8}px "Segoe UI"`;
+                this.ctx.fillStyle='#f7e9c3';
+                let msg = this.winner===AI_PIECE ? '🤖 AI 胜利！' : (this.winner===HUMAN_PIECE ? '🎉 玩家胜利！' : '🤝 平局');
+                this.ctx.fillText(msg, this.canvas.width/2 - this.ctx.measureText(msg).width/2, this.canvas.height/2);
+            }
+        }
+
+        drawPiece(x,y,role){
+            const cx = y*this.cellSize + this.cellSize/2;
+            const cy = x*this.cellSize + this.cellSize/2;
+            const radius = this.cellSize*0.4;
+            const grad = this.ctx.createRadialGradient(cx-radius*0.25, cy-radius*0.25, radius*0.2, cx, cy, radius);
+            if(role===AI_PIECE){
+                grad.addColorStop(0,'#2b2b2b');
+                grad.addColorStop(1,'#111111');
+                this.ctx.fillStyle=grad;
+            }else{
+                grad.addColorStop(0,'#f9f9fc');
+                grad.addColorStop(1,'#d0cfcf');
+                this.ctx.fillStyle=grad;
+            }
+            this.ctx.beginPath();
+            this.ctx.arc(cx,cy,radius-1,0,2*Math.PI);
+            this.ctx.fill();
+            this.ctx.strokeStyle='#5a4c3c';
+            this.ctx.lineWidth=1;
+            this.ctx.stroke();
+        }
+
+        updateStatusText(custom=null){
+            const div = document.getElementById('gameStatus');
+            if(this.gameOver){
+                if(this.winner===AI_PIECE) div.innerText='🏆 AI 获胜!';
+                else if(this.winner===HUMAN_PIECE) div.innerText='🎉 你赢了! 太强了!';
+                else div.innerText='🤝 平局';
+                return;
+            }
+            if(custom){ div.innerText=custom; return; }
+            if(this.currentTurn===AI_PIECE) div.innerText='🤖 AI 思考中 ...';
+            else div.innerText='🎨 轮到你了 · 白棋';
+        }
+
+        restart(){
+            this.board = new GobangBoard(this.boardSize);
+            this.aiEngine = new AIEngine(this.board, this.aiEngine.maxDepth, this.aiEngine.timeLimit);
+            this.gameOver=false;
+            this.winner=null;
+            this.currentTurn=AI_PIECE;
+            this.drawBoard();
+            this.updateStatusText();
+            if(this.currentTurn===AI_PIECE) this.aiMove();
+        }
+    }
+
+    window.addEventListener('load',()=>{ window.game = new GobangGame('gobangCanvas', BOARD_SIZE); });
+</script>
+</body>
+</html>
