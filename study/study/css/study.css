@@ -1,0 +1,382 @@
+/* ==================== 全局变量与基础 ==================== */
+:root {
+    --bg-start: #f0f4ff;
+    --bg-end: #f9fafb;
+    --card-bg: #ffffff;
+    --text: #1e293b;
+    --text-secondary: #64748b;
+    --accent: #6366f1;
+    --accent-hover: #4f46e5;
+    --border: #e2e8f0;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    --radius: 18px;
+    --input-bg: #f8fafc;
+    --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 24px;
+}
+
+.main-layout {
+    display: flex;
+    gap: 28px;
+    max-width: 1200px;
+    margin: 0 auto;
+    align-items: flex-start;
+}
+
+.content-area {
+    flex: 1 1 700px;
+    min-width: 0;
+}
+
+.keypad-sidebar {
+    flex: 0 0 280px;
+    position: sticky;
+    top: 24px;
+    align-self: flex-start;
+}
+
+/* 头部 */
+.header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #1e293b, #334155);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    margin-bottom: 8px;
+}
+
+.date {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.status-message {
+    display: inline-block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: #cbd5e1;
+    color: white;
+    padding: 6px 24px;
+    border-radius: 40px;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    transition: all 0.3s;
+}
+
+.status-message.checked-in {
+    background: var(--success);
+}
+
+/* 题目卡片 */
+.problems-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 36px;
+}
+
+.problem-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    transition: all 0.25s;
+}
+
+.problem-card.wrong-highlight {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.problem-card.correct-highlight {
+    border-color: var(--success);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+}
+
+.problem-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.problem-number {
+    font-weight: 700;
+    font-size: 0.85rem;
+    background: #eef2ff;
+    padding: 4px 14px;
+    border-radius: 24px;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+}
+
+.reveal-btn {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 4px 12px;
+    border-radius: 20px;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.reveal-btn:hover:not(.viewed) {
+    background: #f1f5f9;
+    color: #1e293b;
+    border-color: #e2e8f0;
+}
+
+.reveal-btn.viewed {
+    color: #94a3b8;
+    text-decoration: line-through;
+    cursor: default;
+}
+
+.integral-display {
+    background: #f8fafc;
+    padding: 18px 20px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+    text-align: center;
+    overflow-x: auto;
+    white-space: nowrap;
+    border-left: 4px solid var(--accent);
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.02);
+}
+
+.answer-area {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.answer-input-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.answer-input {
+    flex: 1;
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-family: var(--font-mono);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    background: var(--input-bg);
+    outline: none;
+    transition: all 0.2s;
+}
+
+.answer-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.answer-input:disabled {
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: not-allowed;
+}
+
+.answer-input.input-error {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 2px rgba(239,68,68,0.2);
+}
+
+.result-icon {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+    transition: 0.2s;
+}
+
+.result-icon.wrong {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+.correct-answer-display {
+    font-size: 0.95rem;
+    font-family: var(--font-mono);
+    background: #f0fdf4;
+    padding: 10px 16px;
+    border-radius: 12px;
+    margin-top: 10px;
+    border-left: 3px solid var(--success);
+    display: none;
+}
+
+.preview-latex {
+    font-size: 0.85rem;
+    color: #475569;
+    background: #fefce8;
+    padding: 8px 14px;
+    border-radius: 10px;
+    min-height: 2.4em;
+    word-break: break-all;
+    border: 1px solid #fde68a;
+}
+
+.error-message {
+    font-size: 0.75rem;
+    color: var(--danger);
+    display: none;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* 提交按钮 */
+.actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.btn {
+    padding: 14px 42px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: all 0.25s;
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 6px 14px rgba(99, 102, 241, 0.25);
+    letter-spacing: 0.5px;
+}
+
+.btn:hover:not(:disabled) {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+}
+
+.btn:disabled {
+    background: #cbd5e1;
+    color: #5c6b7e;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.input-hint {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 20px;
+    text-align: center;
+    background: #f1f5f9;
+    padding: 10px 18px;
+    border-radius: 24px;
+    border: 1px dashed #cbd5e1;
+}
+
+/* 虚拟键盘面板 */
+.keypad-panel {
+    background: var(--card-bg);
+    border-radius: 24px;
+    padding: 20px 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--border);
+}
+
+.keypad-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #475569;
+    text-align: center;
+    letter-spacing: 0.3px;
+}
+
+.keypad-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.keypad-btn {
+    padding: 8px 0;
+    width: 46px;
+    font-family: var(--font-mono);
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.keypad-btn:hover {
+    background: #eef2ff;
+    border-color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.keypad-btn.func {
+    width: auto;
+    min-width: 56px;
+    font-size: 0.8rem;
+}
+
+.keypad-btn.wide {
+    width: auto;
+    min-width: 68px;
+}
+
+/* 响应式 */
+@media (max-width: 780px) {
+    .main-layout {
+        flex-direction: column;
+    }
+    .keypad-sidebar {
+        position: static;
+        width: 100%;
+        order: -1;
+    }
+    .keypad-btn {
+        width: 42px;
+        font-size: 0.85rem;
+    }
+}

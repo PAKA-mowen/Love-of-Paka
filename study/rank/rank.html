@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>积分排行榜 · 墨问羊驼</title>
-    <link rel="stylesheet" href="../css/style.css">
+    <!-- 注意：从 study/rank/ 访问 css/ 需要向上两级 -->
+    <link rel="stylesheet" href="../../css/style.css">
     <style>
         .rank-container {
             max-width: 700px;
@@ -38,12 +39,13 @@
 </head>
 <body>
     <nav>
-        <a href="../pages/index.html">首页</a>
-        <a href="../pages/message.html">留言</a>
-        <a href="../pages/games.html">小游戏</a>
-        <a href="../pages/works.html">百宝箱</a>
-        <a href="../pages/adventure.html">探险</a>
-        <a href="../study/study.html">每日练习</a>
+        <!-- 所有导航链接需要使用正确的相对路径，返回上级目录 -->
+        <a href="../../pages/index.html">首页</a>
+        <a href="../../pages/message.html">留言</a>
+        <a href="../../pages/games.html">小游戏</a>
+        <a href="../../pages/works.html">百宝箱</a>
+        <a href="../../pages/adventure.html">探险</a>
+        <a href="../study.html">每日练习</a>
     </nav>
     <div class="rank-container">
         <h2 style="font-family: 'ZCOOL KuaiLe', cursive;">🏆 积分排行榜</h2>
