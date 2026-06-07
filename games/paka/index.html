@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>墨问羊驼知多少 · 趣味报告版</title>
+    <title>墨问羊驼知多少 </title>
+    <!-- 引入 html2canvas 和 jspdf 用于生成 PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -118,6 +121,16 @@
 
         button.danger:hover {
             background: #fee2e2;
+        }
+
+        button.download-pdf-btn {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+            margin-left: 0.5rem;
+        }
+        button.download-pdf-btn:hover {
+            background: #059669;
         }
 
         button:hover {
@@ -310,7 +323,7 @@
         .close-report {
             background: #f97316;
             border: none;
-            padding: 0.6rem 1.5rem;
+            padding: 0.6rem 1.2rem;
             color: white;
             font-weight: bold;
             border-radius: 40px;
@@ -319,14 +332,48 @@
             cursor: pointer;
             transition: 0.2s;
         }
-
         .close-report:hover {
             background: #ea580c;
-            transform: scale(0.96);
+        }
+        .download-pdf-modal {
+            background: #10b981;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            color: white;
+            font-weight: bold;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            margin-top: 0.8rem;
+            margin-left: 0.5rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .download-pdf-modal:hover {
+            background: #059669;
         }
 
-        .report-emoji {
-            font-size: 3rem;
+        .report-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .toast-msg {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f172ad9;
+            backdrop-filter: blur(8px);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            z-index: 1000;
+            pointer-events: none;
+            transition: 0.2s;
+            opacity: 0;
         }
 
         @media (max-width: 680px) {
@@ -348,30 +395,13 @@
                 padding: 1.5rem;
             }
         }
-
-        .toast-msg {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #0f172ad9;
-            backdrop-filter: blur(8px);
-            color: white;
-            padding: 8px 20px;
-            border-radius: 40px;
-            font-size: 0.85rem;
-            z-index: 1000;
-            pointer-events: none;
-            transition: 0.2s;
-            opacity: 0;
-        }
     </style>
 </head>
 <body>
 <div class="container" id="app">
     <div class="quiz-header">
         <h1>🦙 墨问羊驼知多少</h1>
-        <p>关于「我」的50个灵魂拷问 · 每题2分 · 满分100分 · 提交即得玄学报告</p>
+        <p>关于「我」的50个灵魂拷问 · 每题2分 · 满分100分 · 提交即得玄学报告 + PDF下载</p>
     </div>
     <div class="stats-row">
         <div class="progress-info" id="answeredCountDisplay">📋 已答 0 / 50 题</div>
@@ -399,12 +429,15 @@
 
 <!-- 报告弹窗模态框 -->
 <div id="reportModal" class="report-modal">
-    <div class="report-card">
+    <div class="report-card" id="reportCardForPdf">
         <div class="report-emoji" id="reportEmoji">🦙</div>
         <div class="report-score" id="reportScore">0分</div>
         <div class="report-level" id="reportLevel">羊驼萌新</div>
         <div class="report-desc" id="reportDesc">你的灵魂跟羊驼还有一段距离～</div>
-        <button class="close-report" id="closeReportBtn">收下报告 🎉</button>
+        <div class="report-actions">
+            <button class="close-report" id="closeReportBtn">收下报告 🎉</button>
+            <button class="download-pdf-modal" id="downloadPdfBtn">📄 下载报告 (PDF)</button>
+        </div>
     </div>
 </div>
 
@@ -412,7 +445,7 @@
 
 <script>
     // --------------------------------------------------------------
-    // 1. 原始问卷数据 (基于excel内容，序号1~50)
+    // 原始问卷数据 (序号1~50)
     // --------------------------------------------------------------
     const RAW_QUESTIONS = [
         { id: 1, question: "最喜欢的水果", correct: "菠萝", wrongs: ["香蕉","西瓜","樱桃","蓝莓"] },
@@ -473,6 +506,7 @@
     const PAGE_SIZE = 10;
     let totalPages = 5;               
     let userAnswers = {};             
+    let latestScore = null;            // 存储最近提交的分数，用于报告下载
 
     function shuffleArray(arr) {
         for (let i = arr.length - 1; i > 0; i--) {
@@ -487,7 +521,7 @@
         return shuffleArray([...allOpts]);
     }
 
-    function initShuffledQuestions(resetAnswers = true) {
+    function initShuffledQuestions() {
         let cloned = RAW_QUESTIONS.map(q => ({
             id: q.id,
             question: q.question,
@@ -520,7 +554,7 @@
                 userAnswers = {};
             }
         }
-        shuffledQuestions = initShuffledQuestions(false);
+        shuffledQuestions = initShuffledQuestions();
         currentPage = 0;
         renderCurrentPage();
         updateStatsAndUI();
@@ -634,7 +668,6 @@
 
     // 等级报告生成器 (抽象欢乐向)
     function getScoreReport(score) {
-        // 特殊处理0分和100分
         if (score === 0) {
             return {
                 level: "💀 虚空羊驼 · 反向圣者",
@@ -649,8 +682,7 @@
                 desc: "满分！你就是行走的「墨问羊驼」百科全书，本尊见了都要递奶茶。请收下这份云端认证！"
             };
         }
-        // 每10分一个区间 1-10,11-20 ... 91-99
-        const tier = Math.ceil(score / 10);  // 1-10分->1, 11-20->2, ..., 91-99->10
+        const tier = Math.ceil(score / 10);
         const tiersMap = {
             1: { level: "🌱 萌芽羊驼 · 刚睡醒", emoji: "🌱🦙", desc: "对羊驼的了解还在襁褓中，再补补课，下次争取脱离地面~" },
             2: { level: "📖 学徒羊驼 · 略懂墨汁", emoji: "📖🐫", desc: "略懂皮毛，方向对了但没完全对，继续翻翻羊驼秘籍吧！" },
@@ -671,7 +703,7 @@
         };
     }
 
-    // 提交计分并显示报告 (不显示具体答案，只展示总分+等级)
+    // 提交并显示报告
     function computeAndShowReport() {
         let totalScore = 0;
         for (let q of shuffledQuestions) {
@@ -680,10 +712,7 @@
                 totalScore += 2;
             }
         }
-        // 显示toast提示分数
-        showToast(`✨ 得分：${totalScore} 分，打开羊驼报告卷轴 ✨`, 2000);
-        
-        // 生成报告内容
+        latestScore = totalScore;
         const report = getScoreReport(totalScore);
         const modal = document.getElementById('reportModal');
         const emojiSpan = document.getElementById('reportEmoji');
@@ -698,9 +727,53 @@
         
         if (modal) modal.classList.add('active');
         
-        // 同时在顶部展示得分（但保留报告优先）
         const tempDiv = document.getElementById('tempScoreDisplay');
         if (tempDiv) tempDiv.innerHTML = `🎯 最终得分: ${totalScore}  · 报告已出`;
+        showToast(`✨ 得分：${totalScore} 分，打开羊驼报告卷轴 ✨`, 2000);
+    }
+
+    // PDF下载功能 (捕获 .report-card 区域)
+    async function downloadReportAsPDF() {
+        if (latestScore === null) {
+            showToast("请先提交问卷，生成报告后再下载PDF~", 2000);
+            return;
+        }
+        const element = document.getElementById('reportCardForPdf');
+        if (!element) {
+            showToast("报告区域加载出错", 1500);
+            return;
+        }
+        showToast("📄 正在生成PDF报告，请稍候...", 1800);
+        try {
+            // 临时提升元素样式，确保背景与圆角完全渲染
+            const originalOverflow = element.style.overflow;
+            element.style.overflow = 'visible';
+            const canvas = await html2canvas(element, {
+                scale: 2.5,            // 高清输出
+                backgroundColor: '#fff9ef',
+                logging: false,
+                useCORS: false
+            });
+            element.style.overflow = originalOverflow;
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            // 使用横向或纵向，根据宽高比，纵向更合适
+            const imgWidth = 210; // A4宽度 mm
+            const pageHeight = 297;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            let pdf = new jsPDF('p', 'mm', 'a4');
+            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            // 如果内容超过一页，简单处理（报告通常一页足够）
+            if (imgHeight > pageHeight) {
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            }
+            pdf.save(`羊驼成绩报告_${latestScore}分.pdf`);
+            showToast("✅ PDF报告已下载", 2000);
+        } catch (err) {
+            console.error(err);
+            showToast("生成失败，可尝试刷新页面后重试", 2000);
+        }
     }
 
     function showToast(msg, duration = 2500) {
@@ -717,14 +790,17 @@
         if (confirm('⚠️ 重置将清空所有已选答案，并且题目顺序/选项顺序会重新随机。确定重置吗？')) {
             localStorage.removeItem('alpaca_quiz_answers');
             userAnswers = {};
-            shuffledQuestions = initShuffledQuestions(false);
+            latestScore = null;
+            shuffledQuestions = initShuffledQuestions();
             currentPage = 0;
             renderCurrentPage();
             updateStatsAndUI();
             showToast('已重置，题目&选项已刷新，答案已清空', 1800);
-            // 同时重置顶部显示分数栏
             const scoreSpan = document.getElementById('tempScoreDisplay');
             if (scoreSpan) scoreSpan.innerHTML = `⭐ 已选 0 题 · 待揭晓`;
+            // 同时关闭模态框，如果打开着
+            const modal = document.getElementById('reportModal');
+            if (modal) modal.classList.remove('active');
         }
     }
 
@@ -742,7 +818,7 @@
         } else {
             userAnswers = {};
         }
-        shuffledQuestions = initShuffledQuestions(false);
+        shuffledQuestions = initShuffledQuestions();
         totalPages = Math.ceil(shuffledQuestions.length / PAGE_SIZE);
         currentPage = 0;
         renderCurrentPage();
@@ -753,7 +829,8 @@
         document.getElementById('submitQuizBtn')?.addEventListener('click', computeAndShowReport);
         document.getElementById('resetQuizBtn')?.addEventListener('click', resetFullQuiz);
         document.getElementById('closeReportBtn')?.addEventListener('click', closeReportModal);
-        // 点击模态背景也可以关闭
+        const downloadBtn = document.getElementById('downloadPdfBtn');
+        if (downloadBtn) downloadBtn.addEventListener('click', downloadReportAsPDF);
         const modalBg = document.getElementById('reportModal');
         modalBg?.addEventListener('click', (e) => {
             if (e.target === modalBg) closeReportModal();
