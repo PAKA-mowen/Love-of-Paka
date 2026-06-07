@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>登录 / 注册 · 墨问羊驼</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <nav>
+    <a href="index.html">首页</a>
+    <!-- 其他导航项 -->
+    <div id="authArea" style="margin-left:auto;"></div>
+  </nav>
+
+  <div class="container" style="max-width:400px; margin:3rem auto;">
+    <div class="card">
+      <h2 id="formTitle">登录</h2>
+      <form id="authForm">
+        <input type="text" id="username" placeholder="用户名" required />
+        <input type="password" id="password" placeholder="密码" required />
+        <button type="submit">提交</button>
+      </form>
+      <p style="margin-top:1rem;">
+        <a href="#" id="toggleMode">还没有账号？去注册</a>
+      </p>
+      <div id="message" style="margin-top:0.5rem; color: red;"></div>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script>
+    let isLogin = true; // 默认登录模式
+    const form = document.getElementById('authForm');
+    const toggleLink = document.getElementById('toggleMode');
+    const formTitle = document.getElementById('formTitle');
+    const msgDiv = document.getElementById('message');
+
+    toggleLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      isLogin = !isLogin;
+      formTitle.textContent = isLogin ? '登录' : '注册';
+      toggleLink.textContent = isLogin ? '还没有账号？去注册' : '已有账号？去登录';
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      const endpoint = isLogin ? '/api/login' : '/api/register';
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        if (isLogin) {
+          window.location.href = '/'; // 登录成功跳转首页
+        } else {
+          msgDiv.style.color = 'green';
+          msgDiv.textContent = '注册成功！请登录';
+          // 自动切换到登录模式
+          isLogin = true;
+          formTitle.textContent = '登录';
+          toggleLink.textContent = '还没有账号？去注册';
+        }
+      } else {
+        msgDiv.style.color = 'red';
+        msgDiv.textContent = data.error || '操作失败';
+      }
+    });
+  </script>
+</body>
+</html>
