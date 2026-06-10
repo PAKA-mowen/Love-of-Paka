@@ -3,13 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>梦幻幸运大转盘 | 自定义抽奖神器</title>
+    <title>梦幻幸运大转盘 | 预设自动加载</title>
     <style>
+        :root {
+            --bg-dark: #0f1a24;
+            --panel-bg: rgba(20, 30, 40, 0.85);
+            --gold: #ffd98c;
+            --gold-light: #ffecb3;
+            --accent: #ffaa44;
+            --accent2: #ff6e3a;
+            --text-soft: #f7e5c2;
+            --card-bg: rgba(10, 20, 28, 0.7);
+            --border-soft: rgba(255, 190, 100, 0.4);
+            --shadow-lg: 0 20px 45px rgba(0, 0, 0, 0.35);
+            --radius-xl: 48px;
+            --radius-full: 60px;
+            --transition-fast: 0.18s ease;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            user-select: none; /* 避免移动端拖动文字 */
+            user-select: none;
         }
 
         body {
@@ -19,35 +35,174 @@
             justify-content: center;
             align-items: center;
             font-family: 'Segoe UI', 'Poppins', 'Roboto', 'Noto Sans', system-ui, -apple-system, 'Microsoft YaHei', sans-serif;
-            padding: 24px 16px;
+            padding: 20px 12px;
         }
 
-        /* 主容器 */
-        .wheel-container {
-            max-width: 620px;
+        .app-shell {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            max-width: 900px;
             width: 100%;
-            margin: 0 auto;
+            justify-content: center;
+        }
+
+        /* 左侧预设面板 - 纯净版 */
+        .presets-panel {
+            flex: 0 0 220px;
+            width: 220px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(14px);
+            border-radius: var(--radius-xl);
+            padding: 16px 10px 14px;
+            border: 1px solid rgba(255, 210, 140, 0.5);
+            box-shadow: var(--shadow-lg), inset 0 1px 2px rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 82vh;
+            position: sticky;
+            top: 20px;
+        }
+        .presets-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 6px 6px;
+            border-bottom: 1px solid rgba(255, 200, 120, 0.3);
+            margin-bottom: 4px;
+        }
+        .presets-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffdeae;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .presets-count {
+            font-size: 11px;
+            background: rgba(255, 180, 70, 0.25);
+            color: #ffd58c;
+            padding: 2px 9px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .presets-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 2px 2px 4px;
+            min-height: 100px;
+            max-height: 55vh;
+        }
+        .presets-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .presets-list::-webkit-scrollbar-track {
+            background: #1e2d38;
+            border-radius: 8px;
+        }
+        .presets-list::-webkit-scrollbar-thumb {
+            background: #ffb85e;
+            border-radius: 8px;
+        }
+
+        .preset-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(18, 28, 36, 0.7);
+            border: 1px solid rgba(255, 190, 100, 0.3);
+            border-radius: 24px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            color: #e8d5b8;
+            font-size: 13px;
+            font-weight: 500;
+            text-align: left;
+            font-family: inherit;
+            letter-spacing: 0.3px;
+            backdrop-filter: blur(4px);
+        }
+        .preset-btn:hover {
+            background: rgba(40, 55, 65, 0.8);
+            border-color: rgba(255, 200, 120, 0.7);
+            color: #fff3db;
+            transform: translateX(2px);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+        }
+        .preset-btn:active {
+            transform: scale(0.97);
+        }
+        .preset-btn.active-preset {
+            background: linear-gradient(120deg, rgba(255, 160, 50, 0.35), rgba(255, 110, 40, 0.3));
+            border-color: #ffc878;
+            color: #fff6e5;
+            box-shadow: 0 0 16px rgba(255, 160, 60, 0.25);
+            font-weight: 700;
+        }
+        .preset-btn.active-preset::after {
+            content: '✓';
+            position: absolute;
+            right: 12px;
+            font-size: 14px;
+            color: #ffd78b;
+            font-weight: bold;
+        }
+        .preset-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+            width: 28px;
+            text-align: center;
+        }
+        .preset-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .preset-name {
+            font-weight: 600;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .preset-opt-count {
+            font-size: 9px;
+            color: #b8a080;
+            margin-top: 1px;
+        }
+
+        /* 转盘主容器 */
+        .wheel-container {
+            flex: 1;
+            max-width: 560px;
+            min-width: 340px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(8px);
             border-radius: 72px 72px 56px 56px;
-            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.15);
+            box-shadow: var(--shadow-lg), inset 0 1px 2px rgba(255, 255, 255, 0.15);
             padding: 20px 20px 28px;
             transition: all 0.3s ease;
         }
 
-        /* 实时结果栏 */
         .result-area {
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(12px);
             border-radius: 100px;
-            margin-bottom: 24px;
+            margin-bottom: 22px;
             padding: 12px 20px;
             text-align: center;
             border: 1px solid rgba(255, 215, 150, 0.5);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
         }
         .result-label {
-            font-size: 14px;
+            font-size: 13px;
             letter-spacing: 2px;
             color: #ffecb3;
             text-transform: uppercase;
@@ -55,33 +210,26 @@
             text-shadow: 0 1px 1px black;
         }
         .result-name {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 800;
-            color: #ffe6a3;
-            text-shadow: 0 2px 5px #aa6f20;
-            margin-top: 4px;
+            margin-top: 3px;
             word-break: break-word;
             letter-spacing: 1px;
             background: linear-gradient(135deg, #fff0c0, #ffd966);
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
-            text-shadow: none;
+            transition: transform 0.2s ease;
         }
-        @media (max-width: 550px) {
-            .result-name { font-size: 22px; }
-        }
-
-        /* canvas 转盘区域 */
         .wheel-wrapper {
             position: relative;
             display: flex;
             justify-content: center;
-            margin-bottom: 24px;
+            margin-bottom: 22px;
         }
         canvas {
             width: 100%;
-            max-width: 400px;
+            max-width: 380px;
             height: auto;
             background: #f9e5c1;
             border-radius: 50%;
@@ -92,16 +240,14 @@
         canvas:active {
             transform: scale(0.99);
         }
-
-        /* 旋转按钮 */
         .spin-btn {
             display: block;
             width: 140px;
-            margin: 10px auto 20px;
+            margin: 8px auto 18px;
             background: linear-gradient(120deg, #ffb347, #ff6e3a);
             border: none;
             padding: 14px 0;
-            font-size: 24px;
+            font-size: 23px;
             font-weight: bold;
             color: #fff3e0;
             text-shadow: 0 2px 3px #b53b00;
@@ -117,50 +263,42 @@
             box-shadow: 0 4px 0 #963d1a;
         }
         .spin-btn.disabled {
-            opacity: 0.6;
+            opacity: 0.55;
             transform: translateY(0);
             pointer-events: none;
-            filter: grayscale(0.1);
+            filter: grayscale(0.15);
         }
 
-        /* 选项管理面板 - 艺术卡片 */
         .options-panel {
             background: rgba(30, 40, 50, 0.7);
             backdrop-filter: blur(16px);
-            border-radius: 48px;
-            padding: 16px 12px 20px;
-            margin-top: 12px;
+            border-radius: 40px;
+            padding: 14px 10px 18px;
+            margin-top: 10px;
             border: 1px solid rgba(255, 210, 140, 0.5);
-            box-shadow: inset 0 0 6px rgba(0,0,0,0.2), 0 8px 18px rgba(0,0,0,0.2);
+            box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.2), 0 8px 18px rgba(0, 0, 0, 0.2);
         }
-
         .panel-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             color: #ffdeae;
-            padding-left: 12px;
-            margin-bottom: 12px;
+            padding-left: 10px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
-        .panel-title i {
-            font-style: normal;
-            font-size: 20px;
-        }
-
-        /* 条目列表区域，可滚动 */
         .options-list {
-            max-height: 240px;
+            max-height: 200px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            padding: 4px 8px;
-            margin-bottom: 20px;
+            gap: 10px;
+            padding: 2px 6px;
+            margin-bottom: 16px;
         }
         .options-list::-webkit-scrollbar {
-            width: 5px;
+            width: 4px;
         }
         .options-list::-webkit-scrollbar-track {
             background: #2a3b44;
@@ -170,40 +308,38 @@
             background: #ffb85e;
             border-radius: 10px;
         }
-
-        /* 每个选项卡片 */
         .option-item {
-            background: rgba(10, 20, 28, 0.7);
-            border-radius: 60px;
+            background: var(--card-bg);
+            border-radius: 50px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 6px 12px 6px 20px;
-            gap: 10px;
+            padding: 5px 10px 5px 18px;
+            gap: 8px;
             backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 190, 100, 0.4);
+            border: 1px solid var(--border-soft);
             transition: all 0.2s;
         }
         .option-name {
             flex: 1;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 500;
             color: #f7e5c2;
             word-break: break-word;
-            padding-right: 6px;
+            padding-right: 4px;
             text-shadow: 0 1px 0 #1e2a32;
         }
         .option-actions {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             flex-shrink: 0;
         }
         .action-btn {
             background: rgba(255, 215, 150, 0.2);
             border: none;
-            font-size: 18px;
-            width: 36px;
-            height: 36px;
+            font-size: 16px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
@@ -226,21 +362,19 @@
         .action-btn:active {
             transform: scale(0.95);
         }
-
-        /* 添加区域 */
         .add-section {
             display: flex;
-            gap: 12px;
-            padding: 8px 12px;
-            margin-top: 6px;
+            gap: 10px;
+            padding: 6px 10px;
+            margin-top: 4px;
         }
         .add-input {
             flex: 1;
             background: #17242e;
             border: 1px solid #ffcd8a;
-            border-radius: 60px;
-            padding: 12px 18px;
-            font-size: 16px;
+            border-radius: 50px;
+            padding: 11px 16px;
+            font-size: 15px;
             color: #ffefcf;
             outline: none;
             font-weight: 500;
@@ -252,9 +386,9 @@
         .add-btn {
             background: #ffaa44;
             border: none;
-            border-radius: 60px;
-            padding: 0 28px;
-            font-size: 18px;
+            border-radius: 50px;
+            padding: 0 24px;
+            font-size: 17px;
             font-weight: bold;
             color: #2e241f;
             cursor: pointer;
@@ -265,528 +399,734 @@
             transform: translateY(2px);
             box-shadow: 0 1px 0 #a45d1a;
         }
-
-        /* 小提示 */
         .info-tip {
-            font-size: 12px;
+            font-size: 11px;
             text-align: center;
-            margin-top: 18px;
+            margin-top: 14px;
             color: #bcb08b;
             letter-spacing: 0.5px;
         }
 
-        /* 移动端优化 */
-        @media (max-width: 560px) {
+        /* 移动端折叠 */
+        .presets-toggle-mobile {
+            display: none;
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: 28px;
+            border: 1px solid rgba(255, 200, 120, 0.5);
+            background: rgba(20, 30, 40, 0.8);
+            color: #ffdba0;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            letter-spacing: 1px;
+            font-family: inherit;
+            backdrop-filter: blur(6px);
+            transition: all var(--transition-fast);
+            margin-bottom: 12px;
+        }
+        .presets-toggle-mobile:hover {
+            background: rgba(40, 55, 65, 0.85);
+            border-color: #ffc878;
+        }
+
+        @media (max-width: 820px) {
+            .app-shell {
+                flex-direction: column;
+                align-items: center;
+                gap: 14px;
+            }
+            .presets-panel {
+                flex: 0 0 auto;
+                width: 100%;
+                max-width: 560px;
+                position: static;
+                max-height: none;
+                border-radius: 36px;
+                padding: 12px 10px 10px;
+                gap: 4px;
+            }
+            .presets-list {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 6px;
+                max-height: none;
+                overflow-y: visible;
+                padding: 2px 0;
+            }
+            .preset-btn {
+                flex: 0 0 auto;
+                width: auto;
+                padding: 8px 12px;
+                font-size: 11px;
+                border-radius: 20px;
+                gap: 4px;
+            }
+            .preset-btn .preset-icon {
+                font-size: 14px;
+                width: auto;
+            }
+            .preset-btn .preset-name {
+                font-size: 10px;
+            }
+            .preset-btn .preset-opt-count {
+                display: none;
+            }
+            .preset-btn.active-preset::after {
+                display: none;
+            }
+            .presets-toggle-mobile {
+                display: block;
+            }
+            .presets-panel.collapsed-mobile .presets-list,
+            .presets-panel.collapsed-mobile .presets-header {
+                display: none;
+            }
+            .presets-panel.collapsed-mobile {
+                padding: 0;
+                background: transparent;
+                border: none;
+                box-shadow: none;
+            }
+            .presets-panel.collapsed-mobile .presets-toggle-mobile {
+                margin-bottom: 0;
+            }
             .wheel-container {
-                padding: 12px 16px 24px;
+                max-width: 100%;
+                min-width: 0;
+                border-radius: 48px 48px 40px 40px;
+                padding: 14px 12px 20px;
             }
-            .option-name {
-                font-size: 15px;
-            }
-            .action-btn {
-                width: 32px;
-                height: 32px;
-                font-size: 16px;
-            }
-            .add-input {
-                padding: 10px 14px;
-            }
-            .add-btn {
-                padding: 0 20px;
+            .result-name {
+                font-size: 20px;
             }
             .spin-btn {
                 width: 120px;
                 font-size: 20px;
                 padding: 12px 0;
             }
+            canvas {
+                max-width: 300px;
+            }
+            .option-name {
+                font-size: 14px;
+            }
+            .action-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+            .add-input {
+                padding: 9px 12px;
+                font-size: 14px;
+            }
+            .add-btn {
+                padding: 0 18px;
+                font-size: 15px;
+            }
+        }
+        @media (max-width: 420px) {
+            canvas {
+                max-width: 250px;
+            }
+            .spin-btn {
+                width: 100px;
+                font-size: 18px;
+                padding: 10px 0;
+                letter-spacing: 2px;
+            }
+            .result-name {
+                font-size: 17px;
+            }
+            .preset-btn {
+                padding: 6px 8px;
+                font-size: 10px;
+                border-radius: 16px;
+            }
         }
     </style>
 </head>
 <body>
-<div class="wheel-container">
-    <!-- 实时抽中显示区域 -->
-    <div class="result-area">
-        <div class="result-label">✨ 当前指针所指 ✨</div>
-        <div class="result-name" id="currentPickName">等待转动</div>
-    </div>
 
-    <!-- 转盘canvas -->
-    <div class="wheel-wrapper">
-        <canvas id="wheelCanvas" width="600" height="600"></canvas>
-    </div>
+    <div class="app-shell">
 
-    <!-- 旋转按钮 -->
-    <button class="spin-btn" id="spinButton">🎡 旋转</button>
+        <!-- 左侧预设面板 - 仅显示预设列表，无任何按钮 -->
+        <aside class="presets-panel" id="presetsPanel">
+            <button class="presets-toggle-mobile" id="presetsToggleMobile" title="展开/收起预设面板">
+                📋 预设方案 ▾
+            </button>
+            <div class="presets-header">
+                <span class="presets-title">📦 预设方案</span>
+                <span class="presets-count" id="presetsCount">0</span>
+            </div>
+            <div class="presets-list" id="presetsList">
+                <div style="color:#bcb08b; font-size:13px; padding:8px; text-align:center;">
+                    🚀 正在加载预设...
+                </div>
+            </div>
+            <!-- 移除了所有操作按钮，预设完全由 presets/ 文件夹中的 JSON 文件定义 -->
+        </aside>
 
-    <!-- 下方编辑区 -->
-    <div class="options-panel">
-        <div class="panel-title">
-            <i>🎨</i> 自定义转盘列表
+        <!-- 右侧转盘主容器 -->
+        <div class="wheel-container">
+            <div class="result-area">
+                <div class="result-label">✨ 当前指针所指 ✨</div>
+                <div class="result-name" id="currentPickName">等待转动</div>
+            </div>
+            <div class="wheel-wrapper">
+                <canvas id="wheelCanvas" width="600" height="600"></canvas>
+            </div>
+            <button class="spin-btn" id="spinButton">🎡 旋转</button>
+            <div class="options-panel">
+                <div class="panel-title">🎨 自定义转盘列表</div>
+                <div class="options-list" id="optionsList"></div>
+                <div class="add-section">
+                    <input type="text" id="newOptionName" class="add-input" placeholder="输入新选项, 例如: 一等奖" maxlength="20">
+                    <button id="addOptionBtn" class="add-btn">＋ 添加</button>
+                </div>
+                <div class="info-tip">✏️ 点击编辑/删除 | 预设方案请修改 presets/ 中的 JSON 文件</div>
+            </div>
         </div>
-        <div class="options-list" id="optionsList"></div>
-        <div class="add-section">
-            <input type="text" id="newOptionName" class="add-input" placeholder="输入新选项, 例如: 一等奖" maxlength="20">
-            <button id="addOptionBtn" class="add-btn">＋ 添加</button>
-        </div>
-        <div class="info-tip">✏️ 点击编辑/删除 |喵喵喵~</div>
     </div>
-</div>
 
-<script>
-    (function() {
-        // ---------- 配置参数 ----------
-        let options = [
-            { name: "🌟 自选餐", color: "" },
-            { name: "🍕 大盘子饭", color: "" },
-            { name: "🎬 鸡丝拌面", color: "" }
-        ];  // 默认3项，三种艺术风格颜色稍后动态生成
-        
-        // 转盘当前累计旋转弧度 (逆时针或顺时针我们统一顺时针为正)
-        let currentRotation = 0;          // 总旋转弧度
-        let animating = false;
-        let animationId = null;
-        let spinStartTime = 0;
-        let spinDuration = 1800;           // 1.8s 先快后慢效果明显
-        let startRotation = 0;
-        let targetRotation = 0;
-        
-        // DOM 元素
-        const canvas = document.getElementById('wheelCanvas');
-        const ctx = canvas.getContext('2d');
-        const spinBtn = document.getElementById('spinButton');
-        const optionsListDiv = document.getElementById('optionsList');
-        const newOptionInput = document.getElementById('newOptionName');
-        const addBtn = document.getElementById('addOptionBtn');
-        const currentPickSpan = document.getElementById('currentPickName');
-        
-        let canvasSize = 600;      // 固定逻辑分辨率，通过css缩放完美适配
-        let centerX = 300, centerY = 300;
-        let radius = 280;          // 半径留出边缘
-        
-        // 指针固定方向: 向上 ( -PI/2 )
-        const POINTER_ANGLE = -Math.PI / 2;
-        
-        // ---------- 辅助函数: 生成艺术颜色 (高饱和高明度 基于色相环跳跃) ----------
-        function generateColorPalette(count) {
-            const colors = [];
-            // 使用黄金角为基础，每个颜色不同，饱和65% 亮度70% 美观
-            for (let i = 0; i < count; i++) {
-                const hue = (i * 137.5) % 360;   // 黄金分割色相
-                colors.push(`hsl(${hue}, 70%, 65%)`);
-            }
-            return colors;
-        }
-        
-        // 更新所有选项的颜色 (根据当前数量艺术配色)
-        function refreshColors() {
-            const palette = generateColorPalette(options.length);
-            for (let i = 0; i < options.length; i++) {
-                options[i].color = palette[i];
-            }
-        }
-        
-        // 初始化默认颜色 (若新增/删除等都会调用)
-        function initColors() {
-            refreshColors();
-            drawWheel();
-            updateCurrentPickName();
-        }
-        
-        // 根据当前旋转角度计算指针指向哪个选项 (索引)
-        function getCurrentIndex(rotationRad) {
-            if (options.length === 0) return -1;
-            const anglePerSector = (Math.PI * 2) / options.length;
-            // 指针绝对方向 POINTER_ANGLE，转盘旋转了 rotationRad，实际每个扇区的边界都偏移了 rotationRad
-            // 我们需要找指针落在旋转后的哪个扇区内
-            for (let i = 0; i < options.length; i++) {
-                let start = i * anglePerSector;
-                let end = (i + 1) * anglePerSector;
-                // 扇区实际边界 = 原始边界 + rotationRad
-                let realStart = start + rotationRad;
-                let realEnd = end + rotationRad;
-                // 归一化指针角度到 [0, 2PI)
-                let normPointer = POINTER_ANGLE;
-                while (normPointer < 0) normPointer += Math.PI * 2;
-                while (normPointer >= Math.PI * 2) normPointer -= Math.PI * 2;
-                // 归一化 realStart, realEnd
-                let rStart = realStart % (Math.PI * 2);
-                let rEnd = realEnd % (Math.PI * 2);
-                if (rStart < 0) rStart += Math.PI * 2;
-                if (rEnd < 0) rEnd += Math.PI * 2;
-                
-                if (rStart < rEnd) {
-                    if (normPointer >= rStart && normPointer < rEnd) return i;
-                } else {
-                    // 跨越0弧度的情况
-                    if (normPointer >= rStart || normPointer < rEnd) return i;
+    <script>
+        (function() {
+            // ============================================================
+            //  预设管理 - 纯自动加载版本（无导入/导出/保存按钮）
+            //  所有预设来源于 presets/ 文件夹下的 JSON 文件
+            //  如需添加新预设，请在 presets/ 下新建 .json 文件，
+            //  并将文件名添加至下方的 KNOWN_PRESET_FILES 数组中
+            // ============================================================
+            const KNOWN_PRESET_FILES = [
+                'dinner.json',
+                'lottery.json',
+                'treat.json',
+                'weekend.json',
+                'teatime.json'
+                // 可在此添加更多预设文件名，例如 'my_custom.json'
+            ];
+
+            let allPresets = [];           // 从文件加载的预设列表
+            let activePresetId = null;    // 当前激活的预设ID
+
+            // 转盘选项（初始默认，稍后会被第一个预设覆盖）
+            let options = [
+                { name: "🌟 自选餐", color: "" },
+                { name: "🍕 大盘子饭", color: "" },
+                { name: "🎬 鸡丝拌面", color: "" }
+            ];
+
+            let currentRotation = 0;
+            let animating = false;
+            let animationId = null;
+            let spinStartTime = 0;
+            let spinDuration = 1800;
+            let startRotation = 0;
+            let targetRotation = 0;
+
+            // DOM 元素
+            const canvas = document.getElementById('wheelCanvas');
+            const ctx = canvas.getContext('2d');
+            const spinBtn = document.getElementById('spinButton');
+            const optionsListDiv = document.getElementById('optionsList');
+            const newOptionInput = document.getElementById('newOptionName');
+            const addBtn = document.getElementById('addOptionBtn');
+            const currentPickSpan = document.getElementById('currentPickName');
+            const presetsListDiv = document.getElementById('presetsList');
+            const presetsCountSpan = document.getElementById('presetsCount');
+            const presetsPanel = document.getElementById('presetsPanel');
+            const presetsToggleMobile = document.getElementById('presetsToggleMobile');
+
+            let canvasSize = 600;
+            let centerX = 300,
+                centerY = 300;
+            let radius = 280;
+            const POINTER_ANGLE = -Math.PI / 2;
+
+            // ============================================================
+            //  从 presets/ 文件夹加载单个 JSON 预设
+            // ============================================================
+            async function loadPresetFromFile(filename) {
+                try {
+                    const response = await fetch(`presets/${filename}`, { cache: 'no-cache' });
+                    if (!response.ok) throw new Error('文件不存在');
+                    const data = await response.json();
+                    if (data && data.id && data.name && Array.isArray(data.options)) {
+                        return {
+                            id: data.id,
+                            name: data.name,
+                            icon: data.icon || '📋',
+                            options: data.options
+                        };
+                    }
+                } catch (e) {
+                    console.warn(`预设文件 ${filename} 加载失败或格式不正确`);
                 }
+                return null;
             }
-            // fallback: 理论上精确命中, 找不到返回0
-            return 0;
-        }
-        
-        // 更新上方实时显示的名字
-        function updateCurrentPickName() {
-            if (options.length === 0) {
-                currentPickSpan.innerText = "无选项";
-                return;
+
+            async function autoLoadAllPresets() {
+                const loadedPresets = [];
+                for (const filename of KNOWN_PRESET_FILES) {
+                    const preset = await loadPresetFromFile(filename);
+                    if (preset) loadedPresets.push(preset);
+                }
+                return loadedPresets;
             }
-            const idx = getCurrentIndex(currentRotation);
-            if (idx !== -1 && options[idx]) {
-                currentPickSpan.innerText = options[idx].name;
-            } else {
-                currentPickSpan.innerText = "✨ 幸运 ✨";
+
+            // ============================================================
+            //  预设交互：点击加载
+            // ============================================================
+            function findPresetById(id) {
+                return allPresets.find(p => p.id === id);
             }
-        }
-        
-        // 绘制转盘 (核心视觉)
-        function drawWheel() {
-            if (!ctx) return;
-            const len = options.length;
-            if (len === 0) {
-                // 没选项时绘制灰色盘面
-                ctx.clearRect(0, 0, canvasSize, canvasSize);
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-                ctx.fillStyle = "#2c3e44";
-                ctx.fill();
-                ctx.fillStyle = "#ffd58c";
-                ctx.font = "bold 20px 'Segoe UI'";
-                ctx.fillText("请添加选项", centerX-70, centerY);
-                return;
-            }
-            
-            const angleStep = (Math.PI * 2) / len;
-            ctx.clearRect(0, 0, canvasSize, canvasSize);
-            
-            // 绘制扇形
-            for (let i = 0; i < len; i++) {
-                const start = i * angleStep + currentRotation;
-                const end = (i + 1) * angleStep + currentRotation;
-                ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, start, end);
-                ctx.closePath();
-                // 填充色
-                ctx.fillStyle = options[i].color;
-                ctx.fill();
-                // 白色边线精致感
-                ctx.save();
-                ctx.shadowBlur = 0;
-                ctx.strokeStyle = "rgba(255,245,200,0.7)";
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                // 绘制分割亮线
-                ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, start, end);
-                ctx.lineTo(centerX, centerY);
-                ctx.stroke();
-                
-                // 绘制文字 (在每个扇区中央)
-                const midAngle = start + angleStep / 2;
-                const textRadius = radius * 0.68;
-                const x = centerX + Math.cos(midAngle) * textRadius;
-                const y = centerY + Math.sin(midAngle) * textRadius;
-                let text = options[i].name;
-                // 文字换行处理（最多8个汉字适配）
-                let fontSize = 20;
-                if (text.length > 8) fontSize = 16;
-                if (text.length > 12) fontSize = 13;
-                ctx.font = `500 ${fontSize}px "Segoe UI", "Poppins", system-ui`;
-                ctx.fillStyle = "#1f2c30";
-                ctx.shadowBlur = 0;
-                ctx.shadowColor = "rgba(0,0,0,0)";
-                // 背景圆衬底增加可读性
-                ctx.save();
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = "rgba(255,245,210,0.85)";
-                const metrics = ctx.measureText(text);
-                const textWidth = metrics.width;
-                const padding = 8;
-                ctx.beginPath();
-                ctx.roundRect(x - textWidth/2 - 4, y - fontSize/2 - 2, textWidth + 8, fontSize + 6, 12);
-                ctx.fill();
-                ctx.fillStyle = "#1f2933";
-                ctx.font = `500 ${fontSize}px "Segoe UI", "Poppins", system-ui`;
-                ctx.fillText(text, x - textWidth/2, y + fontSize/2 - 2);
-                ctx.restore();
-            }
-            
-            // 绘制中心小圆装饰 + 指针固定金属感
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 32, 0, 2 * Math.PI);
-            ctx.fillStyle = "#f9d976";
-            ctx.shadowBlur = 6;
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 22, 0, 2 * Math.PI);
-            ctx.fillStyle = "#dcb570";
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 12, 0, 2 * Math.PI);
-            ctx.fillStyle = "#f9e0a0";
-            ctx.fill();
-            
-            // 绘制固定指针(外饰 + 三角) 在canvas上层不旋转
-            drawFixedPointer();
-        }
-        
-        // 画固定指针，华丽风格
-        function drawFixedPointer() {
-            const tipX = centerX;
-            const tipY = centerY - radius - 6;
-            const baseW = 28;
-            const baseH = 22;
-            ctx.save();
-            ctx.shadowBlur = 5;
-            ctx.shadowColor = "rgba(0,0,0,0.4)";
-            ctx.beginPath();
-            ctx.moveTo(tipX, tipY);
-            ctx.lineTo(tipX - baseW/2, tipY + baseH);
-            ctx.lineTo(tipX + baseW/2, tipY + baseH);
-            ctx.fillStyle = "#ffd966";
-            ctx.fill();
-            ctx.beginPath();
-            ctx.moveTo(tipX, tipY);
-            ctx.lineTo(tipX - baseW/3, tipY + baseH-4);
-            ctx.lineTo(tipX + baseW/3, tipY + baseH-4);
-            ctx.fillStyle = "#ffb347";
-            ctx.fill();
-            // 小圆球装饰
-            ctx.beginPath();
-            ctx.arc(tipX, tipY + 6, 8, 0, 2*Math.PI);
-            ctx.fillStyle = "#ffbc6e";
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(tipX, tipY + 4, 4, 0, 2*Math.PI);
-            ctx.fillStyle = "#ffebc2";
-            ctx.fill();
-            ctx.restore();
-        }
-        
-        // 圆角矩形辅助
-        if (!CanvasRenderingContext2D.prototype.roundRect) {
-            CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-                if (w < 2 * r) r = w / 2;
-                if (h < 2 * r) r = h / 2;
-                this.moveTo(x+r, y);
-                this.lineTo(x+w-r, y);
-                this.quadraticCurveTo(x+w, y, x+w, y+r);
-                this.lineTo(x+w, y+h-r);
-                this.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
-                this.lineTo(x+r, y+h);
-                this.quadraticCurveTo(x, y+h, x, y+h-r);
-                this.lineTo(x, y+r);
-                this.quadraticCurveTo(x, y, x+r, y);
-                return this;
-            };
-        }
-        
-        // 重置canvas尺寸和适配高DPI
-        function resizeCanvas() {
-            const container = canvas.parentElement;
-            const maxSize = Math.min(container.clientWidth, 480);
-            canvas.style.width = `${maxSize}px`;
-            canvas.style.height = `${maxSize}px`;
-            // 逻辑分辨率保持600x600
-            canvas.width = 600;
-            canvas.height = 600;
-            centerX = 300, centerY = 300;
-            radius = 272;
-            drawWheel();
-        }
-        window.addEventListener('resize', () => { resizeCanvas(); drawWheel(); });
-        
-        // 刷新列表UI (渲染下方选项菜单 + 同步数组)
-        function renderOptionsList() {
-            optionsListDiv.innerHTML = '';
-            for (let i = 0; i < options.length; i++) {
-                const item = options[i];
-                const div = document.createElement('div');
-                div.className = 'option-item';
-                div.innerHTML = `
-                    <span class="option-name">${escapeHtml(item.name)}</span>
-                    <div class="option-actions">
-                        <button class="action-btn edit-btn" data-index="${i}">✏️</button>
-                        <button class="action-btn del-btn" data-index="${i}">🗑️</button>
-                    </div>
-                `;
-                optionsListDiv.appendChild(div);
-            }
-            // 绑定编辑删除事件
-            document.querySelectorAll('.edit-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (animating) return;
-                    const idx = parseInt(btn.dataset.index);
-                    const newName = prompt("修改选项名称", options[idx].name);
-                    if (newName && newName.trim() !== "") {
-                        options[idx].name = newName.trim().slice(0, 22);
-                        // 颜色保留已有艺术色
-                        drawWheel();
-                        updateCurrentPickName();
-                        renderOptionsList();  // 刷新列表文字
-                    }
-                });
-            });
-            document.querySelectorAll('.del-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (animating) return;
-                    if (options.length <= 1) {
-                        alert("至少保留一个选项，无法删除");
-                        return;
-                    }
-                    const idx = parseInt(btn.dataset.index);
-                    options.splice(idx, 1);
-                    refreshColors();     // 重新分配颜色
-                    // 修正当前旋转角度避免索引失效 (不需要改变旋转，重新绘制)
-                    drawWheel();
-                    updateCurrentPickName();
-                    renderOptionsList();
-                });
-            });
-        }
-        
-        // 简易防XSS
-        function escapeHtml(str) {
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-        
-        // 添加新选项
-        function addNewOption() {
-            if (animating) return;
-            let newName = newOptionInput.value.trim();
-            if (!newName) {
-                alert("请输入选项名称");
-                return;
-            }
-            if (newName.length > 20) newName = newName.slice(0,20);
-            options.push({ name: newName, color: "" });
-            refreshColors();  // 刷新全盘颜色
-            drawWheel();
-            updateCurrentPickName();
-            renderOptionsList();
-            newOptionInput.value = "";
-            newOptionInput.focus();
-        }
-        
-        // ---------- 动画缓动（先快后慢 easeOutCubic） ----------
-        function easeOutCubic(t) {
-            return 1 - Math.pow(1 - t, 3);
-        }
-        
-        // 计算最终停止时的旋转弧度，使指针落在选中的目标选项上，并附加多圈华丽效果
-        function computeTargetRotationForIndex(targetIdx, currRot, extraCircles) {
-            if (options.length === 0) return currRot;
-            const anglePer = (Math.PI * 2) / options.length;
-            // 获取目标扇区边界（原始）
-            let startRaw = targetIdx * anglePer;
-            let endRaw = (targetIdx + 1) * anglePer;
-            // 我们要让指针POINTER_ANGLE落在旋转后扇区内 : 需要满足 startRaw + finalRot <= POINTER_ANGLE + 2kπ <= endRaw + finalRot
-            // 改写: finalRot ∈ [POINTER_ANGLE - endRaw, POINTER_ANGLE - startRaw] (mod 2π)
-            let low = POINTER_ANGLE - endRaw;
-            let high = POINTER_ANGLE - startRaw;
-            // 归一化到 [0, 2π)
-            const twoPi = Math.PI * 2;
-            let normLow = ((low % twoPi) + twoPi) % twoPi;
-            let normHigh = ((high % twoPi) + twoPi) % twoPi;
-            let finalBase;
-            if (normLow <= normHigh) {
-                finalBase = (normLow + normHigh) / 2;
-            } else {
-                // 区间跨越0，取中点技巧
-                let mid = (normLow + normHigh + twoPi) / 2;
-                finalBase = mid % twoPi;
-            }
-            // 保证 finalBase 相对于 currRot 是正向旋转且加上多圈
-            let delta = finalBase - (currRot % twoPi);
-            if (delta < 0) delta += twoPi;
-            // 额外增加多圈 (6~12圈)
-            const extraFull = extraCircles * twoPi;
-            const targetRot = currRot + delta + extraFull;
-            return targetRot;
-        }
-        
-        // 开始旋转 (先快后慢，随机目标)
-        function startSpin() {
-            if (animating) return;
-            if (options.length === 0) {
-                alert("请先添加选项再旋转!");
-                return;
-            }
-            // 随机抽取最终选项索引（概率均等）
-            const randIndex = Math.floor(Math.random() * options.length);
-            // 动态随机额外圈数 (6~12圈) 保证转动华丽
-            const extraCircles = 6 + Math.floor(Math.random() * 7);
-            const newTargetRot = computeTargetRotationForIndex(randIndex, currentRotation, extraCircles);
-            
-            startRotation = currentRotation;
-            targetRotation = newTargetRot;
-            spinStartTime = performance.now();
-            animating = true;
-            spinBtn.classList.add('disabled');
-            
-            function step(now) {
-                const elapsed = now - spinStartTime;
-                let t = Math.min(1, elapsed / spinDuration);
-                const easeT = easeOutCubic(t);   // 先快后慢
-                // 插值
-                const newRot = startRotation + (targetRotation - startRotation) * easeT;
-                currentRotation = newRot;
+
+            function loadPresetById(id) {
+                if (animating) return;
+                const preset = findPresetById(id);
+                if (!preset) return;
+                options = preset.options.map(name => ({ name: name, color: '' }));
+                refreshColors();
+                currentRotation = 0;
+                activePresetId = id;
                 drawWheel();
                 updateCurrentPickName();
-                if (t < 1) {
-                    animationId = requestAnimationFrame(step);
-                } else {
-                    // 动画完成，精确归位到目标旋转值
-                    currentRotation = targetRotation;
-                    drawWheel();
-                    updateCurrentPickName();
-                    animating = false;
-                    spinBtn.classList.remove('disabled');
-                    if (animationId) cancelAnimationFrame(animationId);
-                    animationId = null;
-                    // 显示弹幕感小惊喜 (视觉提示)
-                    const finalName = options[randIndex]?.name || "幸运儿";
-                    currentPickSpan.style.transform = "scale(1.08)";
-                    setTimeout(() => { currentPickSpan.style.transform = ""; }, 200);
+                renderOptionsList();
+                renderPresetsList();
+            }
+
+            // ============================================================
+            //  渲染预设列表（纯净版，无删除功能）
+            // ============================================================
+            function renderPresetsList() {
+                presetsListDiv.innerHTML = '';
+                if (allPresets.length === 0) {
+                    presetsListDiv.innerHTML = '<div style="color:#bcb08b; font-size:13px; padding:8px; text-align:center;">📁 未找到预设<br>请检查 presets 文件夹</div>';
+                    presetsCountSpan.textContent = '0';
+                    return;
+                }
+                allPresets.forEach(preset => {
+                    const isActive = preset.id === activePresetId;
+                    const btn = document.createElement('button');
+                    btn.className = 'preset-btn' + (isActive ? ' active-preset' : '');
+                    btn.title = preset.options.join(', ');
+                    btn.innerHTML = `
+                        <span class="preset-icon">${escapeHtml(preset.icon)}</span>
+                        <span class="preset-info">
+                            <span class="preset-name">${escapeHtml(preset.name)}</span>
+                            <span class="preset-opt-count">${preset.options.length} 个选项</span>
+                        </span>
+                    `;
+                    btn.addEventListener('click', () => loadPresetById(preset.id));
+                    presetsListDiv.appendChild(btn);
+                });
+                presetsCountSpan.textContent = allPresets.length;
+            }
+
+            // ============================================================
+            //  颜色与转盘绘制（保持不变）
+            // ============================================================
+            function generateColorPalette(count) {
+                const colors = [];
+                for (let i = 0; i < count; i++) {
+                    const hue = (i * 137.5) % 360;
+                    colors.push(`hsl(${hue}, 70%, 65%)`);
+                }
+                return colors;
+            }
+
+            function refreshColors() {
+                const palette = generateColorPalette(options.length);
+                for (let i = 0; i < options.length; i++) {
+                    options[i].color = palette[i];
                 }
             }
-            if (animationId) cancelAnimationFrame(animationId);
-            animationId = requestAnimationFrame(step);
-        }
-        
-        // 绑定UI事件
-        function bindEvents() {
-            spinBtn.addEventListener('click', startSpin);
-            addBtn.addEventListener('click', addNewOption);
-            newOptionInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') addNewOption();
+
+            function getCurrentIndex(rotationRad) {
+                if (options.length === 0) return -1;
+                const anglePerSector = (Math.PI * 2) / options.length;
+                for (let i = 0; i < options.length; i++) {
+                    let start = i * anglePerSector;
+                    let end = (i + 1) * anglePerSector;
+                    let realStart = start + rotationRad;
+                    let realEnd = end + rotationRad;
+                    let normPointer = POINTER_ANGLE;
+                    while (normPointer < 0) normPointer += Math.PI * 2;
+                    while (normPointer >= Math.PI * 2) normPointer -= Math.PI * 2;
+                    let rStart = realStart % (Math.PI * 2);
+                    let rEnd = realEnd % (Math.PI * 2);
+                    if (rStart < 0) rStart += Math.PI * 2;
+                    if (rEnd < 0) rEnd += Math.PI * 2;
+                    if (rStart < rEnd) {
+                        if (normPointer >= rStart && normPointer < rEnd) return i;
+                    } else {
+                        if (normPointer >= rStart || normPointer < rEnd) return i;
+                    }
+                }
+                return 0;
+            }
+
+            function updateCurrentPickName() {
+                if (options.length === 0) {
+                    currentPickSpan.innerText = "无选项";
+                    return;
+                }
+                const idx = getCurrentIndex(currentRotation);
+                if (idx !== -1 && options[idx]) {
+                    currentPickSpan.innerText = options[idx].name;
+                } else {
+                    currentPickSpan.innerText = "✨ 幸运 ✨";
+                }
+            }
+
+            function drawWheel() {
+                if (!ctx) return;
+                const len = options.length;
+                if (len === 0) {
+                    ctx.clearRect(0, 0, canvasSize, canvasSize);
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                    ctx.fillStyle = "#2c3e44";
+                    ctx.fill();
+                    ctx.fillStyle = "#ffd58c";
+                    ctx.font = "bold 20px 'Segoe UI'";
+                    ctx.fillText("请添加选项", centerX - 70, centerY);
+                    return;
+                }
+                const angleStep = (Math.PI * 2) / len;
+                ctx.clearRect(0, 0, canvasSize, canvasSize);
+                for (let i = 0; i < len; i++) {
+                    const start = i * angleStep + currentRotation;
+                    const end = (i + 1) * angleStep + currentRotation;
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, start, end);
+                    ctx.closePath();
+                    ctx.fillStyle = options[i].color;
+                    ctx.fill();
+                    ctx.save();
+                    ctx.shadowBlur = 0;
+                    ctx.strokeStyle = "rgba(255,245,200,0.7)";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, start, end);
+                    ctx.lineTo(centerX, centerY);
+                    ctx.stroke();
+                    const midAngle = start + angleStep / 2;
+                    const textRadius = radius * 0.68;
+                    const x = centerX + Math.cos(midAngle) * textRadius;
+                    const y = centerY + Math.sin(midAngle) * textRadius;
+                    let text = options[i].name;
+                    let fontSize = 20;
+                    if (text.length > 8) fontSize = 16;
+                    if (text.length > 12) fontSize = 13;
+                    ctx.font = `500 ${fontSize}px "Segoe UI", "Poppins", system-ui`;
+                    ctx.fillStyle = "#1f2c30";
+                    ctx.shadowBlur = 0;
+                    ctx.shadowColor = "rgba(0,0,0,0)";
+                    ctx.save();
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = "rgba(255,245,210,0.85)";
+                    const metrics = ctx.measureText(text);
+                    const textWidth = metrics.width;
+                    const padding = 8;
+                    ctx.beginPath();
+                    ctx.roundRect(x - textWidth / 2 - 4, y - fontSize / 2 - 2, textWidth + 8, fontSize + 6, 12);
+                    ctx.fill();
+                    ctx.fillStyle = "#1f2933";
+                    ctx.font = `500 ${fontSize}px "Segoe UI", "Poppins", system-ui`;
+                    ctx.fillText(text, x - textWidth / 2, y + fontSize / 2 - 2);
+                    ctx.restore();
+                }
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 32, 0, 2 * Math.PI);
+                ctx.fillStyle = "#f9d976";
+                ctx.shadowBlur = 6;
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 22, 0, 2 * Math.PI);
+                ctx.fillStyle = "#dcb570";
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 12, 0, 2 * Math.PI);
+                ctx.fillStyle = "#f9e0a0";
+                ctx.fill();
+                drawFixedPointer();
+            }
+
+            function drawFixedPointer() {
+                const tipX = centerX;
+                const tipY = centerY - radius - 6;
+                const baseW = 28;
+                const baseH = 22;
+                ctx.save();
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = "rgba(0,0,0,0.4)";
+                ctx.beginPath();
+                ctx.moveTo(tipX, tipY);
+                ctx.lineTo(tipX - baseW / 2, tipY + baseH);
+                ctx.lineTo(tipX + baseW / 2, tipY + baseH);
+                ctx.fillStyle = "#ffd966";
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(tipX, tipY);
+                ctx.lineTo(tipX - baseW / 3, tipY + baseH - 4);
+                ctx.lineTo(tipX + baseW / 3, tipY + baseH - 4);
+                ctx.fillStyle = "#ffb347";
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(tipX, tipY + 6, 8, 0, 2 * Math.PI);
+                ctx.fillStyle = "#ffbc6e";
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(tipX, tipY + 4, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = "#ffebc2";
+                ctx.fill();
+                ctx.restore();
+            }
+
+            if (!CanvasRenderingContext2D.prototype.roundRect) {
+                CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+                    if (w < 2 * r) r = w / 2;
+                    if (h < 2 * r) r = h / 2;
+                    this.moveTo(x + r, y);
+                    this.lineTo(x + w - r, y);
+                    this.quadraticCurveTo(x + w, y, x + w, y + r);
+                    this.lineTo(x + w, y + h - r);
+                    this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                    this.lineTo(x + r, y + h);
+                    this.quadraticCurveTo(x, y + h, x, y + h - r);
+                    this.lineTo(x, y + r);
+                    this.quadraticCurveTo(x, y, x + r, y);
+                    return this;
+                };
+            }
+
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                const maxSize = Math.min(container.clientWidth, 420);
+                canvas.style.width = `${maxSize}px`;
+                canvas.style.height = `${maxSize}px`;
+                canvas.width = 600;
+                canvas.height = 600;
+                centerX = 300;
+                centerY = 300;
+                radius = 272;
+                drawWheel();
+            }
+            window.addEventListener('resize', () => { resizeCanvas();
+                drawWheel(); });
+
+            // ============================================================
+            //  选项列表渲染（编辑/删除功能仍保留，但不会影响预设文件）
+            // ============================================================
+            function renderOptionsList() {
+                optionsListDiv.innerHTML = '';
+                for (let i = 0; i < options.length; i++) {
+                    const item = options[i];
+                    const div = document.createElement('div');
+                    div.className = 'option-item';
+                    div.innerHTML = `
+                        <span class="option-name">${escapeHtml(item.name)}</span>
+                        <div class="option-actions">
+                            <button class="action-btn edit-btn" data-index="${i}">✏️</button>
+                            <button class="action-btn del-btn" data-index="${i}">🗑️</button>
+                        </div>
+                    `;
+                    optionsListDiv.appendChild(div);
+                }
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (animating) return;
+                        const idx = parseInt(btn.dataset.index);
+                        const newName = prompt("修改选项名称", options[idx].name);
+                        if (newName && newName.trim() !== "") {
+                            options[idx].name = newName.trim().slice(0, 22);
+                            // 手动修改选项后，断开与预设的关联
+                            activePresetId = null;
+                            drawWheel();
+                            updateCurrentPickName();
+                            renderOptionsList();
+                            renderPresetsList();
+                        }
+                    });
+                });
+                document.querySelectorAll('.del-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (animating) return;
+                        if (options.length <= 1) {
+                            alert("至少保留一个选项，无法删除");
+                            return;
+                        }
+                        const idx = parseInt(btn.dataset.index);
+                        options.splice(idx, 1);
+                        activePresetId = null;
+                        refreshColors();
+                        drawWheel();
+                        updateCurrentPickName();
+                        renderOptionsList();
+                        renderPresetsList();
+                    });
+                });
+            }
+
+            function escapeHtml(str) {
+                return str.replace(/[&<>]/g, function(m) {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    return m;
+                });
+            }
+
+            function addNewOption() {
+                if (animating) return;
+                let newName = newOptionInput.value.trim();
+                if (!newName) {
+                    alert("请输入选项名称");
+                    return;
+                }
+                if (newName.length > 20) newName = newName.slice(0, 20);
+                options.push({ name: newName, color: "" });
+                activePresetId = null;
+                refreshColors();
+                drawWheel();
+                updateCurrentPickName();
+                renderOptionsList();
+                renderPresetsList();
+                newOptionInput.value = "";
+                newOptionInput.focus();
+            }
+
+            // ============================================================
+            //  旋转动画
+            // ============================================================
+            function easeOutCubic(t) {
+                return 1 - Math.pow(1 - t, 3);
+            }
+
+            function computeTargetRotationForIndex(targetIdx, currRot, extraCircles) {
+                if (options.length === 0) return currRot;
+                const anglePer = (Math.PI * 2) / options.length;
+                let startRaw = targetIdx * anglePer;
+                let endRaw = (targetIdx + 1) * anglePer;
+                let low = POINTER_ANGLE - endRaw;
+                let high = POINTER_ANGLE - startRaw;
+                const twoPi = Math.PI * 2;
+                let normLow = ((low % twoPi) + twoPi) % twoPi;
+                let normHigh = ((high % twoPi) + twoPi) % twoPi;
+                let finalBase;
+                if (normLow <= normHigh) {
+                    finalBase = (normLow + normHigh) / 2;
+                } else {
+                    let mid = (normLow + normHigh + twoPi) / 2;
+                    finalBase = mid % twoPi;
+                }
+                let delta = finalBase - (currRot % twoPi);
+                if (delta < 0) delta += twoPi;
+                const extraFull = extraCircles * twoPi;
+                return currRot + delta + extraFull;
+            }
+
+            function startSpin() {
+                if (animating) return;
+                if (options.length === 0) {
+                    alert("请先添加选项再旋转!");
+                    return;
+                }
+                const randIndex = Math.floor(Math.random() * options.length);
+                const extraCircles = 6 + Math.floor(Math.random() * 7);
+                const newTargetRot = computeTargetRotationForIndex(randIndex, currentRotation, extraCircles);
+                startRotation = currentRotation;
+                targetRotation = newTargetRot;
+                spinStartTime = performance.now();
+                animating = true;
+                spinBtn.classList.add('disabled');
+
+                function step(now) {
+                    const elapsed = now - spinStartTime;
+                    let t = Math.min(1, elapsed / spinDuration);
+                    const easeT = easeOutCubic(t);
+                    const newRot = startRotation + (targetRotation - startRotation) * easeT;
+                    currentRotation = newRot;
+                    drawWheel();
+                    updateCurrentPickName();
+                    if (t < 1) {
+                        animationId = requestAnimationFrame(step);
+                    } else {
+                        currentRotation = targetRotation;
+                        drawWheel();
+                        updateCurrentPickName();
+                        animating = false;
+                        spinBtn.classList.remove('disabled');
+                        if (animationId) cancelAnimationFrame(animationId);
+                        animationId = null;
+                        const finalName = options[randIndex]?.name || "幸运儿";
+                        currentPickSpan.style.transform = "scale(1.08)";
+                        setTimeout(() => { currentPickSpan.style.transform = ""; }, 200);
+                    }
+                }
+                if (animationId) cancelAnimationFrame(animationId);
+                animationId = requestAnimationFrame(step);
+            }
+
+            // ============================================================
+            //  事件绑定
+            // ============================================================
+            function bindEvents() {
+                spinBtn.addEventListener('click', startSpin);
+                addBtn.addEventListener('click', addNewOption);
+                newOptionInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') addNewOption();
+                });
+
+                // 移动端折叠
+                presetsToggleMobile.addEventListener('click', () => {
+                    presetsPanel.classList.toggle('collapsed-mobile');
+                    const isCollapsed = presetsPanel.classList.contains('collapsed-mobile');
+                    presetsToggleMobile.textContent = isCollapsed ? '📋 展开预设 ▸' : '📋 预设方案 ▾';
+                });
+            }
+
+            // ============================================================
+            //  初始化
+            // ============================================================
+            async function init() {
+                resizeCanvas();
+                // 自动加载所有预设文件
+                allPresets = await autoLoadAllPresets();
+
+                // 如果有预设，加载第一个作为默认
+                if (allPresets.length > 0) {
+                    const firstPreset = allPresets[0];
+                    options = firstPreset.options.map(name => ({ name: name, color: '' }));
+                    activePresetId = firstPreset.id;
+                } else {
+                    // 无预设时保留示例选项，并提示
+                    options = [
+                        { name: "🌟 自选餐", color: "" },
+                        { name: "🍕 大盘子饭", color: "" },
+                        { name: "🎬 鸡丝拌面", color: "" }
+                    ];
+                }
+
+                refreshColors();
+                drawWheel();
+                updateCurrentPickName();
+                renderOptionsList();
+                renderPresetsList();
+                bindEvents();
+            }
+
+            window.addEventListener('load', () => {
+                init();
             });
-        }
-        
-        // 初始化全盘
-        function init() {
-            resizeCanvas();
-            initColors();      // 生成艺术颜色
-            renderOptionsList();
-            bindEvents();
-            updateCurrentPickName();
-            drawWheel();
-        }
-        
-        // 监听选项变化触发重绘 (外部修改尺寸后)
-        window.addEventListener('load', () => {
-            init();
-        });
-    })();
-</script>
+        })();
+    </script>
 </body>
 </html>
