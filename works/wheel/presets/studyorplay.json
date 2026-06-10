@@ -1,0 +1,9 @@
+{
+  "id": "studyorplay",
+  "name": "学不学？",
+  "icon": "O。0",
+  "options": [
+    "学习",
+    "玩耍"
+  ]
+}
