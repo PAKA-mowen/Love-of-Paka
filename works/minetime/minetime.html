@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的时间 - 自定义生物钟时钟</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        body {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            min-height: 100vh;
+        }
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center text-white p-6">
+    
+    <div class="w-full max-w-lg bg-slate-800/50 backdrop-blur rounded-2xl p-8 shadow-2xl border border-slate-700">
+        <h1 class="text-2xl font-bold text-center mb-2 text-slate-200">我的生物钟时间</h1>
+        <p class="text-center text-slate-400 mb-8 text-sm">自定义起床时刻与对应的生物钟时间</p>
+
+        <!-- 我的时间 显示区 -->
+        <div class="text-center mb-8">
+            <div class="text-sm text-slate-400 mb-2">对我来说现在是</div>
+            <div id="myTime" class="mono text-6xl font-bold text-amber-400 tracking-wider">
+                00:00:00
+            </div>
+            <div id="myDayText" class="text-slate-500 mt-2 text-sm">第 1 天</div>
+        </div>
+
+        <!-- 真实时间 对照 -->
+        <div class="text-center mb-6 py-4 border-t border-b border-slate-700">
+            <div class="text-xs text-slate-500 mb-1">真实北京时间</div>
+            <div id="realTime" class="mono text-xl text-slate-300">--:--:--</div>
+        </div>
+
+        <!-- 自定义设置区 -->
+        <div class="space-y-4 mb-6">
+            <div>
+                <label class="text-sm text-slate-400 block mb-2">真实的每日起床时间</label>
+                <input type="time" id="realWakeInput" value="17:00" 
+                    class="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white mono focus:outline-none focus:border-amber-400 transition-colors">
+            </div>
+            <div>
+                <label class="text-sm text-slate-400 block mb-2">对应生物钟的起床时间</label>
+                <input type="time" id="bioWakeInput" value="06:00" 
+                    class="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white mono focus:outline-none focus:border-amber-400 transition-colors">
+            </div>
+            <button id="setTimeBtn" 
+                class="w-full px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-lg font-semibold transition-all active:scale-95">
+                确认设置
+            </button>
+            <p class="text-xs text-slate-500">设置好后建议「添加到书签」，下次打开自动保留</p>
+        </div>
+
+        <!-- 按钮区 -->
+        <div class="flex gap-4 justify-center mb-4">
+            <button id="nowBtn" 
+                class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-semibold transition-all active:scale-95 shadow-lg shadow-emerald-900/30">
+                现在起床
+            </button>
+            <button id="resetBtn" 
+                class="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-medium transition-all active:scale-95">
+                重置
+            </button>
+        </div>
+
+        <!-- 起床时刻记录 -->
+        <div id="recordBox" class="mt-4 text-center text-sm text-slate-500 hidden">
+            真实 <span id="realWakeText" class="text-slate-300 mono"></span>
+            <span class="mx-2">=</span>
+            生物钟 <span id="bioWakeText" class="text-amber-400 mono"></span>
+        </div>
+
+        <!-- 提示信息 -->
+        <div id="tipBox" class="mt-4 text-center text-xs text-emerald-400 hidden">
+            ✅ 设置已保存，请收藏此页面
+        </div>
+    </div>
+
+    <p class="mt-6 text-slate-600 text-xs">每日自动循环 · 书签保存设置 · 手机电脑通用</p>
+
+    <script>
+        // 真实起床时间
+        let realWakeHour = 17;
+        let realWakeMinute = 0;
+        // 生物钟起床时间
+        let bioWakeHour = 6;
+        let bioWakeMinute = 0;
+        
+        let baseDayTimestamp = null;
+        let timerInterval = null;
+
+        const myTimeEl = document.getElementById('myTime');
+        const realTimeEl = document.getElementById('realTime');
+        const realWakeInput = document.getElementById('realWakeInput');
+        const bioWakeInput = document.getElementById('bioWakeInput');
+        const setTimeBtn = document.getElementById('setTimeBtn');
+        const nowBtn = document.getElementById('nowBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const recordBox = document.getElementById('recordBox');
+        const realWakeText = document.getElementById('realWakeText');
+        const bioWakeText = document.getElementById('bioWakeText');
+        const myDayText = document.getElementById('myDayText');
+        const tipBox = document.getElementById('tipBox');
+
+        // 补零函数
+        function pad(n) {
+            return n.toString().padStart(2, '0');
+        }
+
+        // 更新真实时间
+        function updateRealTime() {
+            const now = new Date();
+            realTimeEl.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+        }
+        setInterval(updateRealTime, 1000);
+        updateRealTime();
+
+        // 获取当前生物钟日的真实起床时间戳
+        function getCurrentDayStart() {
+            const now = new Date();
+            const todayWake = new Date();
+            todayWake.setHours(realWakeHour, realWakeMinute, 0, 0);
+
+            if (now >= todayWake) {
+                return todayWake.getTime();
+            } else {
+                return todayWake.getTime() - 24 * 60 * 60 * 1000;
+            }
+        }
+
+        // 更新我的时间
+        function updateMyTime() {
+            if (baseDayTimestamp === null) return;
+            
+            const now = Date.now();
+            const currentDayStart = getCurrentDayStart();
+            
+            const passedMs = now - currentDayStart;
+            const bioOffsetMs = (bioWakeHour * 60 + bioWakeMinute) * 60 * 1000;
+            
+            const dayMs = 24 * 60 * 60 * 1000;
+            let bioTimeMs = (passedMs + bioOffsetMs) % dayMs;
+            if (bioTimeMs < 0) bioTimeMs += dayMs;
+            
+            const hours = Math.floor(bioTimeMs / (1000 * 60 * 60));
+            const minutes = Math.floor((bioTimeMs % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((bioTimeMs % (1000 * 60)) / 1000);
+
+            myTimeEl.textContent = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+
+            const dayCount = Math.floor((currentDayStart - baseDayTimestamp) / dayMs) + 1;
+            myDayText.textContent = `第 ${dayCount} 天`;
+        }
+
+        // 显示记录
+        function showRecord() {
+            realWakeText.textContent = `${pad(realWakeHour)}:${pad(realWakeMinute)}`;
+            bioWakeText.textContent = `${pad(bioWakeHour)}:${pad(bioWakeMinute)}`;
+            recordBox.classList.remove('hidden');
+        }
+
+        // 显示保存提示
+        function showTip() {
+            tipBox.classList.remove('hidden');
+            setTimeout(() => tipBox.classList.add('hidden'), 2000);
+        }
+
+        // 启动计时器
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateMyTime, 1000);
+            updateMyTime();
+        }
+
+        // 保存设置到 URL 和 localStorage
+        function saveSettings() {
+            // 1. 保存到 URL 参数（手机书签方案）
+            const params = new URLSearchParams();
+            params.set('rw', `${pad(realWakeHour)}${pad(realWakeMinute)}`);
+            params.set('bw', `${pad(bioWakeHour)}${pad(bioWakeMinute)}`);
+            params.set('base', baseDayTimestamp);
+            
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            window.history.replaceState({}, '', newUrl);
+
+            // 2. 尝试保存到 localStorage（电脑方案）
+            try {
+                localStorage.setItem('realWakeHour', realWakeHour);
+                localStorage.setItem('realWakeMinute', realWakeMinute);
+                localStorage.setItem('bioWakeHour', bioWakeHour);
+                localStorage.setItem('bioWakeMinute', bioWakeMinute);
+                localStorage.setItem('baseDayTimestamp', baseDayTimestamp);
+            } catch(e) {
+                // 隐私模式下忽略错误
+            }
+        }
+
+        // 从 URL 读取设置
+        function loadFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const rw = params.get('rw');
+            const bw = params.get('bw');
+            const base = params.get('base');
+
+            if (rw && bw) {
+                realWakeHour = parseInt(rw.slice(0, 2));
+                realWakeMinute = parseInt(rw.slice(2, 4));
+                bioWakeHour = parseInt(bw.slice(0, 2));
+                bioWakeMinute = parseInt(bw.slice(2, 4));
+                
+                if (base) {
+                    baseDayTimestamp = Number(base);
+                } else {
+                    baseDayTimestamp = getCurrentDayStart();
+                }
+                return true;
+            }
+            return false;
+        }
+
+        // 从 localStorage 读取设置
+        function loadFromStorage() {
+            try {
+                const savedRH = localStorage.getItem('realWakeHour');
+                const savedRM = localStorage.getItem('realWakeMinute');
+                const savedBH = localStorage.getItem('bioWakeHour');
+                const savedBM = localStorage.getItem('bioWakeMinute');
+                const savedBase = localStorage.getItem('baseDayTimestamp');
+                
+                if (savedRH !== null && savedRM !== null && savedBH !== null && savedBM !== null) {
+                    realWakeHour = Number(savedRH);
+                    realWakeMinute = Number(savedRM);
+                    bioWakeHour = Number(savedBH);
+                    bioWakeMinute = Number(savedBM);
+                    baseDayTimestamp = Number(savedBase);
+                    return true;
+                }
+            } catch(e) {
+                // 忽略错误
+            }
+            return false;
+        }
+
+        // 应用设置到界面
+        function applyToUI() {
+            realWakeInput.value = `${pad(realWakeHour)}:${pad(realWakeMinute)}`;
+            bioWakeInput.value = `${pad(bioWakeHour)}:${pad(bioWakeMinute)}`;
+            showRecord();
+            startTimer();
+        }
+
+        // 应用新设置
+        function applySettings(rHour, rMinute, bHour, bMinute) {
+            realWakeHour = rHour;
+            realWakeMinute = rMinute;
+            bioWakeHour = bHour;
+            bioWakeMinute = bMinute;
+            
+            baseDayTimestamp = getCurrentDayStart();
+            
+            applyToUI();
+            saveSettings();
+            showTip();
+        }
+
+        // 确认设置按钮
+        setTimeBtn.addEventListener('click', () => {
+            const realStr = realWakeInput.value;
+            const bioStr = bioWakeInput.value;
+            if (!realStr || !bioStr) return;
+
+            const [rh, rm] = realStr.split(':').map(Number);
+            const [bh, bm] = bioStr.split(':').map(Number);
+            applySettings(rh, rm, bh, bm);
+        });
+
+        // 现在起床按钮
+        nowBtn.addEventListener('click', () => {
+            const now = new Date();
+            const bioStr = bioWakeInput.value;
+            if (!bioStr) return;
+            
+            const [bh, bm] = bioStr.split(':').map(Number);
+            applySettings(now.getHours(), now.getMinutes(), bh, bm);
+        });
+
+        // 重置按钮
+        resetBtn.addEventListener('click', () => {
+            if (timerInterval) clearInterval(timerInterval);
+            baseDayTimestamp = null;
+            myTimeEl.textContent = '00:00:00';
+            myDayText.textContent = '第 1 天';
+            recordBox.classList.add('hidden');
+            
+            realWakeInput.value = '17:00';
+            bioWakeInput.value = '06:00';
+            realWakeHour = 17;
+            realWakeMinute = 0;
+            bioWakeHour = 6;
+            bioWakeMinute = 0;
+            
+            // 清除 URL 参数
+            window.history.replaceState({}, '', window.location.pathname);
+            
+            try {
+                localStorage.clear();
+            } catch(e) {}
+        });
+
+        // 页面加载：优先读 URL，再读本地存储
+        window.addEventListener('load', () => {
+            const loadedFromUrl = loadFromUrl();
+            if (!loadedFromUrl) {
+                loadFromStorage();
+            }
+            
+            if (baseDayTimestamp !== null) {
+                applyToUI();
+            }
+        });
+    </script>
+</body>
+</html>
