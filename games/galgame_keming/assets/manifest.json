@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "buildId": "2026-09-05T09:42:25.812Z-cb2d4c",
+  "engineVersion": "1.0.0",
+  "title": "欸？好兄弟科明的真面目竟然是傲娇萝莉！",
+  "gameId": "ab47ac5b-a492-46c0-a7cf-a1eb1e7815fa",
+  "entryChapter": "开始",
+  "chapters": [
+    {
+      "id": "开始",
+      "sourceId": "b478983a-4a6a-431d-941a-bdfd996129e3",
+      "name": "开始",
+      "file": "chapters/68a757b396d5.json",
+      "size": 4766,
+      "hash": "68a757b396d5e1e1e04700ec3ed8f793"
+    },
+    {
+      "id": "第1章",
+      "sourceId": "ch-1788595131163-1",
+      "name": "第1章",
+      "file": "chapters/85f094fe8709.json",
+      "size": 9820,
+      "hash": "85f094fe8709700033ac453fe49073fb"
+    }
+  ],
+  "meta": {
+    "file": "meta.json",
+    "size": 18127,
+    "hash": "d2ed8a9a351bfe264b2d742732b8cb98"
+  },
+  "assets": {
+    "6f226a6ad04174d98787c751ff780c3f": {
+      "type": "image",
+      "originalName": "1788597891457.png",
+      "file": "images/6f226a6ad04174d98787c751ff780c3f.png",
+      "size": 193158,
+      "mime": "image/png"
+    },
+    "4425eeafcc0e3bfe70c7d1612b011530": {
+      "type": "audio",
+      "originalName": "Ambient · Atmospheric · Calm by Johny Grimes ｜ No Copyright Music ｜ ＂Dreamy Cat＂.mp3",
+      "file": "audio/4425eeafcc0e3bfe70c7d1612b011530.mp3",
+      "size": 1824319,
+      "mime": "audio/mpeg"
+    },
+    "bee877ab1e0f6b00b28409cb318e38a3": {
+      "type": "image",
+      "originalName": "1788600269028.png",
+      "file": "images/bee877ab1e0f6b00b28409cb318e38a3.png",
+      "size": 871946,
+      "mime": "image/png"
+    },
+    "6438075e7f8217ae5b501fd0fc8b3905": {
+      "type": "image",
+      "originalName": "旧货摊.png",
+      "file": "images/6438075e7f8217ae5b501fd0fc8b3905.png",
+      "size": 5624066,
+      "mime": "image/png"
+    },
+    "db3a27d2818471847e5e95e8ced899b0": {
+      "type": "image",
+      "originalName": "开始游戏界面.png",
+      "file": "images/db3a27d2818471847e5e95e8ced899b0.png",
+      "size": 5102147,
+      "mime": "image/png"
+    },
+    "c97cd9211a9e21b2ddf15fbed847b26b": {
+      "type": "image",
+      "originalName": "1788596476163.png",
+      "file": "images/c97cd9211a9e21b2ddf15fbed847b26b.png",
+      "size": 864692,
+      "mime": "image/png"
+    },
+    "ac65fab40b6314f75d4fa1662eef886c": {
+      "type": "image",
+      "originalName": "1788596622472.png",
+      "file": "images/ac65fab40b6314f75d4fa1662eef886c.png",
+      "size": 933595,
+      "mime": "image/png"
+    },
+    "8c911613aeadb00c0b919924cab0df45": {
+      "type": "font",
+      "originalName": "851LakeusNightWriting-Regular.ttf",
+      "file": "fonts/8c911613aeadb00c0b919924cab0df45.ttf",
+      "size": 28880528,
+      "mime": "font/ttf"
+    }
+  },
+  "pathToHash": {
+    "particles/1788597891457.png": "images/6f226a6ad04174d98787c751ff780c3f.png",
+    "6f226a6ad04174d98787c751ff780c3f": "images/6f226a6ad04174d98787c751ff780c3f.png",
+    "bgm/ambient · atmospheric · calm by johny grimes ｜ no copyright music ｜ ＂dreamy cat＂.mp3": "audio/4425eeafcc0e3bfe70c7d1612b011530.mp3",
+    "4425eeafcc0e3bfe70c7d1612b011530": "audio/4425eeafcc0e3bfe70c7d1612b011530.mp3",
+    "characters/1788600269028.png": "images/bee877ab1e0f6b00b28409cb318e38a3.png",
+    "bee877ab1e0f6b00b28409cb318e38a3": "images/bee877ab1e0f6b00b28409cb318e38a3.png",
+    "backgrounds/旧货摊.png": "images/6438075e7f8217ae5b501fd0fc8b3905.png",
+    "6438075e7f8217ae5b501fd0fc8b3905": "images/6438075e7f8217ae5b501fd0fc8b3905.png",
+    "backgrounds/开始游戏界面.png": "images/db3a27d2818471847e5e95e8ced899b0.png",
+    "db3a27d2818471847e5e95e8ced899b0": "images/db3a27d2818471847e5e95e8ced899b0.png",
+    "characters/1788596476163.png": "images/c97cd9211a9e21b2ddf15fbed847b26b.png",
+    "c97cd9211a9e21b2ddf15fbed847b26b": "images/c97cd9211a9e21b2ddf15fbed847b26b.png",
+    "characters/1788596622472.png": "images/ac65fab40b6314f75d4fa1662eef886c.png",
+    "ac65fab40b6314f75d4fa1662eef886c": "images/ac65fab40b6314f75d4fa1662eef886c.png",
+    "fonts/851lakeusnightwriting-regular.ttf": "fonts/8c911613aeadb00c0b919924cab0df45.ttf",
+    "8c911613aeadb00c0b919924cab0df45": "fonts/8c911613aeadb00c0b919924cab0df45.ttf",
+    "1788597891457.png": "images/6f226a6ad04174d98787c751ff780c3f.png",
+    "ambient · atmospheric · calm by johny grimes ｜ no copyright music ｜ ＂dreamy cat＂.mp3": "audio/4425eeafcc0e3bfe70c7d1612b011530.mp3",
+    "1788600269028.png": "images/bee877ab1e0f6b00b28409cb318e38a3.png",
+    "旧货摊.png": "images/6438075e7f8217ae5b501fd0fc8b3905.png",
+    "开始游戏界面.png": "images/db3a27d2818471847e5e95e8ced899b0.png",
+    "1788596476163.png": "images/c97cd9211a9e21b2ddf15fbed847b26b.png",
+    "1788596622472.png": "images/ac65fab40b6314f75d4fa1662eef886c.png",
+    "851lakeusnightwriting-regular.ttf": "fonts/8c911613aeadb00c0b919924cab0df45.ttf"
+  }
+}

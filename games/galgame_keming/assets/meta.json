@@ -1,0 +1,529 @@
+{
+  "characters": {
+    "version": 2,
+    "globalSettings": {},
+    "attributeTemplate": [],
+    "characters": [
+      {
+        "id": "21a0adc8-9f7f-4481-b2fa-4613ad370c9f",
+        "name": "科明",
+        "expressions": [
+          {
+            "name": "大脸照",
+            "assetPath": "images/ac65fab40b6314f75d4fa1662eef886c.png"
+          },
+          {
+            "name": "站立",
+            "assetPath": "images/c97cd9211a9e21b2ddf15fbed847b26b.png"
+          }
+        ],
+        "dialoguePortraitEnabled": false
+      },
+      {
+        "id": "63ebe5ba-4f27-4b37-8f92-e98e1bba9c9f",
+        "name": "旧货摊老板",
+        "expressions": [
+          {
+            "name": "旧货摊老板",
+            "assetPath": "images/bee877ab1e0f6b00b28409cb318e38a3.png"
+          }
+        ]
+      }
+    ]
+  },
+  "scenes": {
+    "version": 2,
+    "scenes": [
+      {
+        "id": "e44ecadc-1aff-4197-b877-8414e32393a0",
+        "name": "旧货摊",
+        "layers": [
+          {
+            "id": "f8d69ee8-9954-47bf-aa78-449d49dbbd1e",
+            "name": "旧货摊",
+            "assetPath": "images/6438075e7f8217ae5b501fd0fc8b3905.png",
+            "distance": 1
+          }
+        ]
+      },
+      {
+        "id": "5d6cadf1-5c21-460d-baaa-296aab639820",
+        "name": "开始游戏界面",
+        "layers": [
+          {
+            "id": "dc1f393f-2e2d-4c2d-89d0-b407f6e915ac",
+            "name": "开始游戏界面",
+            "assetPath": "images/db3a27d2818471847e5e95e8ced899b0.png",
+            "distance": 1
+          }
+        ]
+      }
+    ]
+  },
+  "personalization": {
+    "userSettings": [],
+    "presetDialogueBoxes": [
+      {
+        "id": "cinematic",
+        "dialogueBox": {
+          "text_speed": 30,
+          "styles": {
+            "dialogue": {
+              "text_styles": {
+                "fontFamily": "'Source Han Sans', 'PingFang SC', sans-serif",
+                "fontSize": 30,
+                "fontWeight": 500,
+                "color": "#f3ede2",
+                "textShadow": "0 0 1.5px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.7), 1px 2px 4px rgba(0,0,0,0.6)",
+                "letterSpacing": "0.04em",
+                "lineHeight": 1.75
+              },
+              "background": {
+                "css": "\n            background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 100%);\n            border-top: 1px solid rgba(255,255,255,0.12);\n          ",
+                "box_size": "(100%, 220)",
+                "box_position": "(center, bottom-220)"
+              }
+            },
+            "name_card": {
+              "text_styles": {
+                "fontFamily": "'Source Han Sans', 'PingFang SC', sans-serif",
+                "fontSize": 34,
+                "fontWeight": 600,
+                "color": "#ffd88a",
+                "textShadow": "0 0 1.5px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.7), 1px 2px 4px rgba(0,0,0,0.6)",
+                "letterSpacing": "0.04em"
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "cinematic-centered",
+        "dialogueBox": {
+          "text_speed": 30,
+          "styles": {
+            "dialogue": {
+              "box_size": "(100%, 220)",
+              "box_position": "(center, bottom-220)",
+              "show_wait_for_icon": false,
+              "text_styles": {
+                "fontFamily": "'Source Han Sans', 'PingFang SC', sans-serif",
+                "fontSize": 34,
+                "fontWeight": 500,
+                "color": "#f3ede2",
+                "textShadow": "0 0 1.5px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.7), 1px 2px 6px rgba(0,0,0,0.6)",
+                "letterSpacing": "0.08em",
+                "lineHeight": 1.8,
+                "textAlign": "center",
+                "marginLeft": 0,
+                "marginRight": 0,
+                "marginTop": 40
+              },
+              "background": {
+                "css": "background: transparent;",
+                "box_size": "(100%, 220)",
+                "box_position": "(center, bottom-220)"
+              }
+            },
+            "name_card": {
+              "box_size": "(100%, 40)",
+              "box_position": "(center, bottom-260)",
+              "text_styles": {
+                "fontFamily": "'Source Han Sans', 'PingFang SC', sans-serif",
+                "fontSize": 26,
+                "fontWeight": 600,
+                "color": "#ffd88a",
+                "textShadow": "0 0 1.5px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.7)",
+                "letterSpacing": "0.15em",
+                "textAlign": "center"
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "literary",
+        "dialogueBox": {
+          "text_speed": 30,
+          "styles": {
+            "dialogue": {
+              "text_styles": {
+                "fontFamily": "'LXGW WenKai', 'Songti SC', serif",
+                "fontSize": 28,
+                "fontWeight": 400,
+                "color": "#fdf6e3",
+                "textShadow": "0 1px 2px rgba(0,0,0,0.5), 1px 1px 3px rgba(0,0,0,0.35)",
+                "letterSpacing": "0.06em",
+                "lineHeight": 1.75
+              },
+              "background": {
+                "css": "\n            background: linear-gradient(180deg, rgba(43,34,24,0.78) 0%, rgba(35,26,18,0.82) 100%);\n            border-top: 1px solid rgba(192,148,88,0.35);\n            box-shadow:\n              inset 0 0 40px rgba(15,10,5,0.55),\n              inset 0 1px 0 rgba(255,208,140,0.08);\n          ",
+                "box_size": "(100%, 220)",
+                "box_position": "(center, bottom-220)"
+              }
+            },
+            "name_card": {
+              "text_styles": {
+                "fontFamily": "'LXGW WenKai', 'Songti SC', serif",
+                "fontSize": 32,
+                "fontWeight": 500,
+                "color": "#ffcf7a",
+                "textShadow": "0 1px 2px rgba(0,0,0,0.5), 1px 1px 3px rgba(0,0,0,0.35)",
+                "letterSpacing": "0.06em"
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "sharp",
+        "dialogueBox": {
+          "text_speed": 30,
+          "styles": {
+            "dialogue": {
+              "text_styles": {
+                "fontFamily": "'Smiley Sans', 'PingFang SC', sans-serif",
+                "fontSize": 30,
+                "fontWeight": 700,
+                "color": "#ffffff",
+                "textShadow": "-1px 0 0 #000, 1px 0 0 #000, 0 -1px 0 #000, 0 1px 0 #000, 0 0 10px rgba(120,180,255,0.5)",
+                "letterSpacing": "0.01em",
+                "lineHeight": 1.6
+              },
+              "background": {
+                "css": "\n            background: linear-gradient(180deg, rgba(8,12,22,0.9) 0%, rgba(14,20,34,0.92) 100%);\n            border-top: 1px solid rgba(120,180,255,0.55);\n            box-shadow:\n              inset 0 1px 0 rgba(120,180,255,0.25),\n              0 0 24px rgba(120,180,255,0.18);\n          ",
+                "box_size": "(100%, 220)",
+                "box_position": "(center, bottom-220)"
+              }
+            },
+            "name_card": {
+              "text_styles": {
+                "fontFamily": "'Smiley Sans', 'PingFang SC', sans-serif",
+                "fontSize": 36,
+                "fontWeight": 800,
+                "color": "#9ee7ff",
+                "textShadow": "-1px 0 0 #000, 1px 0 0 #000, 0 -1px 0 #000, 0 1px 0 #000, 0 0 12px rgba(120,180,255,0.7)",
+                "letterSpacing": "0.03em"
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "handwritten",
+        "dialogueBox": {
+          "text_speed": 30,
+          "styles": {
+            "dialogue": {
+              "text_styles": {
+                "fontFamily": "'LXGW WenKai', 'PingFang SC', sans-serif",
+                "fontSize": 28,
+                "fontWeight": 400,
+                "color": "#fff8f0",
+                "textShadow": "0 1px 3px rgba(60,40,30,0.55), 0 2px 6px rgba(60,40,30,0.3)",
+                "letterSpacing": "0.05em",
+                "lineHeight": 1.8
+              },
+              "background": {
+                "css": "\n            background: linear-gradient(180deg, rgba(90,62,48,0.72) 0%, rgba(70,46,34,0.78) 100%);\n            border-radius: 20px 20px 0 0;\n            box-shadow:\n              0 -4px 18px rgba(60,40,30,0.25),\n              inset 0 1px 0 rgba(255,245,230,0.1);\n          ",
+                "box_size": "(96%, 220)",
+                "box_position": "(center, bottom-230)"
+              }
+            },
+            "name_card": {
+              "text_styles": {
+                "fontFamily": "'LXGW WenKai', 'PingFang SC', sans-serif",
+                "fontSize": 32,
+                "fontWeight": 500,
+                "color": "#ffb3c6",
+                "textShadow": "0 1px 3px rgba(60,40,30,0.55), 0 2px 6px rgba(60,40,30,0.3)",
+                "letterSpacing": "0.05em"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "active": null,
+    "activeDialogueBox": {
+      "source": "preset",
+      "id": "cinematic",
+      "dialogueBox": {
+        "text_speed": 30,
+        "styles": {
+          "dialogue": {
+            "text_styles": {
+              "fontFamily": "'Source Han Sans', 'PingFang SC', sans-serif",
+              "fontSize": 30,
+              "fontWeight": 500,
+              "color": "#f3ede2",
+              "textShadow": "0 0 1.5px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.7), 1px 2px 4px rgba(0,0,0,0.6)",
+              "letterSpacing": "0.04em",
+              "lineHeight": 1.75
+            },
+            "background": {
+              "css": "\n            background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 100%);\n            border-top: 1px solid rgba(255,255,255,0.12);\n          ",
+              "box_size": "(100%, 220)",
+              "box_position": "(center, bottom-220)"
+            }
+          },
+          "name_card": {
+            "text_styles": {
+              "fontFamily": "'Source Han Sans', 'PingFang SC', sans-serif",
+              "fontSize": 34,
+              "fontWeight": 600,
+              "color": "#ffd88a",
+              "textShadow": "0 0 1.5px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.7), 1px 2px 4px rgba(0,0,0,0.6)",
+              "letterSpacing": "0.04em"
+            }
+          }
+        }
+      }
+    },
+    "dialogueStyles": [
+      {
+        "ref": {
+          "source": "system",
+          "id": "landing"
+        },
+        "name": "默认对话框",
+        "dialogueBox": {
+          "text_speed": 30,
+          "char_fade_in_duration": 100,
+          "text_reveal_effect": "smooth-rise",
+          "text_reveal_parameters": {
+            "distance_px": 8,
+            "scale_percent": 82,
+            "rotation_degrees": 70,
+            "blur_px": 4
+          },
+          "wait_for_icon_delay": 0
+        },
+        "dialogueBoxVisualUI": {
+          "version": 2,
+          "canvas": {
+            "width": 1920,
+            "height": 1080
+          },
+          "elements": [
+            {
+              "id": "dialogue-backdrop",
+              "type": "dialogue-backdrop",
+              "rect": {
+                "x": 0,
+                "y": 0,
+                "w": 1920,
+                "h": 1080
+              },
+              "anchor": "c",
+              "name": "舞台遮罩",
+              "refId": "dialogue-backdrop",
+              "style": {
+                "fill": "#000000",
+                "opacity": 0
+              },
+              "props": {},
+              "selectorId": "vui-27423e2642ad5f2facc4fe4e85e34dd7"
+            },
+            {
+              "id": "dialogue-frame",
+              "type": "dialogue-frame",
+              "rect": {
+                "x": 0,
+                "y": 880,
+                "w": 1920,
+                "h": 200
+              },
+              "anchor": "tl",
+              "name": "框体背景",
+              "refId": "dialogue-frame",
+              "style": {
+                "fill": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0,
+                "radius": 0,
+                "opacity": 100
+              },
+              "props": {
+                "runtimeOverride": true,
+                "backgroundImage": "",
+                "backgroundImageFit": "stretch",
+                "backgroundImagePosition": "center",
+                "backgroundImageRepeat": "no-repeat",
+                "linearGradient": {
+                  "enabled": true,
+                  "angle": 0,
+                  "startColor": "rgba(0,0,0,0.75)",
+                  "endColor": "rgba(0,0,0,0.3)"
+                },
+                "frameDecoration": {
+                  "borderTop": "1px solid rgba(255,255,255,0.12)",
+                  "borderRight": "",
+                  "borderBottom": "",
+                  "borderLeft": "",
+                  "borderRadius": "",
+                  "boxShadow": ""
+                }
+              },
+              "selectorId": "vui-614ea9511e2f51eeb47af97cc98bcc71"
+            },
+            {
+              "id": "dialogue-text",
+              "type": "dialogue-text",
+              "rect": {
+                "x": 200,
+                "y": 900,
+                "w": 1520,
+                "h": 180
+              },
+              "anchor": "tl",
+              "name": "对白文本",
+              "refId": "dialogue-text",
+              "style": {
+                "fontFamily": "'Source Han Sans', 'PingFang SC', sans-serif",
+                "fontSize": 30,
+                "fontWeight": 500,
+                "color": "#f3ede2",
+                "letterSpacing": 1.2,
+                "textAlign": "left",
+                "opacity": 100
+              },
+              "props": {
+                "lineHeight": 1.75,
+                "textShadows": [
+                  {
+                    "offsetX": 0,
+                    "offsetY": 0,
+                    "blur": 1.5,
+                    "color": "rgba(0,0,0,0.95)"
+                  },
+                  {
+                    "offsetX": 0,
+                    "offsetY": 0,
+                    "blur": 3,
+                    "color": "rgba(0,0,0,0.7)"
+                  },
+                  {
+                    "offsetX": 1,
+                    "offsetY": 2,
+                    "blur": 4,
+                    "color": "rgba(0,0,0,0.6)"
+                  }
+                ],
+                "previewText": "有些故事，会从一个看似普通的夜晚开始。\n而我们，刚好站在它的入口。"
+              },
+              "selectorId": "vui-822228848cdd5dfcac35a3db94a2ba70"
+            },
+            {
+              "id": "dialogue-name",
+              "type": "dialogue-name",
+              "rect": {
+                "x": 200,
+                "y": 840,
+                "w": 384,
+                "h": 40
+              },
+              "anchor": "tl",
+              "name": "角色名",
+              "refId": "dialogue-name",
+              "style": {
+                "fontFamily": "'Source Han Sans', 'PingFang SC', sans-serif",
+                "fontSize": 34,
+                "fontWeight": 600,
+                "color": "#ffd88a",
+                "fill": "transparent",
+                "borderColor": "transparent",
+                "borderWidth": 0,
+                "radius": 0,
+                "letterSpacing": 1.36,
+                "textAlign": "left",
+                "opacity": 100
+              },
+              "props": {
+                "backgroundImage": "",
+                "backgroundImageFit": "stretch",
+                "backgroundImagePosition": "center",
+                "backgroundImageRepeat": "no-repeat",
+                "linearGradient": {
+                  "enabled": false,
+                  "angle": 180,
+                  "startColor": "transparent",
+                  "endColor": "transparent"
+                },
+                "frameDecoration": {
+                  "borderTop": "",
+                  "borderRight": "",
+                  "borderBottom": "",
+                  "borderLeft": "",
+                  "borderRadius": "",
+                  "boxShadow": ""
+                },
+                "lineHeight": 1.5,
+                "textShadows": [
+                  {
+                    "offsetX": 0,
+                    "offsetY": 0,
+                    "blur": 1.5,
+                    "color": "rgba(0,0,0,0.95)"
+                  },
+                  {
+                    "offsetX": 0,
+                    "offsetY": 0,
+                    "blur": 3,
+                    "color": "rgba(0,0,0,0.7)"
+                  },
+                  {
+                    "offsetX": 1,
+                    "offsetY": 2,
+                    "blur": 4,
+                    "color": "rgba(0,0,0,0.6)"
+                  }
+                ],
+                "previewName": "小满"
+              },
+              "selectorId": "vui-9fcbb122a55e51169851045be205b588"
+            },
+            {
+              "id": "dialogue-wait-cursor",
+              "type": "dialogue-wait-cursor",
+              "rect": {
+                "x": 1546.4,
+                "y": 965.6,
+                "w": 28,
+                "h": 28
+              },
+              "anchor": "tl",
+              "name": "等待提示",
+              "refId": "dialogue-wait-cursor",
+              "style": {
+                "color": "#ffffff",
+                "opacity": 100
+              },
+              "props": {
+                "source": "legacy",
+                "imageAsset": "",
+                "shape": "diamond",
+                "accentColor": "#ff3d00",
+                "animation": "rotate",
+                "durationMs": 1000
+              },
+              "selectorId": "vui-28197ac174065ca685273c772a1b2699"
+            }
+          ],
+          "dialogueBehavior": {
+            "text_speed": 30
+          },
+          "name": "对话框"
+        }
+      }
+    ],
+    "activeDialogueStyle": null,
+    "activeParagraphStyle": {
+      "source": "preset",
+      "id": "cinematic"
+    },
+    "paragraphUserStyles": [],
+    "paragraphExtensionStyles": []
+  },
+  "extensionSettings": {}
+}
