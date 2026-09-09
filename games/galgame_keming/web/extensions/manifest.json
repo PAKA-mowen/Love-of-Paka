@@ -1,9 +1,0 @@
-{
-  "extensions": [
-    {
-      "id": "avg.internal.default-shell",
-      "manifestPath": "avg.internal.default-shell/manifest.json",
-      "entryPath": "avg.internal.default-shell/dist/index.mjs"
-    }
-  ]
-}
